@@ -1,0 +1,9 @@
+<div class="tool-surface-inner">
+  <div class="controls">
+    <label>Count <input type="number" min="1" max="1000" [(ngModel)]="count" /></label>
+    <label>Casing <select [(ngModel)]="casing"><option value="lower">lowercase</option><option value="upper">UPPERCASE</option></select></label>
+    <label>Format <select [(ngModel)]="format"><option value="plain">Plain text</option><option value="sql">SQL IN</option><option value="csharp">C# array</option><option value="json">JSON array</option><option value="typescript">TypeScript array</option></select></label>
+  </div>
+  <button mat-raised-button color="primary" (click)="generate()">Generate GUIDs</button>
+  <pre class="code-result">{{ result() }}</pre>
+</div>

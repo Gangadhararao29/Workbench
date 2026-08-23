@@ -1,0 +1,34 @@
+<div class="tool-surface-inner">
+  <div class="field">
+    <label>JWT token</label>
+    <app-code-editor [value]="input()" language="plaintext" ariaLabel="JWT token" (valueChange)="input.set($event)"></app-code-editor>
+  </div>
+
+  <button mat-raised-button color="primary" (click)="inspect()">Inspect token</button>
+
+  @if (error()) {
+    <p class="error-message">{{ error() }}</p>
+  }
+
+  @if (inspection(); as token) {
+    <div class="status-row">
+      <strong>{{ token.status }}</strong>
+      <span>Expires: {{ token.expiry }}</span>
+    </div>
+    <div class="jwt-grid">
+      <div class="field">
+        <label>Header</label>
+        <pre class="code-result">{{ token.header | json }}</pre>
+      </div>
+      <div class="field">
+        <label>Payload and claims</label>
+        <pre class="code-result">{{ token.payload | json }}</pre>
+      </div>
+    </div>
+    <p class="notice">Decoded locally. The signature has not been verified.</p>
+    <div class="field">
+      <label>ASP.NET Core claim helper</label>
+      <pre class="code-result">{{ claimHelper() }}</pre>
+    </div>
+  }
+</div>

@@ -1,0 +1,14 @@
+<div class="tab-strip">
+  @for (instance of instances; track instance.id) {
+    <div
+      class="tab"
+      [class.active]="instance.id === activeId"
+      (click)="select.emit(instance.id)"
+    >
+      <span>{{ instance.label }}</span>
+      <button mat-icon-button aria-label="Close tab" (click)="close.emit(instance.id); $event.stopPropagation()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+</div>

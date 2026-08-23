@@ -1,0 +1,21 @@
+<div class="tool-surface-inner">
+  <div class="field">
+    <label>Input</label>
+    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="input.set($event)"></app-code-editor>
+  </div>
+
+  <div class="actions">
+    <button mat-raised-button color="primary" (click)="format()">Format</button>
+    <button mat-stroked-button (click)="minify()">Minify</button>
+    <button mat-stroked-button (click)="validate()">Validate</button>
+  </div>
+
+  @if (status()) {
+    <p class="status-message" [class.error-message]="status().startsWith('Invalid')">{{ status() }}</p>
+  }
+
+  <div class="field grow">
+    <label>Result</label>
+    <app-code-editor [value]="result()" language="json" ariaLabel="JSON result" [readOnly]="true"></app-code-editor>
+  </div>
+</div>

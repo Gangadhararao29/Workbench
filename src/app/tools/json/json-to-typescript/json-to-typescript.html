@@ -1,0 +1,13 @@
+<div class="tool-surface-inner">
+  <div class="field">
+    <label>JSON input</label>
+    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="input.set($event)"></app-code-editor>
+  </div>
+
+  <button mat-raised-button color="primary" (click)="convert()">Convert to TypeScript</button>
+
+  <div class="field grow">
+    <label>TypeScript output</label>
+    <app-code-editor [value]="result()" language="typescript" ariaLabel="TypeScript output" [readOnly]="true"></app-code-editor>
+  </div>
+</div>

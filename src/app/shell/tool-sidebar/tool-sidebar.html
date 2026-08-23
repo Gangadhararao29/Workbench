@@ -1,0 +1,38 @@
+<div class="sidebar-header">
+  <span>Tools</span>
+  <button mat-icon-button matTooltip="Home" aria-label="Home" (click)="home.emit()">
+    <mat-icon>home</mat-icon>
+  </button>
+</div>
+
+<mat-accordion multi="true" displayMode="flat">
+  @for (group of filteredGroups; track group.id) {
+    <mat-expansion-panel [expanded]="group.id === 'sql'">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon class="group-icon">{{ group.icon }}</mat-icon>
+          {{ group.label }}
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      @for (tool of group.tools; track tool.type) {
+        <div class="tool-row" (click)="emit(tool.type, group.id)">
+          <button
+            mat-icon-button
+            [matTooltip]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
+            [attr.aria-label]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
+            (click)="toggleFavorite(tool.type); $event.stopPropagation()"
+          >
+            <mat-icon class="favorite-icon" [class.favorite-active]="isFavorite(tool.type)" inline="true">
+              {{ isFavorite(tool.type) ? 'star_shine' : 'star' }}
+            </mat-icon>
+          </button>
+          <span [matTooltip]="tool.description" matTooltipShowDelay="300">{{ tool.label }}</span>
+          <button mat-icon-button matTooltip="Open tool" aria-label="Open tool" (click)="emit(tool.type, group.id); $event.stopPropagation()">
+            <mat-icon inline="true">add</mat-icon>
+          </button>
+        </div>
+      }
+    </mat-expansion-panel>
+  }
+</mat-accordion>

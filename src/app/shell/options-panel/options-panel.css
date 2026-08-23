@@ -1,0 +1,85 @@
+.panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 16px 16px;
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+	color: var(--mat-sys-on-surface-variant);
+	font-size: 14px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.panel-title {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.panel-header button {
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	margin: -8px -8px -4px 8px;
+}
+
+.name-editor {
+	display: grid;
+	gap: 8px;
+	padding: 16px;
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.name-editor label {
+	color: var(--mat-sys-on-surface-variant);
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.name-editor input {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 40px;
+	padding: 8px 10px;
+	border: 1px solid var(--mat-sys-outline);
+	border-radius: 4px;
+	background: var(--mat-sys-surface-container-high);
+	color: var(--mat-sys-on-surface);
+	font: inherit;
+}
+
+.name-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.field,
+.toggle-row {
+	padding: 16px;
+}
+
+.field + .field,
+.toggle-row {
+	border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.field label {
+	display: block;
+	margin-bottom: 8px;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: 13px;
+	font-weight: 700;
+}
+
+mat-select {
+	display: block;
+}
+
+.toggle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}

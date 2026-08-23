@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "d5a25bde-a7a1-4671-8621-f131bf881dea"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -22,19 +23,24 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor/esm/vs",
+                "output": "assets/monaco/vs"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/material-theme.scss", "src/styles.css"]
           },
           "configurations": {
             "production": {
+              "serviceWorker": "ngsw-config.json",
+              "allowedCommonJsDependencies": ["nearley"],
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "6MB",
+                  "maximumError": "10MB"
                 },
                 {
                   "type": "anyComponentStyle",

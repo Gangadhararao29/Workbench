@@ -1,0 +1,16 @@
+<div class="tool-surface-inner">
+  <div class="field">
+    <label>Input</label>
+    <app-code-editor [value]="input()" language="sql" ariaLabel="SQL input" (valueChange)="input.set($event)"></app-code-editor>
+  </div>
+
+  <div class="actions">
+    <button mat-raised-button color="primary" (click)="format()">Format</button>
+    <button mat-stroked-button (click)="minify()">Minify</button>
+  </div>
+
+  <div class="field grow">
+    <label>Result</label>
+    <app-code-editor [value]="result()" language="sql" ariaLabel="SQL result" [readOnly]="true"></app-code-editor>
+  </div>
+</div>

@@ -1,0 +1,128 @@
+<div class="panel-header">
+  <div class="panel-title">{{ instance.label }} options</div>
+  @if (!editingName) {
+    <button mat-icon-button matTooltip="Edit tab name" aria-label="Edit tab name" (click)="startEditingName()">
+      <mat-icon>edit</mat-icon>
+    </button>
+  }
+</div>
+
+@if (editingName) {
+  <div class="name-editor">
+    <label for="tab-name">Tab name</label>
+    <input id="tab-name" [(ngModel)]="nameDraft" (keydown.enter)="saveName()" (keydown.escape)="cancelNameEdit()" />
+    <div class="name-actions">
+      <button mat-stroked-button type="button" (click)="cancelNameEdit()">Cancel</button>
+      <button mat-flat-button type="button" [disabled]="!nameDraft.trim()" (click)="saveName()">Save</button>
+    </div>
+  </div>
+}
+
+@switch (instance.toolType) {
+  @case ('sql-formatter') {
+    <div class="field">
+      <label>Dialect</label>
+      <mat-select [value]="instance.config['dialect']" (selectionChange)="update('dialect', $event.value)">
+        <mat-option value="Standard SQL">Standard SQL</mat-option>
+        <mat-option value="PostgreSQL">PostgreSQL</mat-option>
+        <mat-option value="MySQL">MySQL</mat-option>
+        <mat-option value="SQLite">SQLite</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Indent size</label>
+      <mat-select [value]="instance.config['indent']" (selectionChange)="update('indent', $event.value)">
+        <mat-option value="2 spaces">2 spaces</mat-option>
+        <mat-option value="4 spaces">4 spaces</mat-option>
+        <mat-option value="Tab">Tab</mat-option>
+      </mat-select>
+    </div>
+    <div class="toggle-row">
+      <span>Uppercase keywords</span>
+      <mat-slide-toggle
+        [checked]="instance.config['uppercaseKeywords']"
+        (change)="update('uppercaseKeywords', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>Break on commas</span>
+      <mat-slide-toggle
+        [checked]="instance.config['breakOnCommas']"
+        (change)="update('breakOnCommas', $event.checked)"
+      />
+    </div>
+  }
+  @case ('json-formatter') {
+    <div class="field">
+      <label>Indent size</label>
+      <mat-select [value]="instance.config['indent']" (selectionChange)="update('indent', $event.value)">
+        <mat-option value="2 spaces">2 spaces</mat-option>
+        <mat-option value="4 spaces">4 spaces</mat-option>
+      </mat-select>
+    </div>
+    <div class="toggle-row">
+      <span>Sort keys</span>
+      <mat-slide-toggle
+        [checked]="instance.config['sortKeys']"
+        (change)="update('sortKeys', $event.checked)"
+      />
+    </div>
+  }
+  @case ('csharp-to-typescript') {
+    <div class="field">
+      <label>Output type</label>
+      <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+        <mat-option value="interface">Interface</mat-option>
+        <mat-option value="type">Type</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Property naming</label>
+      <mat-select [value]="instance.config['naming']" (selectionChange)="update('naming', $event.value)">
+        <mat-option value="camel">camelCase</mat-option>
+        <mat-option value="pascal">PascalCase</mat-option>
+        <mat-option value="preserve">Preserve</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Nullable handling</label>
+      <mat-select [value]="instance.config['nullable']" (selectionChange)="update('nullable', $event.value)">
+        <mat-option value="null">null</mat-option>
+        <mat-option value="optional">Optional</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Enum output</label>
+      <mat-select [value]="instance.config['enumOutput']" (selectionChange)="update('enumOutput', $event.value)">
+        <mat-option value="enum">TypeScript enum</mat-option>
+        <mat-option value="union">String union</mat-option>
+      </mat-select>
+    </div>
+  }
+  @case ('json-to-typescript') {
+    <div class="field">
+      <label>Root type name</label>
+      <input [value]="instance.config['rootName']" (input)="update('rootName', $any($event.target).value)" />
+    </div>
+    <div class="field">
+      <label>Output type</label>
+      <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+        <mat-option value="interface">Interface</mat-option>
+        <mat-option value="type">Type</mat-option>
+      </mat-select>
+    </div>
+  }
+  @case ('sql-to-csharp') {
+    <div class="field">
+      <label>Output type</label>
+      <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+        <mat-option value="class">POCO class</mat-option>
+        <mat-option value="record">Record</mat-option>
+        <mat-option value="ef">EF entity</mat-option>
+      </mat-select>
+    </div>
+  }
+  @default {
+    <div class="empty-state">No options for this tool yet</div>
+  }
+}
