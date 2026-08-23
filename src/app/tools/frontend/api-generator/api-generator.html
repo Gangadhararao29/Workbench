@@ -1,7 +1,7 @@
 <div class="tool-surface-inner">
   <div class="form-grid">
     <label>Framework
-      <select [(ngModel)]="framework">
+      <select [(ngModel)]="framework" (ngModelChange)="onFrameworkChange()">
         <option value="angular">Angular</option>
         <option value="react">React</option>
         <option value="vue">Vue</option>
@@ -53,6 +53,9 @@
   </div>
 
   <button mat-raised-button color="primary" (click)="generate()">Generate client code</button>
-  
-  <pre class="code-result">{{ result() }}</pre>
+
+  <div class="field grow">
+    <label>Generated code</label>
+    <app-code-editor [value]="result()" [language]="outputLanguage" ariaLabel="Generated API client code" [readOnly]="true"></app-code-editor>
+  </div>
 </div>

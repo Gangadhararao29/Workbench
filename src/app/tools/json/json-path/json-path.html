@@ -1,1 +1,14 @@
-<div class="tool-surface-inner"><div class="field"><label>JSON input</label><textarea rows="12" [(ngModel)]="input" class="code-input"></textarea></div><div class="path-row"><input [(ngModel)]="path" placeholder="$.users[0].name" /><button mat-raised-button color="primary" (click)="evaluate()">Evaluate path</button></div><pre class="code-result">{{ result() }}</pre></div>
+<div class="tool-surface-inner">
+  <div class="field">
+    <label>JSON input</label>
+    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="input.set($event)"></app-code-editor>
+  </div>
+  <div class="path-row">
+    <input [(ngModel)]="path" placeholder="$.users[0].name" />
+    <button mat-raised-button color="primary" (click)="evaluate()">Evaluate path</button>
+  </div>
+  <div class="field grow">
+    <label>Result</label>
+    <app-code-editor [value]="result()" language="json" ariaLabel="JSON path result" [readOnly]="true"></app-code-editor>
+  </div>
+</div>

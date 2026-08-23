@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { InstanceService } from '../../../core/instance-service';
 import { pascalCase } from '../../../core/engines/code-naming';
+import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 interface SqlColumn { name: string; type: string; nullable: boolean; }
 
 @Component({
-  selector: 'app-sql-to-csharp', standalone: true, imports: [FormsModule, MatButtonModule],
+  selector: 'app-sql-to-csharp', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
   templateUrl: './sql-to-csharp.html', styleUrls: ['./sql-to-csharp.css']
 })
 export class SqlToCsharp {

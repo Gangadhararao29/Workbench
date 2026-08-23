@@ -1,1 +1,17 @@
-<div class="tool-surface-inner"><div class="diff-grid"><div class="field"><label>JSON A</label><textarea rows="12" [(ngModel)]="left" class="code-input"></textarea></div><div class="field"><label>JSON B</label><textarea rows="12" [(ngModel)]="right" class="code-input"></textarea></div></div><button mat-raised-button color="primary" (click)="compare()">Compare JSON</button><pre class="code-result">{{ result() }}</pre></div>
+<div class="tool-surface-inner">
+  <div class="diff-grid">
+    <div class="field">
+      <label>JSON A</label>
+      <app-code-editor [value]="left()" language="json" ariaLabel="JSON A" (valueChange)="left.set($event)"></app-code-editor>
+    </div>
+    <div class="field">
+      <label>JSON B</label>
+      <app-code-editor [value]="right()" language="json" ariaLabel="JSON B" (valueChange)="right.set($event)"></app-code-editor>
+    </div>
+  </div>
+  <button mat-raised-button color="primary" (click)="compare()">Compare JSON</button>
+  <div class="field grow">
+    <label>Differences</label>
+    <app-code-editor [value]="result()" language="json" ariaLabel="Diff result" [readOnly]="true"></app-code-editor>
+  </div>
+</div>

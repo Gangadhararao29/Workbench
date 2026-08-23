@@ -1,9 +1,10 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-curl-converter', standalone: true, imports: [FormsModule, MatButtonModule],
+  selector: 'app-curl-converter', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
   templateUrl: './curl-converter.html', styleUrls: ['./curl-converter.css']
 })
 export class CurlConverter {
@@ -11,6 +12,11 @@ export class CurlConverter {
   input = signal("curl -X GET 'https://localhost:5001/api/users' -H 'Authorization: Bearer token'");
   target: 'csharp' | 'fetch' | 'angular' | 'axios' | 'restsharp' = 'csharp';
   result = signal('');
+  outputLanguage = computed(() => {
+    if (this.target === 'csharp' || this.target === 'restsharp') return 'csharp';
+    if (this.target === 'angular') return 'typescript';
+    return 'javascript';
+  });
   convert() {
     const source = this.input().trim();
     if (!source) {

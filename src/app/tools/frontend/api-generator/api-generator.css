@@ -1,1 +1,49 @@
-.tool-surface-inner{display:flex;max-width:1000px;min-height:100%;flex-direction:column;gap:16px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.form-grid label{display:flex;flex-direction:column;gap:8px;color:var(--mat-sys-on-surface-variant);font-size:13px;font-weight:700}.form-grid input,.form-grid select,.code-result{box-sizing:border-box;width:100%;padding:10px;border:1px solid var(--mat-sys-outline);border-radius:6px;background:var(--mat-sys-surface-container-high);color:var(--mat-sys-on-surface);font:14px/1.5 'Roboto Mono',monospace}.code-result{flex:1;min-height:300px;margin:0;overflow:auto;padding:16px;white-space:pre-wrap}@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.tool-surface-inner {
+  display: flex;
+  max-width: 1000px;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  font-weight: 700;
+}
+.form-grid input,
+.form-grid select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: 14px/1.5 'Roboto Mono', monospace;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field label {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  font-weight: 700;
+}
+.field.grow {
+  flex: 1;
+}
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

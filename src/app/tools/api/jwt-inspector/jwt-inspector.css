@@ -3,7 +3,7 @@
 .field label { color: var(--mat-sys-on-surface-variant); font-size: 13px; font-weight: 700; }
 .code-input, .code-result { box-sizing: border-box; width: 100%; border: 1px solid var(--mat-sys-outline); border-radius: 6px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); font: 14px/1.5 'Roboto Mono', monospace; }
 .code-input { min-height: 180px; padding: 12px; resize: vertical; }
-.code-result { min-height: 160px; margin: 0; overflow: auto; padding: 16px; white-space: pre-wrap; }
+.code-result { min-height: 160px; margin: 0; overflow: auto; padding: 16px; white-space: pre-wrap; resize: vertical; }
 .jwt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .status-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 6px; background: var(--mat-sys-surface-container); }
 .error-message { margin: 0; color: var(--mat-sys-error); }

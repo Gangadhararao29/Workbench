@@ -2,9 +2,10 @@ import { Component, Input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { pascalCase } from '../../../core/engines/code-naming';
+import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-feature-generator', standalone: true, imports: [FormsModule, MatButtonModule],
+  selector: 'app-feature-generator', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
   templateUrl: './feature-generator.html', styleUrls: ['./feature-generator.css']
 })
 export class FeatureGenerator {

@@ -1,9 +1,10 @@
 import { Component, Input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-csharp-to-json', standalone: true, imports: [FormsModule, MatButtonModule],
+  selector: 'app-csharp-to-json', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
   templateUrl: './csharp-to-json.html', styleUrls: ['./csharp-to-json.css']
 })
 export class CsharpToJson {
