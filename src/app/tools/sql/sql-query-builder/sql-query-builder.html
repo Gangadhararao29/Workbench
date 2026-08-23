@@ -1,0 +1,292 @@
+<div class="tool-surface-inner">
+  <!-- Query Type & Dialect Selector Header -->
+  <div class="selector-header">
+    <!-- Query Types -->
+    <div class="query-tabs">
+      <button class="query-tab" [class.active]="queryType() === 'select'" (click)="setQueryType('select')">
+        <mat-icon>search</mat-icon> SELECT
+      </button>
+      <button class="query-tab" [class.active]="queryType() === 'insert'" (click)="setQueryType('insert')">
+        <mat-icon>add_box</mat-icon> INSERT
+      </button>
+      <button class="query-tab" [class.active]="queryType() === 'update'" (click)="setQueryType('update')">
+        <mat-icon>edit</mat-icon> UPDATE
+      </button>
+      <button class="query-tab" [class.active]="queryType() === 'delete'" (click)="setQueryType('delete')">
+        <mat-icon>delete_forever</mat-icon> DELETE
+      </button>
+    </div>
+
+    <!-- SQL Dialect Picker -->
+    <div class="dialect-group">
+      <button class="dialect-btn" [class.active]="dialect() === 'standard'" (click)="setDialect('standard')">PostgreSQL</button>
+      <button class="dialect-btn" [class.active]="dialect() === 'mysql'" (click)="setDialect('mysql')">MySQL</button>
+      <button class="dialect-btn" [class.active]="dialect() === 'tsql'" (click)="setDialect('tsql')">T-SQL (SQL Server)</button>
+      <button class="dialect-btn" [class.active]="dialect() === 'sqlite'" (click)="setDialect('sqlite')">SQLite</button>
+    </div>
+  </div>
+
+  <!-- Main Workspace Grid -->
+  <div class="builder-grid">
+    <!-- Left Column: Form Controls -->
+    <div class="builder-controls">
+      
+      <!-- Table & Columns Card -->
+      <div class="grid-card base-card">
+        <div class="card-header">
+          <mat-icon>table_chart</mat-icon>
+          <span>Target Table & Columns</span>
+        </div>
+        <div class="card-body form-body">
+          <div class="field-row">
+            <label for="table-input">Table Name</label>
+            <input 
+              id="table-input"
+              type="text" 
+              [ngModel]="tableName()" 
+              (ngModelChange)="tableName.set($event)" 
+              placeholder="e.g. users" 
+              class="form-field"
+            />
+          </div>
+
+          @if (queryType() === 'select') {
+            <div class="field-row margin-top">
+              <label for="columns-input">Columns to SELECT</label>
+              <input 
+                id="columns-input"
+                type="text" 
+                [ngModel]="columns()" 
+                (ngModelChange)="columns.set($event)" 
+                placeholder="e.g. *, id, username" 
+                class="form-field"
+              />
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- INSERT / UPDATE Data Pairs Card -->
+      @if (queryType() === 'insert' || queryType() === 'update') {
+        <div class="grid-card data-card">
+          <div class="card-header">
+            <mat-icon>view_list</mat-icon>
+            <span>Set Column Values</span>
+          </div>
+          <div class="card-body form-body">
+            <div class="list-container">
+              @for (pair of dataPairs(); track $index) {
+                <div class="pair-row">
+                  <input 
+                    [(ngModel)]="pair.column" 
+                    placeholder="Column Name" 
+                    class="form-field column-field"
+                  />
+                  <span class="equals-symbol">=</span>
+                  <input 
+                    [(ngModel)]="pair.value" 
+                    placeholder="Value (e.g. 'Ada', 28)" 
+                    class="form-field value-field"
+                  />
+                  <button mat-icon-button color="warn" (click)="removePair($index)" class="btn-delete" aria-label="Delete field">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+              <button mat-stroked-button (click)="addPair()" class="btn-add">
+                <mat-icon>add</mat-icon> Add Field
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- JOINs Card (SELECT mode only) -->
+      @if (queryType() === 'select') {
+        <div class="grid-card join-card">
+          <div class="card-header">
+            <mat-icon>join_inner</mat-icon>
+            <span>JOIN Clauses</span>
+          </div>
+          <div class="card-body form-body">
+            <div class="list-container">
+              @for (join of joins(); track $index) {
+                <div class="clause-row join-row">
+                  <select [(ngModel)]="join.type" class="form-field join-type-field">
+                    <option value="INNER">INNER</option>
+                    <option value="LEFT">LEFT</option>
+                    <option value="RIGHT">RIGHT</option>
+                    <option value="FULL">FULL</option>
+                  </select>
+                  <input 
+                    [(ngModel)]="join.table" 
+                    placeholder="Join Table" 
+                    class="form-field join-table-field"
+                  />
+                  <span class="on-label">ON</span>
+                  <input 
+                    [(ngModel)]="join.condition" 
+                    placeholder="e.g. orders.user_id = users.id" 
+                    class="form-field join-condition-field"
+                  />
+                  <button mat-icon-button color="warn" (click)="removeJoin($index)" class="btn-delete" aria-label="Delete Join">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+              <button mat-stroked-button (click)="addJoin()" class="btn-add">
+                <mat-icon>add</mat-icon> Add Join
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- WHERE Conditions Card (SELECT, UPDATE, DELETE modes) -->
+      @if (queryType() !== 'insert') {
+        <div class="grid-card where-card">
+          <div class="card-header">
+            <mat-icon>filter_alt</mat-icon>
+            <span>Filters (WHERE Clauses)</span>
+          </div>
+          <div class="card-body form-body">
+            <div class="list-container">
+              @for (where of wheres(); track $index) {
+                <div class="clause-row where-row">
+                  @if ($index > 0) {
+                    <select [(ngModel)]="where.conjunction" class="form-field conj-field">
+                      <option value="AND">AND</option>
+                      <option value="OR">OR</option>
+                    </select>
+                  } @else {
+                    <span class="where-label">WHERE</span>
+                  }
+                  
+                  <input 
+                    [(ngModel)]="where.column" 
+                    placeholder="Column" 
+                    class="form-field where-col-field"
+                  />
+
+                  <select [(ngModel)]="where.operator" class="form-field where-op-field">
+                    <option value="=">=</option>
+                    <option value="!=">!=</option>
+                    <option value=">">&gt;</option>
+                    <option value="<">&lt;</option>
+                    <option value="LIKE">LIKE</option>
+                    <option value="IN">IN</option>
+                    <option value="IS NULL">IS NULL</option>
+                    <option value="IS NOT NULL">IS NOT NULL</option>
+                  </select>
+
+                  @if (where.operator !== 'IS NULL' && where.operator !== 'IS NOT NULL') {
+                    <input 
+                      [(ngModel)]="where.value" 
+                      placeholder="Value" 
+                      class="form-field where-val-field"
+                    />
+                  }
+
+                  <button mat-icon-button color="warn" (click)="removeWhere($index)" class="btn-delete" aria-label="Delete Filter">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              } @empty {
+                <div class="no-clauses-prompt">No WHERE conditions configured (query affects all rows).</div>
+              }
+              <button mat-stroked-button (click)="addWhere()" class="btn-add margin-top">
+                <mat-icon>add</mat-icon> Add Filter Condition
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Order & Pagination Card (SELECT mode only) -->
+      @if (queryType() === 'select') {
+        <div class="grid-card sort-card">
+          <div class="card-header">
+            <mat-icon>sort</mat-icon>
+            <span>Sorting & Pagination</span>
+          </div>
+          <div class="card-body form-body pagination-body">
+            <!-- Order By list -->
+            <div class="order-by-section">
+              <label>Order By Clauses</label>
+              <div class="list-container">
+                @for (order of orderBys(); track $index) {
+                  <div class="order-row">
+                    <input 
+                      [(ngModel)]="order.column" 
+                      placeholder="Column Name" 
+                      class="form-field order-col-field"
+                    />
+                    <select [(ngModel)]="order.direction" class="form-field order-dir-field">
+                      <option value="ASC">ASC</option>
+                      <option value="DESC">DESC</option>
+                    </select>
+                    <button mat-icon-button color="warn" (click)="removeOrderBy($index)" class="btn-delete" aria-label="Delete Sort">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                }
+                <button mat-stroked-button (click)="addOrderBy()" class="btn-add">
+                  <mat-icon>add</mat-icon> Add Sort Column
+                </button>
+              </div>
+            </div>
+
+            <div class="pagination-row">
+              <div class="field-row half-width">
+                <label for="limit-input">Row Limit</label>
+                <input 
+                  id="limit-input"
+                  type="number" 
+                  [ngModel]="limit()" 
+                  (ngModelChange)="limit.set($event)" 
+                  placeholder="e.g. 50" 
+                  class="form-field"
+                />
+              </div>
+              <div class="field-row half-width">
+                <label for="offset-input">Row Offset</label>
+                <input 
+                  id="offset-input"
+                  type="number" 
+                  [ngModel]="offset()" 
+                  (ngModelChange)="offset.set($event)" 
+                  placeholder="e.g. 0" 
+                  class="form-field"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- Right Column: Live Output Snippet -->
+    <div class="builder-output">
+      <div class="grid-card output-sql-card">
+        <div class="card-header console-header">
+          <div class="console-title">
+            <mat-icon>code</mat-icon>
+            <span>Generated SQL</span>
+          </div>
+          <div class="console-actions">
+            <button mat-stroked-button (click)="reset()" class="btn-reset">
+              <mat-icon>restart_alt</mat-icon> Reset
+            </button>
+            <button mat-raised-button color="primary" (click)="copySql()" class="btn-copy">
+              <mat-icon>content_copy</mat-icon> Copy SQL
+            </button>
+          </div>
+        </div>
+        <div class="card-body console-body">
+          <pre class="console-output">{{ generatedSql() }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

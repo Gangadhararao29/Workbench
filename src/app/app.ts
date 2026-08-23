@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InstanceService } from './core/instance-service';
+import { TOOL_GROUPS, UPCOMING_GROUPS } from './core/tool-registry';
 import { ToolSidebar } from './shell/tool-sidebar/tool-sidebar';
 import { InstanceTabs } from './shell/instance-tabs/instance-tabs';
 import { OptionsPanel } from './shell/options-panel/options-panel';
@@ -33,6 +34,17 @@ import { EfConfiguration } from './tools/ef/ef-configuration/ef-configuration';
 import { ApiGenerator } from './tools/frontend/api-generator/api-generator';
 import { FeatureGenerator } from './tools/dotnet/feature-generator/feature-generator';
 import { DocumentationHub } from './tools/general/documentation-hub/documentation-hub';
+import { TerminalTool } from './tools/general/terminal/terminal';
+import { LogViewer } from './tools/general/log-viewer/log-viewer';
+import { SqlQueryBuilder } from './tools/sql/sql-query-builder/sql-query-builder';
+
+const TOOLS_WITH_OPTIONS = new Set([
+  'sql-formatter',
+  'json-formatter',
+  'csharp-to-typescript',
+  'json-to-typescript',
+  'sql-to-csharp'
+]);
 
 const THEME_KEY = 'workbench.theme';
 
@@ -73,7 +85,10 @@ const THEME_KEY = 'workbench.theme';
     EfConfiguration,
     ApiGenerator,
     FeatureGenerator,
-    DocumentationHub
+    DocumentationHub,
+    TerminalTool,
+    LogViewer,
+    SqlQueryBuilder
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
@@ -84,7 +99,11 @@ export class App {
 
   isDark = signal(this.loadTheme());
   searchQuery = signal('');
-  activeInstance : any;
+  activeInstance: any;
+  readonly toolGroups = TOOL_GROUPS;
+  activeHomeTab = signal<'tools' | 'upcoming'>('tools');
+  readonly upcomingGroups = UPCOMING_GROUPS;
+  rightDrawerOpened = signal(false);
   
   constructor(public instanceService: InstanceService) {
     this.activeInstance = this.instanceService.activeInstance;
@@ -92,6 +111,16 @@ export class App {
       const dark = this.isDark();
       document.body.classList.toggle('dark-theme', dark);
       localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+    });
+
+    effect(() => {
+      const active = this.activeInstance();
+      if (!active) {
+        this.rightDrawerOpened.set(false);
+      } else {
+        const hasOptions = TOOLS_WITH_OPTIONS.has(active.toolType);
+        this.rightDrawerOpened.set(hasOptions);
+      }
     });
   }
 
@@ -110,7 +139,7 @@ export class App {
   }
 
   toggleRight() {
-    this.rightDrawer.toggle();
+    this.rightDrawerOpened.update(v => !v);
   }
 
   async exportWorkspace() {
@@ -133,6 +162,10 @@ export class App {
 
   closeTab(id: string) {
     this.instanceService.close(id);
+  }
+
+  closeAllTools() {
+    this.instanceService.closeAll();
   }
 
   goHome() {

@@ -1,0 +1,115 @@
+<div class="tool-surface-inner">
+  <!-- Category Navigation Bar -->
+  <div class="category-tabs">
+    <button class="category-tab" [class.active]="activeCategory() === 'git'" (click)="setCategory('git')">
+      <mat-icon>merge</mat-icon> Git
+    </button>
+    <button class="category-tab" [class.active]="activeCategory() === 'npm'" (click)="setCategory('npm')">
+      <mat-icon>auto_awesome_motion</mat-icon> npm
+    </button>
+    <button class="category-tab" [class.active]="activeCategory() === 'dotnet'" (click)="setCategory('dotnet')">
+      <mat-icon>api</mat-icon> .NET Core
+    </button>
+    <button class="category-tab" [class.active]="activeCategory() === 'docker'" (click)="setCategory('docker')">
+      <mat-icon>directions_boat</mat-icon> Docker
+    </button>
+    <button class="category-tab" [class.active]="activeCategory() === 'k8s'" (click)="setCategory('k8s')">
+      <mat-icon>hub</mat-icon> Kubernetes
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input 
+      type="text" 
+      [ngModel]="searchQuery()" 
+      (ngModelChange)="searchQuery.set($event)" 
+      placeholder="Search command snippets in {{ activeCategory() }}..." 
+      class="search-input" 
+    />
+  </div>
+
+  <!-- Work Area Grid -->
+  <div class="terminal-grid">
+    <!-- Left Panel: Command Templates List -->
+    <div class="commands-panel">
+      <div class="panel-header-row">
+        <span class="panel-header-title">Commands</span>
+        <div class="level-toggle-group">
+          <button class="level-toggle-btn" [class.active]="activeLevel() === 'all'" (click)="setLevel('all')">All</button>
+          <button class="level-toggle-btn" [class.active]="activeLevel() === 'basic'" (click)="setLevel('basic')">Basic</button>
+          <button class="level-toggle-btn" [class.active]="activeLevel() === 'advanced'" (click)="setLevel('advanced')">Adv</button>
+        </div>
+      </div>
+      <div class="commands-list">
+        @for (cmd of filteredCommands(); track cmd.name) {
+          <button 
+            class="command-item" 
+            [class.active]="selectedCommand() === cmd" 
+            (click)="selectCommand(cmd)"
+          >
+            <div class="cmd-item-title">{{ cmd.name }}</div>
+            <div class="cmd-item-desc">{{ cmd.description }}</div>
+          </button>
+        } @empty {
+          <div class="empty-state">No matching commands found.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Right Panel: Configurations & Output Code -->
+    <div class="configs-panel">
+      @if (selectedCommand()) {
+        <!-- Parameters Card -->
+        <div class="grid-card param-card">
+          <div class="card-header">
+            <mat-icon>settings</mat-icon>
+            <span>Command Parameters</span>
+          </div>
+          <div class="card-body">
+            @if (selectedCommand()!.params.length > 0) {
+              <div class="params-form">
+                @for (param of selectedCommand()!.params; track param.key) {
+                  <div class="field-row">
+                    <label [for]="'param-' + param.key">{{ param.label }}</label>
+                    <input 
+                      [id]="'param-' + param.key"
+                      [value]="paramValues()[param.key] || ''"
+                      (input)="updateParam(param.key, $any($event.target).value)"
+                      class="param-field"
+                      placeholder="e.g. {{ param.default }}"
+                    />
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="no-params-text">No custom parameters required for this command.</div>
+            }
+          </div>
+        </div>
+
+        <!-- CLI Output Card -->
+        <div class="grid-card output-card">
+          <div class="card-header console-header">
+            <div class="console-title">
+              <mat-icon>terminal</mat-icon>
+              <span>Command Output</span>
+            </div>
+            <button mat-raised-button color="primary" (click)="copyCommand()" class="btn-copy">
+              <mat-icon>content_copy</mat-icon> Copy Command
+            </button>
+          </div>
+          <div class="card-body console-body">
+            <pre class="console-output">{{ generatedCommand() }}</pre>
+          </div>
+        </div>
+      } @else {
+        <div class="select-prompt">
+          <mat-icon>ads_click</mat-icon>
+          <p>Select a command template from the list to begin building.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

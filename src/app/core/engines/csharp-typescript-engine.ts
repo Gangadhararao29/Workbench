@@ -1,3 +1,5 @@
+import { type Parser, type Language, type Node } from 'web-tree-sitter';
+
 export interface CSharpConversionOptions {
   outputType?: string;
   naming?: string;
@@ -19,34 +21,199 @@ interface CSharpType {
   values: string[];
 }
 
-export function convertCsharpToTypescript(source: string, config: CSharpConversionOptions = {}): string {
-  const types = parseTypes(source);
-  return types.length
-    ? types.map(type => renderType(type, config)).join('\n\n') + '\n'
-    : '';
+// ---------------------------------------------------------------------------
+// Tree-sitter initialisation (lazy, single-instance)
+// web-tree-sitter is an ESM browser package. Its Node.js code paths
+// (fs/promises, module) are guarded by runtime checks and never execute in
+// the browser — we mark them external via angular.json → externalDependencies
+// so esbuild does not try to bundle them.
+// ---------------------------------------------------------------------------
+
+let parserReady: Promise<Parser> | null = null;
+
+function getParser(): Promise<Parser> {
+  if (parserReady) return parserReady;
+
+  parserReady = (async () => {
+    // Dynamic import keeps tree-sitter out of the initial bundle chunk.
+    const TreeSitter = await import('web-tree-sitter');
+    await TreeSitter.Parser.init({
+      locateFile: () => '/assets/tree-sitter/web-tree-sitter.wasm',
+    });
+    const CSharp = await TreeSitter.Language.load('/assets/tree-sitter/tree-sitter-c_sharp.wasm');
+    const parser = new TreeSitter.Parser();
+    parser.setLanguage(CSharp);
+    return parser;
+  })();
+
+  return parserReady;
 }
 
-function parseTypes(source: string): CSharpType[] {
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+export async function convertCsharpToTypescript(
+  source: string,
+  config: CSharpConversionOptions = {}
+): Promise<string> {
+  const types = await parseTypes(source);
+  return types.length ? types.map(type => renderType(type, config)).join('\n\n') + '\n' : '';
+}
+
+// ---------------------------------------------------------------------------
+// Parser — tree-sitter CST walk
+// ---------------------------------------------------------------------------
+
+async function parseTypes(source: string): Promise<CSharpType[]> {
+  const parser = await getParser();
+  const tree = parser.parse(source);
+  if (!tree) return [];
   const types: CSharpType[] = [];
-  const typePattern = /(?:public\s+)?(?:(?:partial|sealed|abstract)\s+)*(class|record(?:\s+class)?|enum)\s+(\w+)(?:\s*<[^>]+>)?[^\{]*\{([\s\S]*?)\n?\}/g;
-  let match: RegExpExecArray | null;
-  while ((match = typePattern.exec(source))) {
-    const kind = match[1].startsWith('enum') ? 'enum' : match[1].startsWith('record') ? 'record' : 'class';
-    const body = match[3];
-    if (kind === 'enum') {
-      types.push({ name: match[2], kind, properties: [], values: body.split(',').map(value => value.trim()).filter(Boolean) });
-      continue;
-    }
-    const properties: CSharpProperty[] = [];
-    const propertyPattern = /(?:\[JsonPropertyName\("([^"]+)"\)\]\s*)?(?:public|private|protected|internal)?\s*(?:required\s+|static\s+|virtual\s+|override\s+)*(\w+(?:<[^>]+>)?(?:\[\])?)(\?)?\s+(\w+)\s*(?:\{|;)/g;
-    let property: RegExpExecArray | null;
-    while ((property = propertyPattern.exec(body))) {
-      properties.push({ name: property[4], type: property[2], nullable: Boolean(property[3]), jsonName: property[1] });
-    }
-    types.push({ name: match[2], kind, properties, values: [] });
-  }
+  walkNode(tree.rootNode, types);
   return types;
 }
+
+function walkNode(node: Node, types: CSharpType[]): void {
+  for (const child of node.children) {
+    if (
+      child.type === 'class_declaration' ||
+      child.type === 'record_declaration' ||
+      child.type === 'record_struct_declaration'
+    ) {
+      const parsed = parseClassOrRecord(child);
+      if (parsed) types.push(parsed);
+    } else if (child.type === 'enum_declaration') {
+      const parsed = parseEnum(child);
+      if (parsed) types.push(parsed);
+    } else {
+      // Recurse into namespaces, file-scoped namespaces, etc.
+      walkNode(child, types);
+    }
+  }
+}
+
+function parseClassOrRecord(node: Node): CSharpType | null {
+  const nameNode = node.childForFieldName('name');
+  if (!nameNode) return null;
+
+  const kind = node.type.startsWith('record') ? 'record' : 'class';
+  const properties: CSharpProperty[] = [];
+  const body = node.childForFieldName('body');
+
+  if (body) {
+    for (const member of body.children) {
+      if (member.type === 'property_declaration') {
+        const prop = parseProperty(member);
+        if (prop) properties.push(prop);
+      } else if (member.type === 'field_declaration') {
+        const prop = parseField(member);
+        if (prop) properties.push(prop);
+      }
+    }
+  }
+
+  // Record primary constructor parameters are also properties
+  const params = node.childForFieldName('parameters');
+  if (params) {
+    for (const param of params.children) {
+      if (param.type === 'parameter') {
+        const prop = parseParameter(param);
+        if (prop) properties.push(prop);
+      }
+    }
+  }
+
+  return { name: nameNode.text, kind, properties, values: [] };
+}
+
+function parseProperty(node: Node): CSharpProperty | null {
+  const typeNode = node.childForFieldName('type');
+  const nameNode = node.childForFieldName('name');
+  if (!typeNode || !nameNode) return null;
+
+  const jsonName = findJsonPropertyName(node);
+  const { typeName, nullable } = extractType(typeNode);
+
+  return { name: nameNode.text, type: typeName, nullable, jsonName };
+}
+
+function parseField(node: Node): CSharpProperty | null {
+  const typeNode = node.childForFieldName('type');
+  const declarator = node.children.find((c: Node) => c.type === 'variable_declarator');
+  if (!typeNode || !declarator) return null;
+
+  const nameNode = declarator.childForFieldName('name');
+  if (!nameNode) return null;
+
+  const { typeName, nullable } = extractType(typeNode);
+  return { name: nameNode.text, type: typeName, nullable };
+}
+
+function parseParameter(node: Node): CSharpProperty | null {
+  const typeNode = node.childForFieldName('type');
+  const nameNode = node.childForFieldName('name');
+  if (!typeNode || !nameNode) return null;
+
+  const { typeName, nullable } = extractType(typeNode);
+  return { name: nameNode.text, type: typeName, nullable };
+}
+
+function parseEnum(node: Node): CSharpType | null {
+  const nameNode = node.childForFieldName('name');
+  if (!nameNode) return null;
+
+  const body = node.childForFieldName('body');
+  const values: string[] = [];
+
+  if (body) {
+    for (const member of body.children) {
+      if (member.type === 'enum_member_declaration') {
+        const memberName = member.childForFieldName('name');
+        const memberValue = member.childForFieldName('value');
+        if (memberName) {
+          values.push(memberValue ? `${memberName.text} = ${memberValue.text}` : memberName.text);
+        }
+      }
+    }
+  }
+
+  return { name: nameNode.text, kind: 'enum', properties: [], values };
+}
+
+function extractType(node: Node): { typeName: string; nullable: boolean } {
+  if (node.type === 'nullable_type') {
+    const inner = node.child(0);
+    return { typeName: inner ? inner.text : node.text, nullable: true };
+  }
+  return { typeName: node.text, nullable: false };
+}
+
+function findJsonPropertyName(node: Node): string | undefined {
+  for (const child of node.children) {
+    if (child.type === 'attribute_list') {
+      for (const attr of child.children) {
+        if (attr.type === 'attribute') {
+          const attrName = attr.childForFieldName('name');
+          if (attrName?.text === 'JsonPropertyName') {
+            const args = attr.childForFieldName('argument_list');
+            if (args) {
+              const strNode = args.children.find(
+                (c: Node) => c.type === 'string_literal' || c.type === 'verbatim_string_literal'
+              );
+              if (strNode) return strNode.text.replace(/^[@"']+|["']+$/g, '');
+            }
+          }
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Renderer
+// ---------------------------------------------------------------------------
 
 function renderType(type: CSharpType, config: CSharpConversionOptions): string {
   if (type.kind === 'enum') {
@@ -66,7 +233,9 @@ function renderType(type: CSharpType, config: CSharpConversionOptions): string {
     const nullable = property.nullable && config.nullable !== 'optional' ? ' | null' : '';
     return `  ${name}${optional}: ${mapType(property.type)}${nullable};`;
   });
-  return `export ${declaration} ${type.name} {\n${properties.join('\n')}\n}`;
+  const opening = declaration === 'type' ? `export type ${type.name} = {` : `export interface ${type.name} {`;
+  const closing = declaration === 'type' ? '};' : '}';
+  return `${opening}\n${properties.join('\n')}\n${closing}`;
 }
 
 function propertyName(name: string, naming: string | undefined): string {

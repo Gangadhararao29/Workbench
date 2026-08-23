@@ -28,14 +28,26 @@
                 "glob": "**/*",
                 "input": "node_modules/monaco-editor/esm/vs",
                 "output": "assets/monaco/vs"
+              },
+              {
+                "glob": "web-tree-sitter.wasm",
+                "input": "node_modules/web-tree-sitter",
+                "output": "assets/tree-sitter"
+              },
+              {
+                "glob": "tree-sitter-c_sharp.wasm",
+                "input": "node_modules/tree-sitter-c-sharp",
+                "output": "assets/tree-sitter"
               }
             ],
-            "styles": ["src/material-theme.scss", "src/styles.css"]
+            "styles": ["src/material-theme.scss", "src/styles.css"],
+            "loader": { ".ttf": "file" },
+            "externalDependencies": ["fs/promises", "module", "path", "util", "fs", "os", "stream", "url", "zlib"]
           },
           "configurations": {
             "production": {
               "serviceWorker": "ngsw-config.json",
-              "allowedCommonJsDependencies": ["nearley"],
+              "allowedCommonJsDependencies": ["nearley", "@apidevtools/swagger-parser", "@apidevtools/json-schema-ref-parser", "@jsdevtools/ono", "js-yaml", "call-me-maybe", "ts-morph", "@ts-morph/common"],
               "budgets": [
                 {
                   "type": "initial",

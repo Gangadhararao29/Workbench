@@ -32,12 +32,16 @@ export class CsharpToTypescript {
   );
 
   async format() {
-    const result = convertCsharpToTypescript(this.input(), this.config());
-    if (!result) {
-      this.result.set('No C# classes, records, or enums found.');
-      return;
+    try {
+      const result = await convertCsharpToTypescript(this.input(), this.config());
+      if (!result) {
+        this.result.set('No C# classes, records, or enums found.');
+        return;
+      }
+      this.result.set(await formatTypescript(result));
+    } catch (error) {
+      this.result.set(`Error: ${(error as Error).message}`);
     }
-    this.result.set(await formatTypescript(result));
   }
 }
 

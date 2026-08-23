@@ -11,15 +11,28 @@ export class CsharpToJson {
   input = signal('public class UserDto\n{\n  public int Id { get; set; }\n  public string Name { get; set; }\n  public DateTime CreatedAt { get; set; }\n  public bool IsActive { get; set; }\n}');
   result = signal('');
   convert() {
-    const classMatch = this.input().match(/(?:class|record)\s+(\w+)[^{]*\{([\s\S]*?)\}/i);
-    if (!classMatch) { this.result.set('No C# class or record found.'); return; }
+    const source = this.input();
+    const classMatch = source.match(/(?:class|record)\s+(\w+)[^{]*\{/i);
+    const bodyStart = classMatch?.index === undefined ? -1 : classMatch.index + classMatch[0].length - 1;
+    const bodyEnd = bodyStart >= 0 ? findMatchingBrace(source, bodyStart) : -1;
+    if (!classMatch || bodyEnd < 0) { this.result.set('No C# class or record found.'); return; }
     const values: Record<string, unknown> = {};
     const properties = /(?:public|internal|private)?\s*(\w+(?:<[^>]+>)?(?:\[\])?)(\?)?\s+(\w+)\s*(?:\{|;)/g;
     let match: RegExpExecArray | null;
-    while ((match = properties.exec(classMatch[2]))) values[match[3].charAt(0).toLowerCase() + match[3].slice(1)] = sampleValue(match[1], Boolean(match[2]));
+    while ((match = properties.exec(source.slice(bodyStart + 1, bodyEnd)))) values[match[3].charAt(0).toLowerCase() + match[3].slice(1)] = sampleValue(match[1], Boolean(match[2]));
     this.result.set(JSON.stringify(values, null, 2));
   }
 }
+
+function findMatchingBrace(source: string, openingBrace: number): number {
+  let depth = 0;
+  for (let index = openingBrace; index < source.length; index++) {
+    if (source[index] === '{') depth++;
+    if (source[index] === '}' && --depth === 0) return index;
+  }
+  return -1;
+}
+
 function sampleValue(type: string, nullable: boolean): unknown {
   if (nullable) return null;
   const collection = type.match(/^(?:List|ICollection|IEnumerable)<(.+)>$/);

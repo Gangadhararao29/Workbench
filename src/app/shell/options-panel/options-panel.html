@@ -24,6 +24,7 @@
       <label>Dialect</label>
       <mat-select [value]="instance.config['dialect']" (selectionChange)="update('dialect', $event.value)">
         <mat-option value="Standard SQL">Standard SQL</mat-option>
+        <mat-option value="SQL Server">SQL Server</mat-option>
         <mat-option value="PostgreSQL">PostgreSQL</mat-option>
         <mat-option value="MySQL">MySQL</mat-option>
         <mat-option value="SQLite">SQLite</mat-option>
@@ -38,17 +39,73 @@
       </mat-select>
     </div>
     <div class="toggle-row">
-      <span>Uppercase keywords</span>
+      <span>Keyword case</span>
+      <mat-select [value]="instance.config['keywordCase']" (selectionChange)="update('keywordCase', $event.value)">
+        <mat-option value="upper">Uppercase</mat-option>
+        <mat-option value="lower">Lowercase</mat-option>
+        <mat-option value="preserve">Preserve</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Data type case</label>
+      <mat-select [value]="instance.config['dataTypeCase']" (selectionChange)="update('dataTypeCase', $event.value)">
+        <mat-option value="upper">Uppercase</mat-option>
+        <mat-option value="lower">Lowercase</mat-option>
+        <mat-option value="preserve">Preserve</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Function case</label>
+      <mat-select [value]="instance.config['functionCase']" (selectionChange)="update('functionCase', $event.value)">
+        <mat-option value="upper">Uppercase</mat-option>
+        <mat-option value="lower">Lowercase</mat-option>
+        <mat-option value="preserve">Preserve</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Identifier case</label>
+      <mat-select [value]="instance.config['identifierCase']" (selectionChange)="update('identifierCase', $event.value)">
+        <mat-option value="upper">Uppercase</mat-option>
+        <mat-option value="lower">Lowercase</mat-option>
+        <mat-option value="preserve">Preserve</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Logical operator newline</label>
+      <mat-select [value]="instance.config['logicalOperatorNewline']" (selectionChange)="update('logicalOperatorNewline', $event.value)">
+        <mat-option value="before">Before AND / OR</mat-option>
+        <mat-option value="after">After AND / OR</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Expression width</label>
+      <mat-select [value]="instance.config['expressionWidth']" (selectionChange)="update('expressionWidth', $event.value)">
+        <mat-option [value]="30">30 characters</mat-option>
+        <mat-option [value]="50">50 characters</mat-option>
+        <mat-option [value]="80">80 characters</mat-option>
+        <mat-option [value]="1000">Unlimited</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Blank lines between queries</label>
+      <mat-select [value]="instance.config['linesBetweenQueries']" (selectionChange)="update('linesBetweenQueries', $event.value)">
+        <mat-option [value]="0">None</mat-option>
+        <mat-option [value]="1">One</mat-option>
+        <mat-option [value]="2">Two</mat-option>
+      </mat-select>
+    </div>
+    <div class="toggle-row">
+      <span>Pack operators</span>
       <mat-slide-toggle
-        [checked]="instance.config['uppercaseKeywords']"
-        (change)="update('uppercaseKeywords', $event.checked)"
+        [checked]="instance.config['denseOperators']"
+        (change)="update('denseOperators', $event.checked)"
       />
     </div>
     <div class="toggle-row">
-      <span>Break on commas</span>
+      <span>Put semicolon on new line</span>
       <mat-slide-toggle
-        [checked]="instance.config['breakOnCommas']"
-        (change)="update('breakOnCommas', $event.checked)"
+        [checked]="instance.config['newlineBeforeSemicolon']"
+        (change)="update('newlineBeforeSemicolon', $event.checked)"
       />
     </div>
   }

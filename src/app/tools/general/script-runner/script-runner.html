@@ -1,1 +1,120 @@
-<div class="tool-surface-inner"><div class="field"><label>Script name</label><input [(ngModel)]="scriptName" class="text-input" /></div><div class="field"><label>Inputs (JSON)</label><app-code-editor [value]="inputs" language="json" ariaLabel="Script inputs" (valueChange)="inputs = $event"></app-code-editor></div><div class="field"><label>JavaScript</label><app-code-editor [value]="script" language="javascript" ariaLabel="JavaScript source" (valueChange)="script = $event"></app-code-editor></div><div class="actions"><button mat-raised-button color="primary" (click)="execute()">Execute</button><button mat-stroked-button (click)="reset()">Reset</button><button mat-stroked-button (click)="exportDefinition()">Export JSON</button><button mat-stroked-button (click)="importDefinition()">Import JSON</button></div><div class="field"><label>Definition JSON</label><app-code-editor [value]="definition()" language="json" ariaLabel="Script definition" (valueChange)="definition.set($event)"></app-code-editor></div><div class="field grow"><label>Output</label><pre class="code-result">{{ result() }}</pre></div></div>
+<div class="tool-surface-inner">
+  <!-- Toolbar / Header Row -->
+  <div class="runner-header">
+    <div class="title-field">
+      <label for="script-name-input">Script Name</label>
+      <input id="script-name-input" [(ngModel)]="scriptName" class="text-input" placeholder="My Script" />
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="execute()" class="btn-execute">
+        <mat-icon>play_arrow</mat-icon> Run Script
+      </button>
+      <button mat-stroked-button (click)="reset()" matTooltip="Reset to default script and inputs">
+        <mat-icon>restart_alt</mat-icon> Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Workspace Grid Layout -->
+  <div class="workspace-grid">
+    <!-- Left Column: Source Code Editor -->
+    <div class="grid-card script-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>javascript</mat-icon>
+          <span>JavaScript Code</span>
+        </div>
+        <span class="card-subtitle">Write a function body returning a value (async/await supported)</span>
+      </div>
+      <div class="card-body">
+        <app-code-editor [value]="script" language="javascript" ariaLabel="JavaScript source"
+          (valueChange)="script = $event"></app-code-editor>
+      </div>
+    </div>
+
+    <!-- Right Column: Inputs & Outputs -->
+    <div class="right-column-stack">
+      <!-- Inputs Card -->
+      <div class="grid-card inputs-card">
+        <div class="card-header">
+          <div class="card-title-row">
+            <div class="card-title">
+              <mat-icon>data_object</mat-icon>
+              <span>Inputs</span>
+            </div>
+            <div class="toggle-group">
+              <button class="toggle-btn" [class.active]="inputType === 'json'"
+                (click)="setInputType('json')">JSON</button>
+              <button class="toggle-btn" [class.active]="inputType === 'object'"
+                (click)="setInputType('object')">Object</button>
+            </div>
+          </div>
+          <span class="card-subtitle">Parameters passed to the script as the <code>inputs</code> object</span>
+        </div>
+        <div class="card-body">
+          <app-code-editor [value]="inputs" [language]="inputType === 'json' ? 'json' : 'javascript'"
+            ariaLabel="Script inputs" (valueChange)="inputs = $event"></app-code-editor>
+        </div>
+      </div>
+
+      <!-- Output / Console Card -->
+      <div class="grid-card console-card">
+        <div class="card-header console-header">
+          <div class="card-title">
+            <mat-icon>terminal</mat-icon>
+            <span>Execution Console</span>
+          </div>
+          <div class="status-indicators">
+            @if (result().startsWith('Script failed:') || result() === 'Invalid script definition JSON.') {
+            <span class="status-badge error-badge">Error</span>
+            } @else if (result().startsWith('Script imported.')) {
+            <span class="status-badge success-badge">Imported</span>
+            } @else if (result()) {
+            <span class="status-badge success-badge">Success</span>
+            } @else {
+            <span class="status-badge idle-badge">Idle</span>
+            }
+          </div>
+        </div>
+        <div class="card-body console-body">
+          @if (result()) {
+          <pre class="code-result">{{ result() }}</pre>
+          } @else {
+          <div class="console-placeholder">
+            <mat-icon>play_circle</mat-icon>
+            <p>Click "Run Script" above to see the output here.</p>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collapsible Import / Export section -->
+  <div class="import-export-section">
+    <details class="details-collapse">
+      <summary class="collapse-summary">
+        <mat-icon class="summary-icon">settings_ethernet</mat-icon>
+        <span>Import / Export Script Definition</span>
+        <mat-icon class="arrow-icon">expand_more</mat-icon>
+      </summary>
+      <div class="collapse-content">
+        <p class="description-text">Save or load your script templates as single JSON objects containing the name,
+          inputs configuration, and code.</p>
+        <div class="details-actions">
+          <button mat-stroked-button (click)="exportDefinition()">
+            <mat-icon>download</mat-icon> Export JSON Definition
+          </button>
+          <button mat-stroked-button (click)="importDefinition()">
+            <mat-icon>upload</mat-icon> Import JSON Definition
+          </button>
+        </div>
+        <div class="details-editor">
+          <label>Definition JSON</label>
+          <app-code-editor [value]="definition()" language="json" ariaLabel="Script definition"
+            (valueChange)="definition.set($event)"></app-code-editor>
+        </div>
+      </div>
+    </details>
+  </div>
+</div>

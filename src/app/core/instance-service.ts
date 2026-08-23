@@ -71,6 +71,11 @@ export class InstanceService {
     }
   }
 
+  closeAll() {
+    this.instances().forEach(instance => this.close(instance.id));
+    this._activeId.set(null);
+  }
+
   reopen(id: string) {
     this._instances.update(list =>
       list.map(i => i.id === id ? { ...i, closedAt: undefined } : i)

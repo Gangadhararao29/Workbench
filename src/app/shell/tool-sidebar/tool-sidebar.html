@@ -1,13 +1,15 @@
 <div class="sidebar-header">
   <span>Tools</span>
-  <button mat-icon-button matTooltip="Home" aria-label="Home" (click)="home.emit()">
-    <mat-icon>home</mat-icon>
-  </button>
+  @if (hasOpenTools) {
+    <button mat-icon-button matTooltip="Close all tools" aria-label="Close all tools" (click)="closeAll.emit()">
+      <mat-icon>close</mat-icon>
+    </button>
+  }
 </div>
 
 <mat-accordion multi="true" displayMode="flat">
   @for (group of filteredGroups; track group.id) {
-    <mat-expansion-panel [expanded]="group.id === 'sql'">
+    <mat-expansion-panel [expanded]="group.id === 'json'">
       <mat-expansion-panel-header>
         <mat-panel-title>
           <mat-icon class="group-icon">{{ group.icon }}</mat-icon>

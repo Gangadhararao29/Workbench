@@ -43,4 +43,15 @@ describe('InstanceService', () => {
     expect(service.instances()).toHaveLength(1);
     expect(service.activeInstance()?.id).toBe(id);
   });
+
+  it('closes all open instances and clears the active instance', () => {
+    service.open('json-formatter', 'json');
+    service.open('sql-formatter', 'sql');
+
+    service.closeAll();
+
+    expect(service.instances()).toHaveLength(0);
+    expect(service.activeInstance()).toBeNull();
+    expect(service.archived()).toHaveLength(2);
+  });
 });

@@ -10,24 +10,61 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import * as monaco from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api.js';
+import * as monaco from 'monaco-editor';
+
+// ---------------------------------------------------------------------------
+// Worker configuration
+// Monaco's editor.worker.js is a classic script (not ESM), so we must NOT
+// use { type: 'module' }. We also suppress the type error with a cast.
+// ---------------------------------------------------------------------------
 
 let workerConfigured = false;
 
 function configureMonacoWorkers() {
   if (workerConfigured) return;
-  (globalThis as typeof globalThis & { MonacoEnvironment?: monaco.Environment }).MonacoEnvironment = {
-    getWorker() {
-      return new Worker('/assets/monaco/vs/editor/editor.worker.js', { type: 'module' });
+  (globalThis as any).MonacoEnvironment = {
+    getWorker(_: string, label: string) {
+      if (label === 'json') {
+        return new Worker(
+          new URL('../../../../node_modules/monaco-editor/esm/vs/language/json/json.worker.js', import.meta.url),
+          { type: 'module' }
+        );
+      }
+      if (label === 'css' || label === 'scss' || label === 'less') {
+        return new Worker(
+          new URL('../../../../node_modules/monaco-editor/esm/vs/language/css/css.worker.js', import.meta.url),
+          { type: 'module' }
+        );
+      }
+      if (label === 'html' || label === 'handlebars' || label === 'razor') {
+        return new Worker(
+          new URL('../../../../node_modules/monaco-editor/esm/vs/language/html/html.worker.js', import.meta.url),
+          { type: 'module' }
+        );
+      }
+      if (label === 'typescript' || label === 'javascript') {
+        return new Worker(
+          new URL('../../../../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js', import.meta.url),
+          { type: 'module' }
+        );
+      }
+      return new Worker(
+        new URL('../../../../node_modules/monaco-editor/esm/vs/editor/editor.worker.js', import.meta.url),
+        { type: 'module' }
+      );
     },
   };
   workerConfigured = true;
 }
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 @Component({
   selector: 'app-code-editor',
   standalone: true,
-  template: '<div #editor class="code-editor"></div>',
+  template: '<div #editorHost class="code-editor"></div>',
   styleUrls: ['./code-editor.css'],
 })
 export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
@@ -36,14 +73,18 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   @Input() ariaLabel = 'Code editor';
   @Input() readOnly = false;
   @Output() valueChange = new EventEmitter<string>();
-  @ViewChild('editor', { static: true }) editorElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('editorHost', { static: true }) editorHost!: ElementRef<HTMLDivElement>;
 
   private editor?: monaco.editor.IStandaloneCodeEditor;
-  private valueSubscription?: monaco.IDisposable;
+  private changeSubscription?: monaco.IDisposable;
+  // Track the value we last pushed INTO the editor so we can avoid
+  // re-setting it when the change originated from the editor itself,
+  // which would otherwise create an infinite update loop.
+  private lastPushedValue: string | undefined;
 
   ngAfterViewInit() {
     configureMonacoWorkers();
-    this.editor = monaco.editor.create(this.editorElement.nativeElement, {
+    this.editor = monaco.editor.create(this.editorHost.nativeElement, {
       value: this.value,
       language: this.language,
       readOnly: this.readOnly,
@@ -52,25 +93,52 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       fontSize: 14,
       padding: { top: 12, bottom: 12 },
       scrollBeyondLastLine: false,
+      scrollbar: {
+        alwaysConsumeMouseWheel: false,
+      },
       theme: document.body.classList.contains('dark-theme') ? 'vs-dark' : 'vs',
       ariaLabel: this.ariaLabel,
     });
-    this.valueSubscription = this.editor.onDidChangeModelContent(() => {
-      this.valueChange.emit(this.editor?.getValue() ?? '');
+
+    this.lastPushedValue = this.value;
+
+    this.changeSubscription = this.editor.onDidChangeModelContent(() => {
+      const current = this.editor?.getValue() ?? '';
+      // Only emit if the change came from user interaction, not from us
+      // calling setValue() — avoids the infinite loop.
+      if (current !== this.lastPushedValue) {
+        this.valueChange.emit(current);
+      }
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['value'] && this.editor && changes['value'].currentValue !== this.editor.getValue()) {
-      this.editor.setValue(changes['value'].currentValue);
+    if (!this.editor) return; // editor not yet initialised — skip
+
+    if (changes['value']) {
+      const incoming: string = changes['value'].currentValue ?? '';
+      // Only call setValue when the value genuinely differs from what the
+      // editor currently holds, to prevent cursor-jumping on every keystroke.
+      if (incoming !== this.editor.getValue()) {
+        this.lastPushedValue = incoming;
+        this.editor.setValue(incoming);
+      }
     }
-    if (changes['language'] && this.editor) {
-      monaco.editor.setModelLanguage(this.editor.getModel()!, this.language);
+
+    if (changes['language']) {
+      const model = this.editor.getModel();
+      if (model) {
+        monaco.editor.setModelLanguage(model, this.language);
+      }
+    }
+
+    if (changes['readOnly']) {
+      this.editor.updateOptions({ readOnly: this.readOnly });
     }
   }
 
   ngOnDestroy() {
-    this.valueSubscription?.dispose();
+    this.changeSubscription?.dispose();
     this.editor?.dispose();
   }
 }

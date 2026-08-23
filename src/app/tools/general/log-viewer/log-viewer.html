@@ -1,0 +1,107 @@
+<div class="tool-surface-inner">
+  <!-- Paste Logs Area -->
+  <div class="grid-card input-logs-card">
+    <div class="card-header">
+      <mat-icon>insert_drive_file</mat-icon>
+      <span>Raw Log Source</span>
+    </div>
+    <div class="card-body">
+      <textarea 
+        [(ngModel)]="rawLogs" 
+        class="log-textarea" 
+        rows="6" 
+        placeholder="Paste your JSON lines or raw text logs here..."
+      ></textarea>
+      <div class="input-actions">
+        <button mat-raised-button color="primary" (click)="parseLogs()">
+          <mat-icon>terminal</mat-icon> Parse & Analyze Logs
+        </button>
+        <button mat-stroked-button (click)="clearLogs()">
+          <mat-icon>clear_all</mat-icon> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (parsedLogs().length > 0) {
+    <!-- Parsed Logs Workspace -->
+    <div class="grid-card workspace-card">
+      <div class="card-header workspace-header">
+        <!-- Level Filters -->
+        <div class="level-tabs">
+          <button class="level-tab" [class.active]="activeLevel() === 'all'" (click)="setLevelFilter('all')">
+            All ({{ parsedLogs().length }})
+          </button>
+          <button class="level-tab lvl-error" [class.active]="activeLevel() === 'error'" (click)="setLevelFilter('error')">
+            <mat-icon>error</mat-icon> Errors
+          </button>
+          <button class="level-tab lvl-warn" [class.active]="activeLevel() === 'warn'" (click)="setLevelFilter('warn')">
+            <mat-icon>warning</mat-icon> Warnings
+          </button>
+          <button class="level-tab lvl-info" [class.active]="activeLevel() === 'info'" (click)="setLevelFilter('info')">
+            <mat-icon>info</mat-icon> Info
+          </button>
+          <button class="level-tab lvl-debug" [class.active]="activeLevel() === 'debug'" (click)="setLevelFilter('debug')">
+            <mat-icon>bug_report</mat-icon> Debug
+          </button>
+        </div>
+
+        <!-- Filter Text -->
+        <div class="filter-container">
+          <mat-icon class="filter-icon">search</mat-icon>
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="searchQuery.set($event)" 
+            placeholder="Search logs..." 
+            class="filter-input" 
+          />
+        </div>
+      </div>
+
+      <div class="card-body logs-list-body">
+        <div class="logs-table-header">
+          <div class="th th-level">Level</div>
+          <div class="th th-time">Timestamp</div>
+          <div class="th th-msg">Message Summary</div>
+        </div>
+        
+        <div class="logs-rows-container">
+          @for (log of filteredLogs(); track log.id) {
+            <div class="log-row-container">
+              <div 
+                class="log-row" 
+                [class.row-expanded]="log.expanded"
+                [class.row-error]="log.level === 'error'"
+                [class.row-warn]="log.level === 'warn'"
+                [class.row-info]="log.level === 'info'"
+                [class.row-debug]="log.level === 'debug'"
+                (click)="toggleExpand(log)"
+              >
+                <div class="td td-level">
+                  <span class="level-badge" [class]="log.level">{{ log.level }}</span>
+                </div>
+                <div class="td td-time">{{ log.timestamp }}</div>
+                <div class="td td-msg">{{ log.message }}</div>
+                <div class="td td-arrow">
+                  <mat-icon>{{ log.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </div>
+              </div>
+
+              @if (log.expanded) {
+                <div class="log-details-block">
+                  <div class="details-top">
+                    <span>Parsed Properties</span>
+                  </div>
+                  <pre class="metadata-code">{{ formatMetadata(log.metadata) }}</pre>
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="empty-state">No log entries matched your filter selection.</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

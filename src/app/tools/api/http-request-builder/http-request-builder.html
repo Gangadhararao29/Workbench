@@ -1,1 +1,17 @@
-<div class="tool-surface-inner"><div class="request-line"><select [(ngModel)]="method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input [(ngModel)]="url" placeholder="https://api.example.com/items" /></div><div class="field"><label>Query parameters</label><textarea rows="4" [(ngModel)]="query" class="code-input" placeholder="page=1&#10;pageSize=20"></textarea></div><div class="field"><label>Headers</label><textarea rows="5" [(ngModel)]="headers" class="code-input" placeholder="Authorization: Bearer token"></textarea></div><div class="field"><label>JSON body</label><textarea rows="7" [(ngModel)]="body" class="code-input"></textarea></div><button mat-raised-button color="primary" [disabled]="loading()" (click)="send()">{{ loading() ? 'Sending...' : 'Send request' }}</button><pre class="code-result">{{ result() }}</pre></div>
+<div class="tool-surface-inner">
+	<div class="request-line"><select [(ngModel)]="method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input [(ngModel)]="url" placeholder="https://api.example.com/items" /></div>
+	<div class="request-editors">
+		<div class="field compact-field"><label>Query parameters</label><textarea rows="2" [(ngModel)]="query" class="code-input" placeholder="page=1&#10;pageSize=20"></textarea></div>
+		<div class="field compact-field"><label>Headers</label><textarea rows="2" [(ngModel)]="headers" class="code-input" placeholder="Authorization: Bearer token"></textarea></div>
+	</div>
+	<div class="request-output-row">
+		@if (method !== 'GET' && method !== 'HEAD') {
+			<div class="field compact-field"><label>JSON body</label><textarea rows="4" [(ngModel)]="body" class="code-input"></textarea></div>
+		}
+		<button mat-raised-button color="primary" [disabled]="loading()" (click)="send()">{{ loading() ? 'Sending...' : 'Send request' }}</button>
+		<div class="response-panel" [class.response-success]="resultStatus() === 'success'" [class.response-error]="resultStatus() === 'error'">
+			<div class="response-heading"><label>Response</label><span class="response-status">{{ responseStatus() }}</span></div>
+			<app-code-editor class="response-editor" [value]="responseBody()" [language]="responseLanguage()" ariaLabel="HTTP response" [readOnly]="true"></app-code-editor>
+		</div>
+	</div>
+</div>

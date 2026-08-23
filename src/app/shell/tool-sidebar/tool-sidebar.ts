@@ -16,7 +16,9 @@ import { WorkspaceStorage } from '../../core/workspace-storage';
 })
 export class ToolSidebar {
   @Input() searchQuery = '';
+  @Input() hasOpenTools = false;
   @Output() openTool = new EventEmitter<{ toolType: string; groupId: string }>();
+  @Output() closeAll = new EventEmitter<void>();
   @Output() home = new EventEmitter<void>();
   favoriteTools = new Set<string>();
 

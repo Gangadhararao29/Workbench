@@ -1,0 +1,388 @@
+.tool-surface-inner {
+  display: flex;
+  max-width: 1200px;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+/* Header Selectors */
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding-bottom: 16px;
+}
+
+/* Query Types */
+.query-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.query-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.query-tab:hover {
+  background: var(--mat-sys-surface-container-high);
+}
+
+.query-tab.active {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  border-color: var(--mat-sys-primary);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--mat-sys-shadow) 15%, transparent);
+}
+
+.query-tab mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Dialect Selector */
+.dialect-group {
+  display: flex;
+  background: var(--mat-sys-surface-container-highest);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.dialect-btn {
+  background: transparent;
+  border: none;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.dialect-btn:hover {
+  background: color-mix(in srgb, var(--mat-sys-on-surface-variant) 6%, transparent);
+}
+
+.dialect-btn.active {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Grid Layout */
+.builder-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .builder-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.builder-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Common Card Styles */
+.grid-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container);
+  overflow: hidden;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--mat-sys-shadow) 4%, transparent);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 50%, var(--mat-sys-surface-container));
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+}
+
+.card-header mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--mat-sys-primary);
+}
+
+.card-body {
+  padding: 16px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+/* Form Styles */
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-row label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.form-field {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-field:focus {
+  border-color: var(--mat-sys-primary);
+}
+
+.margin-top {
+  margin-top: 10px;
+}
+
+/* List Row Containers */
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pair-row, .clause-row, .order-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.equals-symbol {
+  font-weight: 700;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.column-field {
+  flex: 0.4;
+  min-width: 120px;
+}
+
+.value-field {
+  flex: 0.6;
+  min-width: 180px;
+}
+
+.btn-delete {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-delete mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.btn-add {
+  align-self: flex-start;
+  font-size: 11px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+}
+
+.btn-add mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* Join Clause row splits */
+.join-type-field {
+  flex: 0.2;
+  min-width: 80px;
+  cursor: pointer;
+}
+
+.join-table-field {
+  flex: 0.3;
+  min-width: 120px;
+}
+
+.on-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+}
+
+.join-condition-field {
+  flex: 0.5;
+  min-width: 200px;
+}
+
+/* Where Clause row splits */
+.conj-field {
+  flex: 0.15;
+  min-width: 70px;
+  cursor: pointer;
+}
+
+.where-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+  width: 70px;
+}
+
+.where-col-field {
+  flex: 0.35;
+  min-width: 120px;
+}
+
+.where-op-field {
+  flex: 0.2;
+  min-width: 90px;
+  cursor: pointer;
+}
+
+.where-val-field {
+  flex: 0.3;
+  min-width: 140px;
+}
+
+.no-clauses-prompt {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+  padding: 8px;
+}
+
+/* Pagination & Sorting */
+.pagination-body {
+  gap: 16px;
+}
+
+.order-by-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.order-by-section label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.order-col-field {
+  flex: 0.7;
+  min-width: 150px;
+}
+
+.order-dir-field {
+  flex: 0.3;
+  min-width: 80px;
+  cursor: pointer;
+}
+
+.pagination-row {
+  display: flex;
+  gap: 12px;
+  border-top: 1px dashed var(--mat-sys-outline-variant);
+  padding-top: 14px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+/* Console Output Styles */
+.builder-output {
+  position: sticky;
+  top: 16px;
+}
+
+.console-header {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.console-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.console-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-reset, .btn-copy {
+  font-weight: 600 !important;
+}
+
+.console-body {
+  background: var(--mat-sys-surface-container-lowest);
+  padding: 12px;
+}
+
+.console-output {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: 13px/1.5 'Roboto Mono', monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow: auto;
+  min-height: 250px;
+  max-height: 520px;
+}

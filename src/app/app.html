@@ -4,13 +4,15 @@
   <mat-toolbar class="app-toolbar">
     <div class="toolbar-left">
       <mat-icon>terminal</mat-icon>
-      <span class="text-xl">Workbench</span>
+      <button class="toolbar-brand" (click)="goHome()" matTooltip="Home" aria-label="Go to home">
+        Workbench
+      </button>
     </div>
 
     <div class="toolbar-right">
       <input
         type="text"
-        placeholder="Search tools and instances"
+        placeholder="Search tools…"
         class="search-input"
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
@@ -22,17 +24,9 @@
       <button mat-icon-button (click)="toggleRight()" matTooltip="Toggle options panel" aria-label="Toggle options panel">
         <mat-icon>dock_to_left</mat-icon>
       </button>
-
-      <!-- Theme toggle, replaces the login/avatar icon -->
-      <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme">
+      <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme" aria-label="Toggle theme">
         <mat-icon>{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
-      <!-- <button mat-icon-button (click)="exportWorkspace()" matTooltip="Copy workspace" aria-label="Copy workspace">
-        <mat-icon>upload</mat-icon>
-      </button>
-      <button mat-icon-button (click)="importWorkspace()" matTooltip="Import workspace" aria-label="Import workspace">
-        <mat-icon>download</mat-icon>
-      </button> -->
     </div>
   </mat-toolbar>
 
@@ -40,7 +34,13 @@
   <mat-sidenav-container class="body-container">
 
     <mat-sidenav #leftDrawer mode="side" opened class="left-panel">
-      <app-tool-sidebar [searchQuery]="searchQuery()" (openTool)="openTool($event.toolType, $event.groupId)" (home)="goHome()" />
+      <app-tool-sidebar
+        [searchQuery]="searchQuery()"
+        [hasOpenTools]="instanceService.instances().length > 0"
+        (openTool)="openTool($event.toolType, $event.groupId)"
+        (closeAll)="closeAllTools()"
+        (home)="goHome()"
+      />
     </mat-sidenav>
 
     <mat-sidenav-content class="center-content">
@@ -125,60 +125,106 @@
           @case ('script-runner') {
             <app-script-runner [instanceId]="activeInstance()!.id" />
           }
+          @case ('terminal') {
+            <app-terminal-tool [instanceId]="activeInstance()!.id" />
+          }
+          @case ('log-viewer') {
+            <app-log-viewer [instanceId]="activeInstance()!.id" />
+          }
+          @case ('sql-query-builder') {
+            <app-sql-query-builder [instanceId]="activeInstance()!.id" />
+          }
           @default {
-            <section class="empty-state" aria-labelledby="welcome-title">
-              <div class="empty-state-heading">
-                <mat-icon>terminal</mat-icon>
-                <div>
-                  <h1 id="welcome-title">Welcome to Workbench</h1>
-                  <p>Choose a tool from the sidebar to start a focused workspace.</p>
+            <!-- Home dashboard -->
+            <section class="home" aria-labelledby="welcome-title">
+
+              <header class="home-hero">
+                <div class="home-hero-icon">
+                  <mat-icon>terminal</mat-icon>
                 </div>
+                <div>
+                  <h1 id="welcome-title">Developer Workbench</h1>
+                  <p>All your everyday dev tools in one focused workspace. Pick a tool below or use the sidebar.</p>
+                </div>
+              </header>
+
+              <div class="home-tabs">
+                <button
+                  class="home-tab"
+                  [class.active]="activeHomeTab() === 'tools'"
+                  (click)="activeHomeTab.set('tools')"
+                >
+                  <mat-icon>apps</mat-icon>
+                  Available Tools
+                </button>
+                <button
+                  class="home-tab"
+                  [class.active]="activeHomeTab() === 'upcoming'"
+                  (click)="activeHomeTab.set('upcoming')"
+                >
+                  <mat-icon>explore</mat-icon>
+                  Upcoming Features
+                </button>
               </div>
 
-              <div class="tool-guide">
-                <article class="tool-guide-item">
-                  <mat-icon>data_object</mat-icon>
-                  <div>
-                    <h2>JSON</h2>
-                    <p>Format, compare, query, and convert JSON into useful typed models.</p>
-                  </div>
-                </article>
-                <article class="tool-guide-item">
-                  <mat-icon>storage</mat-icon>
-                  <div>
-                    <h2>SQL</h2>
-                    <p>Format queries, generate database code, and search SQL safely.</p>
-                  </div>
-                </article>
-                <article class="tool-guide-item">
-                  <mat-icon>code</mat-icon>
-                  <div>
-                    <h2>.NET</h2>
-                    <p>Convert C# models, format code, and generate application features.</p>
-                  </div>
-                </article>
-                <article class="tool-guide-item">
-                  <mat-icon>api</mat-icon>
-                  <div>
-                    <h2>API</h2>
-                    <p>Inspect tokens, convert cURL, build requests, and review OpenAPI files.</p>
-                  </div>
-                </article>
-                <article class="tool-guide-item">
-                  <mat-icon>apps</mat-icon>
-                  <div>
-                    <h2>General</h2>
-                    <p>Use everyday utilities for GUIDs, timestamps, regex, scripts, and docs.</p>
-                  </div>
-                </article>
-              </div>
+              @if (activeHomeTab() === 'tools') {
+                <div class="home-groups">
+                  @for (group of toolGroups; track group.id) {
+                    <div class="home-group">
+                      <h2 class="home-group-title">
+                        <mat-icon class="home-group-icon">{{ group.icon }}</mat-icon>
+                        {{ group.label }}
+                      </h2>
+                      <div class="home-tool-grid">
+                        @for (tool of group.tools; track tool.type) {
+                          <button
+                            class="home-tool-card"
+                            (click)="openTool(tool.type, group.id)"
+                            [attr.aria-label]="'Open ' + tool.label"
+                          >
+                            <span class="home-tool-name">{{ tool.label }}</span>
+                            <span class="home-tool-desc">{{ tool.description }}</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="home-groups">
+                  @for (group of upcomingGroups; track group.id) {
+                    <div class="home-group">
+                      <h2 class="home-group-title">
+                        <mat-icon class="home-group-icon">{{ group.icon }}</mat-icon>
+                        {{ group.label }}
+                      </h2>
+                      <div class="home-tool-grid">
+                        @for (feature of group.features; track feature.label) {
+                          <div class="home-feature-card">
+                            <span class="home-tool-name">{{ feature.label }}</span>
+                            <span class="home-tool-desc">{{ feature.description }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
             </section>
           }
         }
       </div>
     </mat-sidenav-content>
 
-    <mat-sidenav #rightDrawer mode="side" [opened]="!!activeInstance()" position="end" class="right-panel">
+    <mat-sidenav
+      #rightDrawer
+      mode="side"
+      [opened]="rightDrawerOpened()"
+      (openedChange)="rightDrawerOpened.set($event)"
+      position="end"
+      class="right-panel"
+    >
       @if (activeInstance()) {
         <app-options-panel [instance]="activeInstance()!" />
       }

@@ -20,6 +20,10 @@ export class OpenapiInspector {
       this.endpoints.set(inspection.endpoints);
       this.schemas.set(inspection.schemas);
       this.error.set('');
-    } catch (error) { this.error.set(`Invalid OpenAPI JSON: ${(error as Error).message}`); this.endpoints.set([]); this.schemas.set([]); }
+    } catch (error) {
+      this.error.set(`Invalid OpenAPI JSON: ${(error as Error).message}`);
+      this.endpoints.set([]);
+      this.schemas.set([]);
+    }
   }
 }
