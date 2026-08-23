@@ -1,3 +1,25 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+/* Prevent Tailwind from adding a resize handle to Monaco Editor's hidden input */
+.monaco-editor textarea {
+  resize: none !important;
+}
+
+/* Fix Tailwind CSS conflict with Monaco Editor layout and missing line numbers */
+.monaco-editor, .monaco-editor * {
+  box-sizing: content-box !important;
+}
+
+.monaco-editor input,
+.monaco-editor textarea,
+.monaco-editor select,
+.monaco-editor button {
+  box-sizing: border-box !important;
+}
+
+/* Ensure font and line-height metrics aren't skewed by Tailwind's preflight */
+.monaco-editor .margin-view-overlays * {
+  line-height: normal !important;
+}

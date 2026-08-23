@@ -20,36 +20,40 @@ import * as monaco from 'monaco-editor';
 
 let workerConfigured = false;
 
+function monacoWorkerUrl(path: string): URL {
+  return new URL(`assets/monaco/vs/${path}`, document.baseURI);
+}
+
 function configureMonacoWorkers() {
   if (workerConfigured) return;
   (globalThis as any).MonacoEnvironment = {
     getWorker(_: string, label: string) {
       if (label === 'json') {
         return new Worker(
-          new URL('../../../../node_modules/monaco-editor/esm/vs/language/json/json.worker.js', import.meta.url),
+          monacoWorkerUrl('language/json/json.worker.js'),
           { type: 'module' }
         );
       }
       if (label === 'css' || label === 'scss' || label === 'less') {
         return new Worker(
-          new URL('../../../../node_modules/monaco-editor/esm/vs/language/css/css.worker.js', import.meta.url),
+          monacoWorkerUrl('language/css/css.worker.js'),
           { type: 'module' }
         );
       }
       if (label === 'html' || label === 'handlebars' || label === 'razor') {
         return new Worker(
-          new URL('../../../../node_modules/monaco-editor/esm/vs/language/html/html.worker.js', import.meta.url),
+          monacoWorkerUrl('language/html/html.worker.js'),
           { type: 'module' }
         );
       }
       if (label === 'typescript' || label === 'javascript') {
         return new Worker(
-          new URL('../../../../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js', import.meta.url),
+          monacoWorkerUrl('language/typescript/ts.worker.js'),
           { type: 'module' }
         );
       }
       return new Worker(
-        new URL('../../../../node_modules/monaco-editor/esm/vs/editor/editor.worker.js', import.meta.url),
+        monacoWorkerUrl('editor/editor.worker.js'),
         { type: 'module' }
       );
     },
@@ -77,6 +81,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
 
   private editor?: monaco.editor.IStandaloneCodeEditor;
   private changeSubscription?: monaco.IDisposable;
+  private resizeObserver?: ResizeObserver;
   // Track the value we last pushed INTO the editor so we can avoid
   // re-setting it when the change originated from the editor itself,
   // which would otherwise create an infinite update loop.
@@ -100,6 +105,10 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       ariaLabel: this.ariaLabel,
     });
 
+    this.resizeObserver = new ResizeObserver(() => this.editor?.layout());
+    this.resizeObserver.observe(this.editorHost.nativeElement);
+    requestAnimationFrame(() => this.editor?.layout());
+
     this.lastPushedValue = this.value;
 
     this.changeSubscription = this.editor.onDidChangeModelContent(() => {
@@ -122,6 +131,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       if (incoming !== this.editor.getValue()) {
         this.lastPushedValue = incoming;
         this.editor.setValue(incoming);
+        requestAnimationFrame(() => this.editor?.layout());
       }
     }
 
@@ -138,6 +148,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.resizeObserver?.disconnect();
     this.changeSubscription?.dispose();
     this.editor?.dispose();
   }
