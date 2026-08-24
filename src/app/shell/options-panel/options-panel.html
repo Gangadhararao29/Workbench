@@ -179,6 +179,65 @@
       </mat-select>
     </div>
   }
+  @case ('feature-generator') {
+    <div class="toggle-row">
+      <span>Entity</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeEntity'] ?? true"
+        (change)="update('includeEntity', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>DTO</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeDto'] ?? true"
+        (change)="update('includeDto', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>Repository</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeRepository'] ?? true"
+        (change)="update('includeRepository', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>Application service</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeService'] ?? true"
+        (change)="update('includeService', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>API controller</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeController'] ?? true"
+        (change)="update('includeController', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>EF Core configuration</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeConfiguration'] ?? true"
+        (change)="update('includeConfiguration', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>TypeScript model</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeFrontend'] ?? true"
+        (change)="update('includeFrontend', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>Angular service</span>
+      <mat-slide-toggle
+        [checked]="instance.config['includeAngularService'] ?? true"
+        [disabled]="!(instance.config['includeFrontend'] ?? true)"
+        (change)="update('includeAngularService', $event.checked)"
+      />
+    </div>
+  }
   @default {
     <div class="empty-state">No options for this tool yet</div>
   }

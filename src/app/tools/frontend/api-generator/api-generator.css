@@ -1,49 +1,372 @@
-.tool-surface-inner {
-  display: flex;
-  max-width: 1000px;
-  min-height: 100%;
-  flex-direction: column;
-  gap: 16px;
-}
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-.form-grid label {
+.api-generator-root {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 13px;
-  font-weight: 700;
-}
-.form-grid input,
-.form-grid select {
-  box-sizing: border-box;
+  gap: 14px;
   width: 100%;
-  padding: 10px;
-  border: 1px solid var(--mat-sys-outline);
-  border-radius: 6px;
-  background: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-on-surface);
-  font: 14px/1.5 'Roboto Mono', monospace;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4px 0 24px 0;
+  box-sizing: border-box;
 }
-.field {
+
+/* Row 1: Framework Icons & Mode Toggle */
+.top-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.framework-icons-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.framework-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fw-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 20px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.fw-pill-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.fw-pill-btn:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+  border-color: var(--mat-sys-primary);
+}
+
+.fw-pill-btn.active {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-color: var(--mat-sys-primary);
+  font-weight: 600;
+}
+
+/* Mode Toggle Group (Right) */
+.mode-toggle-group {
+  display: flex;
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.mode-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.mode-btn:hover {
+  color: var(--mat-sys-on-surface);
+}
+
+.mode-btn.active {
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Row 2: Inputs Grid */
+.inputs-grid {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.field-group {
   display: flex;
   flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.field-group.span-endpoint {
+  flex: 2;
+  min-width: 200px;
+}
+
+.field-group.method-col {
+  flex: 0 0 110px;
+  min-width: 110px;
+}
+
+.field-group.pattern-col {
+  flex: 1.5;
+  min-width: 180px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.field-select,
+.field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+  color: var(--mat-sys-on-surface);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.field-input.mono {
+  font-family: 'Roboto Mono', monospace;
+}
+
+.field-select:focus,
+.field-input:focus {
+  border-color: var(--mat-sys-primary);
+}
+
+/* Row 3: Direct Options Checkboxes */
+.options-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type='checkbox'] {
+  accent-color: var(--mat-sys-primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* Output Card & Tabs */
+.output-card {
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 520px;
+  height: 550px;
+}
+
+.output-tabs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--mat-sys-surface-container);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding: 0 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.tab-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.tab-btn:hover {
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.tab-btn.active {
+  color: var(--mat-sys-primary);
+  border-bottom-color: var(--mat-sys-primary);
+  font-weight: 600;
+}
+
+.tab-actions {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
-.field label {
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 13px;
-  font-weight: 700;
+
+.tab-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 5px;
+  color: var(--mat-sys-on-surface);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
 }
-.field.grow {
-  flex: 1;
+
+.tab-action-btn mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
 }
-@media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+
+.tab-action-btn:hover {
+  background: var(--mat-sys-surface-container-highest);
+  border-color: var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+}
+
+.editor-wrapper {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 460px;
+  background: var(--mat-sys-surface-container-lowest);
+  position: relative;
+}
+
+.editor-wrapper app-code-editor,
+app-code-editor.generated-editor {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 460px !important;
+}
+
+.editor-wrapper ::ng-deep .code-editor,
+.generated-editor ::ng-deep .code-editor {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 460px !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .top-control-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mode-toggle-group {
+    justify-content: stretch;
+  }
+  .mode-btn {
+    flex: 1;
+  }
+  .inputs-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .field-group,
+  .field-group.span-endpoint,
+  .field-group.method-col,
+  .field-group.pattern-col {
+    width: 100%;
+    min-width: 100%;
+  }
+  .options-row {
+    gap: 12px;
   }
 }

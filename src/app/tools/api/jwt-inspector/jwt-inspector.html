@@ -1,7 +1,7 @@
 <div class="tool-surface-inner">
   <div class="field">
     <label>JWT token</label>
-    <app-code-editor [value]="input()" language="plaintext" ariaLabel="JWT token" (valueChange)="input.set($event)"></app-code-editor>
+    <app-code-editor class="jwt-input-editor" [value]="input()" language="plaintext" wordWrap="on" ariaLabel="JWT token" (valueChange)="input.set($event)"></app-code-editor>
   </div>
 
   <button mat-raised-button color="primary" (click)="inspect()">Inspect token</button>

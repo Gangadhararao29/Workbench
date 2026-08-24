@@ -43,7 +43,8 @@ const TOOLS_WITH_OPTIONS = new Set([
   'json-formatter',
   'csharp-to-typescript',
   'json-to-typescript',
-  'sql-to-csharp'
+  'sql-to-csharp',
+  'feature-generator',
 ]);
 
 const THEME_KEY = 'workbench.theme';
@@ -88,10 +89,10 @@ const THEME_KEY = 'workbench.theme';
     DocumentationHub,
     TerminalTool,
     LogViewer,
-    SqlQueryBuilder
+    SqlQueryBuilder,
   ],
   templateUrl: './app.html',
-  styleUrls: ['./app.css']
+  styleUrls: ['./app.css'],
 })
 export class App {
   @ViewChild('leftDrawer') leftDrawer!: MatSidenav;
@@ -104,7 +105,7 @@ export class App {
   activeHomeTab = signal<'tools' | 'upcoming'>('tools');
   readonly upcomingGroups = UPCOMING_GROUPS;
   rightDrawerOpened = signal(false);
-  
+
   constructor(public instanceService: InstanceService) {
     this.activeInstance = this.instanceService.activeInstance;
     effect(() => {
@@ -131,7 +132,7 @@ export class App {
   }
 
   toggleTheme() {
-    this.isDark.update(v => !v);
+    this.isDark.update((v) => !v);
   }
 
   toggleLeft() {
@@ -139,7 +140,7 @@ export class App {
   }
 
   toggleRight() {
-    this.rightDrawerOpened.update(v => !v);
+    this.rightDrawerOpened.update((v) => !v);
   }
 
   async exportWorkspace() {
@@ -149,7 +150,11 @@ export class App {
   importWorkspace() {
     const raw = window.prompt('Paste workspace JSON');
     if (!raw) return;
-    try { this.instanceService.importWorkspace(raw); } catch { window.alert('Invalid workspace JSON.'); }
+    try {
+      this.instanceService.importWorkspace(raw);
+    } catch {
+      window.alert('Invalid workspace JSON.');
+    }
   }
 
   openTool(toolType: string, groupId: string) {

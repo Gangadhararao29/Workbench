@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
@@ -7,7 +7,7 @@ import { CodeEditor } from '../../../shared/code-editor/code-editor';
   selector: 'app-sql-generator', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
   templateUrl: './sql-generator.html', styleUrls: ['./sql-generator.css']
 })
-export class SqlGenerator {
+export class SqlGenerator implements OnInit {
   @Input({ required: true }) instanceId!: string;
   table = 'Users';
   columns = 'Id\nName\nEmail\nCreatedAt';
@@ -16,6 +16,10 @@ export class SqlGenerator {
   joinColumn = 'UserId';
   pageSize = 20;
   result = signal('');
+
+  ngOnInit() {
+    this.generate();
+  }
   generate() {
     const table = this.table.trim() || 'TableName';
     const names = this.columns.split(/[\n,]+/).map(value => value.trim()).filter(Boolean);

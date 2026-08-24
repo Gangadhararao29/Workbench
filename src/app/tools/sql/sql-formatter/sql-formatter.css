@@ -1,6 +1,7 @@
 .tool-surface-inner {
 	display: flex;
-	max-width: 900px;
+	width: 100%;
+	max-width: 1000px;
 	min-height: 100%;
 	flex-direction: column;
 	gap: 16px;
@@ -31,7 +32,23 @@
 
 .actions {
 	display: flex;
-	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 10px;
+}
+
+.actions button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.actions button mat-icon {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	margin: 0;
 }
 .code-input {
 	min-height: 130px;

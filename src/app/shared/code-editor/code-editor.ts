@@ -76,6 +76,8 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   @Input() language = 'plaintext';
   @Input() ariaLabel = 'Code editor';
   @Input() readOnly = false;
+  @Input() wordWrap: 'on' | 'off' = 'off';
+  @Input() lineNumbers: 'on' | 'off' = 'on';
   @Output() valueChange = new EventEmitter<string>();
   @ViewChild('editorHost', { static: true }) editorHost!: ElementRef<HTMLDivElement>;
 
@@ -93,6 +95,8 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       value: this.value,
       language: this.language,
       readOnly: this.readOnly,
+      wordWrap: this.wordWrap,
+      lineNumbers: this.lineNumbers,
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 14,
@@ -108,6 +112,9 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
     this.resizeObserver = new ResizeObserver(() => this.editor?.layout());
     this.resizeObserver.observe(this.editorHost.nativeElement);
     requestAnimationFrame(() => this.editor?.layout());
+    setTimeout(() => this.editor?.layout(), 50);
+    setTimeout(() => this.editor?.layout(), 150);
+    setTimeout(() => this.editor?.layout(), 400);
 
     this.lastPushedValue = this.value;
 
@@ -132,6 +139,8 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
         this.lastPushedValue = incoming;
         this.editor.setValue(incoming);
         requestAnimationFrame(() => this.editor?.layout());
+        setTimeout(() => this.editor?.layout(), 50);
+        setTimeout(() => this.editor?.layout(), 150);
       }
     }
 
@@ -144,6 +153,14 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
 
     if (changes['readOnly']) {
       this.editor.updateOptions({ readOnly: this.readOnly });
+    }
+
+    if (changes['wordWrap']) {
+      this.editor.updateOptions({ wordWrap: this.wordWrap });
+    }
+
+    if (changes['lineNumbers']) {
+      this.editor.updateOptions({ lineNumbers: this.lineNumbers });
     }
   }
 

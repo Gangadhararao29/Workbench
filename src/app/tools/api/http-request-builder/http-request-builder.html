@@ -1,17 +1,513 @@
-<div class="tool-surface-inner">
-	<div class="request-line"><select [(ngModel)]="method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input [(ngModel)]="url" placeholder="https://api.example.com/items" /></div>
-	<div class="request-editors">
-		<div class="field compact-field"><label>Query parameters</label><textarea rows="2" [(ngModel)]="query" class="code-input" placeholder="page=1&#10;pageSize=20"></textarea></div>
-		<div class="field compact-field"><label>Headers</label><textarea rows="2" [(ngModel)]="headers" class="code-input" placeholder="Authorization: Bearer token"></textarea></div>
-	</div>
-	<div class="request-output-row">
-		@if (method !== 'GET' && method !== 'HEAD') {
-			<div class="field compact-field"><label>JSON body</label><textarea rows="4" [(ngModel)]="body" class="code-input"></textarea></div>
-		}
-		<button mat-raised-button color="primary" [disabled]="loading()" (click)="send()">{{ loading() ? 'Sending...' : 'Send request' }}</button>
-		<div class="response-panel" [class.response-success]="resultStatus() === 'success'" [class.response-error]="resultStatus() === 'error'">
-			<div class="response-heading"><label>Response</label><span class="response-status">{{ responseStatus() }}</span></div>
-			<app-code-editor class="response-editor" [value]="responseBody()" [language]="responseLanguage()" ariaLabel="HTTP response" [readOnly]="true"></app-code-editor>
-		</div>
-	</div>
+<div class="http-builder-root">
+  <!-- Top Utility Toolbar -->
+  <div class="top-toolbar">
+    <div class="preset-group">
+      <mat-icon class="tool-icon">http</mat-icon>
+      <span class="tool-title">HTTP Request</span>
+      
+      <div class="presets-dropdown-wrapper">
+        <select class="preset-select" (change)="onPresetChange($event)">
+          <option value="" disabled selected>⚡ Load Sample Preset...</option>
+          @for (preset of presets; track preset.name; let i = $index) {
+            <option [value]="i">{{ preset.name }} ({{ preset.method }})</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button type="button" class="action-btn" (click)="showImportModal.set(!showImportModal())" matTooltip="Import cURL command">
+        <mat-icon>file_download</mat-icon> Import cURL
+      </button>
+      <button type="button" class="action-btn" (click)="copyAsCurl()" matTooltip="Copy as executable cURL command">
+        <mat-icon>{{ copiedCurl() ? 'check' : 'content_copy' }}</mat-icon>
+        {{ copiedCurl() ? 'Copied cURL!' : 'Copy cURL' }}
+      </button>
+      <button type="button" class="action-btn" [class.active]="showHistoryDrawer()" (click)="showHistoryDrawer.set(!showHistoryDrawer())" matTooltip="View request history">
+        <mat-icon>history</mat-icon> History ({{ history().length }})
+      </button>
+    </div>
+  </div>
+
+  <!-- cURL Import Box (Collapsible) -->
+  @if (showImportModal()) {
+    <div class="curl-import-panel">
+      <div class="panel-header">
+        <span class="panel-title"><mat-icon>terminal</mat-icon> Paste cURL Command</span>
+        <button type="button" class="icon-close-btn" (click)="showImportModal.set(false)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <textarea
+        class="curl-textarea"
+        [(ngModel)]="curlImportInput"
+        placeholder="curl -X POST 'https://api.example.com/items' -H 'Authorization: Bearer xyz' -d '{ &quot;name&quot;: &quot;item&quot; }'"
+        rows="3">
+      </textarea>
+      <div class="panel-actions">
+        <button mat-raised-button color="primary" [disabled]="!curlImportInput.trim()" (click)="importCurl()">
+          Parse & Load Request
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- History Panel (Collapsible) -->
+  @if (showHistoryDrawer()) {
+    <div class="history-panel">
+      <div class="panel-header">
+        <span class="panel-title"><mat-icon>history</mat-icon> Recent Requests ({{ history().length }})</span>
+        <div class="panel-header-actions">
+          <button type="button" class="text-btn" (click)="clearHistory()">Clear History</button>
+          <button type="button" class="icon-close-btn" (click)="showHistoryDrawer.set(false)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+      @if (history().length === 0) {
+        <p class="empty-state">No requests executed yet in this session.</p>
+      } @else {
+        <div class="history-list">
+          @for (item of history(); track item.id) {
+            <div class="history-item" (click)="restoreFromHistory(item)">
+              <span class="method-badge badge-{{ item.method.toLowerCase() }}">{{ item.method }}</span>
+              <span class="history-url">{{ item.url }}</span>
+              @if (item.status) {
+                <span class="history-status" [class.success]="item.status >= 200 && item.status < 300" [class.error]="item.status >= 400 || item.status === 0">
+                  {{ item.status }}
+                </span>
+              }
+              @if (item.timeMs) {
+                <span class="history-time">{{ item.timeMs }}ms</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Primary Request Bar -->
+  <div class="request-bar">
+    <div class="method-select-wrapper" [attr.data-method]="method">
+      <select [(ngModel)]="method" class="method-select">
+        @for (m of methods; track m) {
+          <option [value]="m">{{ m }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="url-input-wrapper">
+      <input
+        type="text"
+        [(ngModel)]="url"
+        (input)="onUrlInput()"
+        (keydown.enter)="send()"
+        placeholder="https://api.example.com/v1/resource"
+        class="url-input"
+        spellcheck="false" />
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      class="send-btn"
+      [disabled]="loading() || !url.trim()"
+      (click)="send()">
+      <mat-icon [class.spin-icon]="loading()">{{ loading() ? 'sync' : 'send' }}</mat-icon>
+      <span>{{ loading() ? 'Sending...' : 'Send' }}</span>
+    </button>
+  </div>
+
+  <!-- Request Details Card -->
+  <div class="request-card">
+    <!-- Tabs Header -->
+    <div class="tabs-header">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeRequestTab === 'params'"
+        (click)="activeRequestTab = 'params'">
+        Params
+        @if (params.length > 0) {
+          <span class="tab-count">{{ params.length }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeRequestTab === 'headers'"
+        (click)="activeRequestTab = 'headers'">
+        Headers
+        @if (headers.length > 0) {
+          <span class="tab-count">{{ headers.length }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeRequestTab === 'auth'"
+        (click)="activeRequestTab = 'auth'">
+        Auth
+        @if (authType !== 'none') {
+          <span class="tab-dot"></span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeRequestTab === 'body'"
+        (click)="activeRequestTab = 'body'"
+        [disabled]="method === 'GET' || method === 'HEAD'">
+        Body
+        @if (method === 'GET' || method === 'HEAD') {
+          <span class="tab-disabled-hint">(GET/HEAD)</span>
+        }
+      </button>
+    </div>
+
+    <!-- Request Tab Content -->
+    <div class="tab-content">
+      <!-- PARAMS TAB -->
+      @if (activeRequestTab === 'params') {
+        <div class="kv-container">
+          <div class="kv-toolbar">
+            <span class="kv-section-label">Query Parameters</span>
+            <div class="kv-actions">
+              <button type="button" class="text-btn" (click)="addParam()">
+                <mat-icon>add</mat-icon> Add Parameter
+              </button>
+              @if (params.length > 0) {
+                <button type="button" class="text-btn danger" (click)="clearParams()">
+                  <mat-icon>delete_sweep</mat-icon> Clear All
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (params.length === 0) {
+            <div class="empty-kv">
+              <span>No query parameters. Add one below or type them directly in the URL query string.</span>
+              <button type="button" class="btn-outlined" (click)="addParam()">+ Add Parameter</button>
+            </div>
+          } @else {
+            <div class="kv-table">
+              <div class="kv-table-header">
+                <span class="col-check"></span>
+                <span class="col-key">Key</span>
+                <span class="col-val">Value</span>
+                <span class="col-act"></span>
+              </div>
+              @for (param of params; track $index; let i = $index) {
+                <div class="kv-row">
+                  <div class="col-check">
+                    <input type="checkbox" [(ngModel)]="param.enabled" (change)="syncParamsToUrl()" />
+                  </div>
+                  <div class="col-key">
+                    <input type="text" [(ngModel)]="param.key" (input)="syncParamsToUrl()" placeholder="Key" class="table-input" />
+                  </div>
+                  <div class="col-val">
+                    <input type="text" [(ngModel)]="param.value" (input)="syncParamsToUrl()" placeholder="Value" class="table-input" />
+                  </div>
+                  <div class="col-act">
+                    <button type="button" class="icon-btn-del" (click)="removeParam(i)" matTooltip="Remove">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- HEADERS TAB -->
+      @if (activeRequestTab === 'headers') {
+        <div class="kv-container">
+          <div class="kv-toolbar">
+            <span class="kv-section-label">Request Headers</span>
+            <div class="kv-chips">
+              <span class="chip-label">Quick Add:</span>
+              <button type="button" class="chip-btn" (click)="addStandardHeader('Content-Type', 'application/json')">+ JSON Content</button>
+              <button type="button" class="chip-btn" (click)="addStandardHeader('Accept', 'application/json')">+ Accept JSON</button>
+              <button type="button" class="chip-btn" (click)="addStandardHeader('Cache-Control', 'no-cache')">+ No Cache</button>
+              <button type="button" class="chip-btn" (click)="addStandardHeader('User-Agent', 'Workbench-Client/1.0')">+ User Agent</button>
+            </div>
+          </div>
+
+          <div class="kv-table">
+            <div class="kv-table-header">
+              <span class="col-check"></span>
+              <span class="col-key">Key</span>
+              <span class="col-val">Value</span>
+              <span class="col-act"></span>
+            </div>
+            @for (header of headers; track $index; let i = $index) {
+              <div class="kv-row">
+                <div class="col-check">
+                  <input type="checkbox" [(ngModel)]="header.enabled" />
+                </div>
+                <div class="col-key">
+                  <input type="text" [(ngModel)]="header.key" placeholder="Header Name" class="table-input" />
+                </div>
+                <div class="col-val">
+                  <input type="text" [(ngModel)]="header.value" placeholder="Header Value" class="table-input" />
+                </div>
+                <div class="col-act">
+                  <button type="button" class="icon-btn-del" (click)="removeHeader(i)" matTooltip="Remove">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="kv-bottom-actions">
+            <button type="button" class="text-btn" (click)="addHeader()">
+              <mat-icon>add</mat-icon> Add Header
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- AUTH TAB -->
+      @if (activeRequestTab === 'auth') {
+        <div class="auth-container">
+          <div class="auth-type-row">
+            <label class="field-label">Authentication Type</label>
+            <div class="auth-type-select-wrapper">
+              <select [(ngModel)]="authType" class="field-select">
+                <option value="none">No Auth</option>
+                <option value="bearer">Bearer Token</option>
+                <option value="basic">Basic Auth</option>
+                <option value="apikey">API Key</option>
+              </select>
+            </div>
+          </div>
+
+          @if (authType === 'bearer') {
+            <div class="auth-form-card">
+              <div class="field-group">
+                <label class="field-label">Bearer Token</label>
+                <textarea [(ngModel)]="authToken" rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="auth-textarea"></textarea>
+                <span class="field-hint">Added as header: <code>Authorization: Bearer &lt;token&gt;</code></span>
+              </div>
+            </div>
+          }
+
+          @if (authType === 'basic') {
+            <div class="auth-form-card grid-2">
+              <div class="field-group">
+                <label class="field-label">Username</label>
+                <input type="text" [(ngModel)]="authUsername" placeholder="admin" class="field-input" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Password</label>
+                <input type="password" [(ngModel)]="authPassword" placeholder="••••••••" class="field-input" />
+              </div>
+              <span class="field-hint full-width">Encoded in Base64 and sent in <code>Authorization: Basic ...</code></span>
+            </div>
+          }
+
+          @if (authType === 'apikey') {
+            <div class="auth-form-card grid-3">
+              <div class="field-group">
+                <label class="field-label">Key Name</label>
+                <input type="text" [(ngModel)]="authApiKeyName" placeholder="X-API-Key" class="field-input" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Value</label>
+                <input type="text" [(ngModel)]="authApiKeyValue" placeholder="key_value..." class="field-input" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Add To</label>
+                <select [(ngModel)]="authApiKeyLocation" class="field-select">
+                  <option value="header">Request Header</option>
+                  <option value="query">Query Parameter</option>
+                </select>
+              </div>
+            </div>
+          }
+
+          @if (authType === 'none') {
+            <div class="empty-kv">
+              <span>This request does not use any authentication.</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- BODY TAB -->
+      @if (activeRequestTab === 'body') {
+        <div class="body-container">
+          <div class="body-toolbar">
+            <div class="body-type-selector">
+              <label class="body-type-option">
+                <input type="radio" [(ngModel)]="bodyType" value="json" /> JSON
+              </label>
+              <label class="body-type-option">
+                <input type="radio" [(ngModel)]="bodyType" value="text" /> Plain Text
+              </label>
+              <label class="body-type-option">
+                <input type="radio" [(ngModel)]="bodyType" value="xml" /> XML
+              </label>
+            </div>
+
+            <div class="body-actions">
+              @if (bodyType === 'json') {
+                <button type="button" class="btn-sm" (click)="formatBodyJson()" matTooltip="Format JSON">
+                  <mat-icon>format_align_left</mat-icon> Prettify JSON
+                </button>
+              }
+              <button type="button" class="btn-sm" (click)="clearBody()" matTooltip="Clear body">
+                <mat-icon>clear</mat-icon> Clear
+              </button>
+            </div>
+          </div>
+
+          <div class="body-editor-wrapper">
+            <app-code-editor
+              class="request-body-editor"
+              [value]="bodyContent"
+              [language]="bodyType === 'json' ? 'json' : bodyType === 'xml' ? 'xml' : 'plaintext'"
+              wordWrap="on"
+              ariaLabel="Request Body"
+              (valueChange)="bodyContent = $event">
+            </app-code-editor>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Response Section -->
+  <div class="response-card" [class.has-response]="hasResponse()">
+    <div class="response-header">
+      <div class="response-title-group">
+        <span class="response-main-title">Response</span>
+
+        @if (hasResponse()) {
+          @if (statusCode() !== null) {
+            <span
+              class="status-pill"
+              [class.status-2xx]="statusCode()! >= 200 && statusCode()! < 300"
+              [class.status-3xx]="statusCode()! >= 300 && statusCode()! < 400"
+              [class.status-4xx]="statusCode()! >= 400 && statusCode()! < 500"
+              [class.status-5xx]="statusCode()! >= 500">
+              {{ statusCode() }} {{ statusText() }}
+            </span>
+          } @else {
+            <span class="status-pill status-error">{{ statusText() }}</span>
+          }
+
+          @if (responseTimeMs() !== null) {
+            <span class="metric-pill">
+              <mat-icon class="pill-icon">timer</mat-icon> {{ responseTimeMs() }} ms
+            </span>
+          }
+
+          @if (responseSize()) {
+            <span class="metric-pill">
+              <mat-icon class="pill-icon">data_usage</mat-icon> {{ responseSize() }}
+            </span>
+          }
+        }
+      </div>
+
+      @if (hasResponse()) {
+        <div class="response-actions">
+          <button type="button" class="btn-action" (click)="copyResponse()" matTooltip="Copy response body">
+            <mat-icon>{{ copiedResponse() ? 'check' : 'content_copy' }}</mat-icon>
+            <span>{{ copiedResponse() ? 'Copied!' : 'Copy' }}</span>
+          </button>
+          <button type="button" class="btn-action" (click)="downloadResponse()" matTooltip="Download response to file">
+            <mat-icon>download</mat-icon>
+            <span>Download</span>
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (hasResponse()) {
+      <!-- Response Sub-Tabs -->
+      <div class="response-tabs-header">
+        <button
+          type="button"
+          class="response-tab-btn"
+          [class.active]="activeResponseTab === 'body'"
+          (click)="activeResponseTab = 'body'">
+          Body ({{ responseLanguage().toUpperCase() }})
+        </button>
+        <button
+          type="button"
+          class="response-tab-btn"
+          [class.active]="activeResponseTab === 'headers'"
+          (click)="activeResponseTab = 'headers'">
+          Headers ({{ responseHeaders().length }})
+        </button>
+        <button
+          type="button"
+          class="response-tab-btn"
+          [class.active]="activeResponseTab === 'raw'"
+          (click)="activeResponseTab = 'raw'">
+          Raw
+        </button>
+      </div>
+
+      <!-- Response Content -->
+      <div class="response-content">
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <mat-icon class="error-icon">warning</mat-icon>
+            <div class="error-text">
+              <strong>Request Encountered an Issue</strong>
+              <p>{{ errorMessage() }}</p>
+            </div>
+          </div>
+        }
+
+        @if (activeResponseTab === 'body') {
+          <app-code-editor
+            class="response-editor"
+            [value]="responseBody()"
+            [language]="responseLanguage()"
+            wordWrap="on"
+            [readOnly]="true"
+            ariaLabel="HTTP Response Body">
+          </app-code-editor>
+        }
+
+        @if (activeResponseTab === 'headers') {
+          <div class="res-headers-table">
+            <div class="res-headers-header">
+              <span class="col-header-key">Header Key</span>
+              <span class="col-header-val">Header Value</span>
+            </div>
+            @for (hdr of responseHeaders(); track hdr.key) {
+              <div class="res-headers-row">
+                <span class="col-header-key header-name">{{ hdr.key }}</span>
+                <span class="col-header-val header-value">{{ hdr.value }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        @if (activeResponseTab === 'raw') {
+          <pre class="raw-response-box">{{ rawResponse() }}</pre>
+        }
+      </div>
+    } @else {
+      @if (loading()) {
+        <div class="loading-container">
+          <mat-icon class="spin-icon-lg">sync</mat-icon>
+          <span>Executing HTTP request...</span>
+        </div>
+      } @else {
+        <div class="empty-response-state">
+          <mat-icon class="empty-icon">send</mat-icon>
+          <p>Click <strong>Send</strong> or press <strong>Enter</strong> to execute the HTTP request.</p>
+        </div>
+      }
+    }
+  </div>
 </div>

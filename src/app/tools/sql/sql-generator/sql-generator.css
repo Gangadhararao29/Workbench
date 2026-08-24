@@ -5,19 +5,52 @@
   flex-direction: column;
   gap: 16px;
 }
+
 .form-grid {
   display: grid;
-  grid-template-columns: minmax(180px, .6fr) minmax(260px, 1.4fr);
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "table    columns"
+    "filter   columns"
+    "pagesize columns"
+    "jointbl  joincol";
+  gap: 12px 16px;
 }
+
+.field-table {
+  grid-area: table;
+}
+
+.field-filter {
+  grid-area: filter;
+}
+
+.field-page-size {
+  grid-area: pagesize;
+}
+
+.field-columns {
+  grid-area: columns;
+  height: 100%;
+}
+
+.field-join-table {
+  grid-area: jointbl;
+}
+
+.field-join-col {
+  grid-area: joincol;
+}
+
 .form-grid label {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   color: var(--mat-sys-on-surface-variant);
   font-size: 13px;
   font-weight: 700;
 }
+
 .form-grid input,
 .form-grid textarea {
   box-sizing: border-box;
@@ -27,26 +60,44 @@
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
   font: 14px/1.5 'Roboto Mono', monospace;
-  padding: 12px;
+  padding: 10px 12px;
 }
-.form-grid textarea {
+
+.field-columns textarea {
+  flex: 1;
+  min-height: 120px;
   resize: vertical;
 }
+
 .field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 .field label {
   color: var(--mat-sys-on-surface-variant);
   font-size: 13px;
   font-weight: 700;
 }
+
 .field.grow {
   flex: 1;
 }
+
 @media (max-width: 700px) {
   .form-grid {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "table"
+      "columns"
+      "filter"
+      "pagesize"
+      "jointbl"
+      "joincol";
+  }
+
+  .field-columns textarea {
+    min-height: 140px;
   }
 }

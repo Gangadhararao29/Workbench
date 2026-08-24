@@ -1,6 +1,7 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/instance-service';
 import { formatSql, minifySql } from '../../../core/engines/sql-formatter-engine';
@@ -8,11 +9,11 @@ import { formatSql, minifySql } from '../../../core/engines/sql-formatter-engine
 @Component({
   selector: 'app-sql-formatter',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, CodeEditor],
+  imports: [CommonModule, MatButtonModule, MatIconModule, CodeEditor],
   templateUrl: './sql-formatter.html',
   styleUrls: ['./sql-formatter.css']
 })
-export class SqlFormatter{
+export class SqlFormatter {
   @Input({ required: true }) instanceId!: string;
 
   input = signal('select id,name,email from users where active=1 and role=\'admin\' order by name;');

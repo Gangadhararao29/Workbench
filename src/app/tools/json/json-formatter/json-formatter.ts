@@ -1,6 +1,7 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/instance-service';
 import { formatJson, validateJson } from '../../../core/engines/json-engine';
@@ -8,7 +9,7 @@ import { formatJson, validateJson } from '../../../core/engines/json-engine';
 @Component({
   selector: 'app-json-formatter',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, CodeEditor],
+  imports: [CommonModule, MatButtonModule, MatIconModule, CodeEditor],
   templateUrl: './json-formatter.html',
   styleUrls: ['./json-formatter.css']
 })

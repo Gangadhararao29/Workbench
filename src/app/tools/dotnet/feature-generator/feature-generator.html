@@ -1,24 +1,12 @@
 <div class="tool-surface-inner">
 	<div class="form-grid">
-		<label>Feature name<input [(ngModel)]="feature" /></label>
-		<label>Namespace<input [(ngModel)]="namespace" /></label>
+		<label>Feature name<input [(ngModel)]="feature" (ngModelChange)="generate()" /></label>
+		<label>Namespace<input [(ngModel)]="namespace" (ngModelChange)="generate()" /></label>
 	</div>
 
-	<fieldset class="output-options">
-		<legend>Generated files</legend>
-		<label><input type="checkbox" [(ngModel)]="includeEntity" /> Entity</label>
-		<label><input type="checkbox" [(ngModel)]="includeDto" /> DTO</label>
-		<label><input type="checkbox" [(ngModel)]="includeRepository" /> Repository</label>
-		<label><input type="checkbox" [(ngModel)]="includeService" /> Application service</label>
-		<label><input type="checkbox" [(ngModel)]="includeController" /> API controller</label>
-		<label><input type="checkbox" [(ngModel)]="includeConfiguration" /> EF Core configuration</label>
-		<label><input type="checkbox" [(ngModel)]="includeFrontend" /> TypeScript model</label>
-		<label><input type="checkbox" [(ngModel)]="includeAngularService" [disabled]="!includeFrontend" /> Angular service</label>
-	</fieldset>
-
-	<button mat-raised-button color="primary" (click)="generate()">Generate feature</button>
 	<div class="field grow">
 		<label>Generated code</label>
 		<app-code-editor [value]="result()" language="csharp" ariaLabel="Generated feature code" [readOnly]="true"></app-code-editor>
 	</div>
 </div>
+

@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+@import './styles/tool-common.css';
 
 /* Prevent Tailwind from adding a resize handle to Monaco Editor's hidden input */
 .monaco-editor textarea {

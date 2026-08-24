@@ -1,22 +1,165 @@
 <div class="tool-surface-inner">
+  <!-- Top Bar: Presets & Quick Actions -->
+  <div class="top-bar">
+    <div class="presets-section">
+      <span class="section-label">
+        <mat-icon>auto_stories</mat-icon>
+        <span>Sample Templates:</span>
+      </span>
+      <div class="preset-pills">
+        @for (preset of presets; track preset.name) {
+          <button
+            type="button"
+            class="preset-pill"
+            (click)="loadPreset(preset.name)"
+            matTooltip="Load {{ preset.name }}">
+            {{ preset.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Section -->
   <div class="field">
-    <label>cURL input</label>
-    <app-code-editor [value]="input()" language="plaintext" ariaLabel="cURL input" (valueChange)="input.set($event)"></app-code-editor>
+    <div class="field-header">
+      <label class="field-title">
+        <mat-icon>terminal</mat-icon>
+        <span>cURL Command Input</span>
+      </label>
+      <div class="field-actions">
+        <button
+          type="button"
+          mat-stroked-button
+          class="action-btn"
+          (click)="formatCurl()"
+          matTooltip="Clean and format cURL command with line continuations">
+          <mat-icon>auto_fix_high</mat-icon>
+          <span>Beautify cURL</span>
+        </button>
+        <button
+          type="button"
+          mat-stroked-button
+          class="action-btn"
+          (click)="clear()"
+          matTooltip="Clear input and output">
+          <mat-icon>clear</mat-icon>
+          <span>Clear</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-wrapper input-editor-wrapper">
+      <app-code-editor
+        [value]="input()"
+        language="shell"
+        ariaLabel="cURL command input"
+        (valueChange)="onInputChange($event)">
+      </app-code-editor>
+    </div>
   </div>
-  <div class="target-row">
-    <label>Generate for
-      <select [(ngModel)]="target">
-        <option value="csharp">C# HttpClient</option>
-        <option value="restsharp">C# RestSharp</option>
-        <option value="fetch">JavaScript fetch</option>
-        <option value="axios">Axios</option>
-        <option value="angular">Angular HttpClient</option>
-      </select>
-    </label>
-    <button mat-raised-button color="primary" (click)="convert()">Convert</button>
+
+  <!-- Parsed Request Breakdown / Inspector Badge -->
+  @if (parsedRequest(); as req) {
+    <div class="request-summary-bar">
+      <div class="summary-item">
+        <span class="method-badge" [attr.data-method]="req.method">{{ req.method }}</span>
+        <span class="url-text" [title]="req.url">{{ req.url }}</span>
+      </div>
+      <div class="summary-tags">
+        @if (req.headers.length > 0) {
+          <span class="summary-tag" matTooltip="{{ req.headers.length }} request headers specified">
+            <mat-icon>layers</mat-icon>
+            {{ req.headers.length }} Headers
+          </span>
+        }
+        @if (req.bodyType !== 'none') {
+          <span class="summary-tag" matTooltip="Body type: {{ req.bodyType }}">
+            <mat-icon>data_object</mat-icon>
+            {{ req.bodyType | uppercase }}
+          </span>
+        }
+        @if (req.basicAuth) {
+          <span class="summary-tag auth-tag" matTooltip="Basic Authentication enabled">
+            <mat-icon>lock</mat-icon>
+            Basic Auth
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Conversion Target & Action Bar -->
+  <div class="controls-row">
+    <div class="target-select-wrapper">
+      <label for="target-selector">Generate Target Code</label>
+      <div class="select-container">
+        <mat-icon class="select-icon">code</mat-icon>
+        <select
+          id="target-selector"
+          [ngModel]="target()"
+          (ngModelChange)="onTargetChange($event)"
+          aria-label="Select Target Language">
+          @for (group of targetGroups(); track group.name) {
+            <optgroup [label]="group.name">
+              @for (opt of group.options; track opt.id) {
+                <option [value]="opt.id">{{ opt.name }}</option>
+              }
+            </optgroup>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="output-actions">
+      <button
+        type="button"
+        mat-flat-button
+        color="primary"
+        class="convert-btn"
+        (click)="convert()">
+        <mat-icon>sync</mat-icon>
+        <span>Convert</span>
+      </button>
+
+      <button
+        type="button"
+        mat-stroked-button
+        class="copy-btn"
+        [class.copied]="copied()"
+        (click)="copyResult()"
+        [disabled]="!result()"
+        matTooltip="Copy generated code to clipboard">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+        <span>{{ copied() ? 'Copied!' : 'Copy Code' }}</span>
+      </button>
+    </div>
   </div>
+
+  <!-- Output Section -->
   <div class="field grow">
-    <label>Generated code</label>
-    <app-code-editor [value]="result()" [language]="outputLanguage()" ariaLabel="Generated code output" [readOnly]="true"></app-code-editor>
+    <div class="field-header">
+      <label class="field-title">
+        <mat-icon>code_blocks</mat-icon>
+        <span>Generated Code ({{ outputLanguage() | uppercase }})</span>
+      </label>
+    </div>
+
+    <div class="editor-wrapper output-editor">
+      <app-code-editor
+        [value]="result()"
+        [language]="outputLanguage()"
+        ariaLabel="Generated code output"
+        [readOnly]="true">
+      </app-code-editor>
+    </div>
   </div>
 </div>

@@ -98,7 +98,11 @@
   gap: 4px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 50%, var(--mat-sys-surface-container));
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 50%,
+    var(--mat-sys-surface-container)
+  );
 }
 
 .card-title {
@@ -130,7 +134,7 @@
 /* Code Editor sizing inside Card Body */
 .card-body app-code-editor {
   display: block;
-  height: 320px;
+  height: 410px;
   min-height: 250px;
 }
 
@@ -190,7 +194,9 @@
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
-  font: 13px/1.5 'Roboto Mono', monospace;
+  font:
+    13px/1.5 'Roboto Mono',
+    monospace;
   white-space: pre-wrap;
   word-break: break-all;
   overflow: auto;
@@ -244,7 +250,11 @@
   cursor: pointer;
   list-style: none;
   user-select: none;
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 30%, var(--mat-sys-surface-container));
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 30%,
+    var(--mat-sys-surface-container)
+  );
 }
 
 .collapse-summary::-webkit-details-marker {

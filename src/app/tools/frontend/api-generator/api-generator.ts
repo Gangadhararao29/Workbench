@@ -1,61 +1,176 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, signal, computed, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import {
+  generateApiClient,
+  FRAMEWORK_OPTIONS,
+  API_GENERATOR_PRESETS,
+  ApiGeneratorConfig,
+  SupportedFramework,
+  AnyPattern,
+  GenerationMode,
+  PresetOption,
+  GenerationResult
+} from '../../../core/engines/api-client-generator-engine';
 
 @Component({
-  selector: 'app-api-generator', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
-  templateUrl: './api-generator.html', styleUrls: ['./api-generator.css']
+  selector: 'app-api-generator',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    CodeEditor
+  ],
+  templateUrl: './api-generator.html',
+  styleUrls: ['./api-generator.css']
 })
-export class ApiGenerator {
+export class ApiGenerator implements OnInit {
   @Input({ required: true }) instanceId!: string;
-  framework: 'angular' | 'react' | 'vue' = 'angular';
-  angularPattern: 'service-method' | 'full-service' | 'signals-resource' = 'service-method';
-  reactPattern: 'custom-hook' | 'rtk-query' | 'redux-thunk' = 'custom-hook';
-  vuePattern: 'composable' | 'pinia-store' | 'context-provider' = 'composable';
-  method = 'GET';
-  endpoint = '/api/users';
-  responseType = 'User[]';
-  result = signal('');
-  outputLanguage = 'typescript';
-  onFrameworkChange() {
-    this.outputLanguage = this.framework === 'angular' ? 'typescript' : 'javascript';
+
+  frameworks = FRAMEWORK_OPTIONS;
+  presets = API_GENERATOR_PRESETS;
+
+  // Framework & Mode
+  framework = signal<SupportedFramework>('angular');
+  pattern = signal<AnyPattern>('full-service');
+  mode = signal<GenerationMode>('crud');
+
+  // Resource, Endpoint, Method
+  resourceName = signal('Product');
+  endpoint = signal('/api/products');
+  method = signal<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'>('GET');
+
+  // Streamlined Options
+  includeErrorHandling = signal(true);
+  includeCancellation = signal(true);
+  includeAuth = signal(true);
+  includePagination = signal(true);
+  includeTsDoc = signal(true);
+
+  // Active Output Tab
+  activeTab = signal<'client' | 'dtos' | 'tests' | 'usage'>('client');
+
+  // Copy feedback state
+  copied = signal(false);
+  private copyTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Available patterns for selected framework
+  availablePatterns = computed(() => {
+    const f = this.frameworks.find(fw => fw.id === this.framework());
+    return f ? f.patterns : [];
+  });
+
+  // Current generation result
+  generation = computed<GenerationResult>(() => {
+    const config: ApiGeneratorConfig = {
+      framework: this.framework(),
+      pattern: this.pattern(),
+      mode: this.mode(),
+      method: this.method(),
+      endpoint: this.endpoint(),
+      resourceName: this.resourceName(),
+      includeErrorHandling: this.includeErrorHandling(),
+      includeCancellation: this.includeCancellation(),
+      includeAuth: this.includeAuth(),
+      includeTsDoc: this.includeTsDoc(),
+      includePagination: this.includePagination()
+    };
+
+    return generateApiClient(config);
+  });
+
+  // Editor content for active tab
+  activeCode = computed(() => {
+    const res = this.generation();
+    switch (this.activeTab()) {
+      case 'dtos':
+        return res.dtosCode;
+      case 'tests':
+        return res.testCode;
+      case 'usage':
+        return res.usageCode;
+      case 'client':
+      default:
+        return res.clientCode;
+    }
+  });
+
+  // Language for Monaco editor
+  editorLanguage = computed(() => {
+    if (this.activeTab() === 'usage') {
+      if (this.framework() === 'react') return 'typescript';
+      if (this.framework() === 'vue') return 'html';
+      if (this.framework() === 'svelte') return 'html';
+    }
+    return 'typescript';
+  });
+
+  ngOnInit(): void {
+    this.applyPreset(this.presets[0]);
   }
 
-  generate() {
-    const name = this.endpoint.split('/').filter(Boolean).pop() || 'resource';
-    const camelName = name.replace(/[-_](\w)/g, (_, letter) => letter.toUpperCase());
-    const pascalName = capitalize(camelName);
-    const methodLower = this.method.toLowerCase();
-    const cleanResponseType = this.responseType.trim() || 'any';
-    const baseModelType = cleanResponseType.replace(/\[\]$/, '');
-    const serviceName = `${pascalName}Service`;
-
-    if (this.framework === 'angular') {
-      if (this.angularPattern === 'service-method') {
-        this.result.set(`get${pascalName}(): Observable<${cleanResponseType}> {\n  return this.http.${methodLower}<${cleanResponseType}>('${this.endpoint}');\n}`);
-      } else if (this.angularPattern === 'full-service') {
-        this.result.set(`import { Injectable, inject } from '@angular/core';\nimport { HttpClient } from '@angular/common/http';\nimport { Observable } from 'rxjs';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\n@Injectable({\n  providedIn: 'root'\n})\nexport class ${serviceName} {\n  private http = inject(HttpClient);\n  private baseUrl = '${this.endpoint}';\n\n  get${pascalName}(): Observable<${cleanResponseType}> {\n    return this.http.${methodLower}<${cleanResponseType}>(this.baseUrl);\n  }\n}`);
-      } else if (this.angularPattern === 'signals-resource') {
-        this.result.set(`import { Injectable, inject } from '@angular/core';\nimport { HttpClient } from '@angular/common/http';\nimport { rxResource } from '@angular/core/rxjs-interop';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\n@Injectable({\n  providedIn: 'root'\n})\nexport class ${serviceName} {\n  private http = inject(HttpClient);\n\n  ${camelName}Resource = rxResource({\n    loader: () => this.http.${methodLower}<${cleanResponseType}>('${this.endpoint}')\n  });\n\n  // To read state in components:\n  // data = this.${camelName}Resource.value;\n  // loading = this.${camelName}Resource.isLoading;\n}`);
-      }
-    } else if (this.framework === 'react') {
-      if (this.reactPattern === 'custom-hook') {
-        this.result.set(`import { useState, useEffect } from 'react';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\nexport function use${pascalName}() {\n  const [data, setData] = useState<${cleanResponseType} | null>(null);\n  const [loading, setLoading] = useState<boolean>(true);\n  const [error, setError] = useState<Error | null>(null);\n\n  useEffect(() => {\n    const controller = new AbortController();\n    setLoading(true);\n\n    fetch('${this.endpoint}', { signal: controller.signal })\n      .then(res => {\n        if (!res.ok) throw new Error(\`HTTP error! status: \${res.status}\`);\n        return res.json();\n      })\n      .then(setData)\n      .catch(err => {\n        if (err.name !== 'AbortError') setError(err);\n      })\n      .finally(() => setLoading(false));\n\n    return () => controller.abort();\n  }, []);\n\n  return { data, loading, error };\n}`);
-      } else if (this.reactPattern === 'rtk-query') {
-        this.result.set(`import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\nexport const ${camelName}Api = createApi({\n  reducerPath: '${camelName}Api',\n  baseQuery: fetchBaseQuery({ baseUrl: '/' }),\n  endpoints: (builder) => ({\n    get${pascalName}: builder.query<${cleanResponseType}, void>({\n      query: () => '${this.endpoint}',\n    }),\n  }),\n});\n\nexport const { useGet${pascalName}Query } = ${camelName}Api;`);
-      } else if (this.reactPattern === 'redux-thunk') {
-        this.result.set(`import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\nexport const fetch${pascalName} = createAsyncThunk(\n  '${camelName}/fetch${pascalName}',\n  async (_, thunkAPI) => {\n    try {\n      const response = await fetch('${this.endpoint}');\n      if (!response.ok) throw new Error('Network response was not ok');\n      return (await response.json()) as ${cleanResponseType};\n    } catch (error: any) {\n      return thunkAPI.rejectWithValue(error.message || 'Failed to fetch');\n    }\n  }\n);\n\ninterface State {\n  data: ${cleanResponseType} | null;\n  loading: boolean;\n  error: string | null;\n}\n\nconst initialState: State = {\n  data: null,\n  loading: false,\n  error: null,\n};\n\nconst ${camelName}Slice = createSlice({\n  name: '${camelName}',\n  initialState,\n  reducers: {},\n  extraReducers: (builder) => {\n    builder\n      .addCase(fetch${pascalName}.pending, (state) => {\n        state.loading = true;\n        state.error = null;\n      })\n      .addCase(fetch${pascalName}.fulfilled, (state, action: PayloadAction<${cleanResponseType}>) => {\n        state.loading = false;\n        state.data = action.payload;\n      })\n      .addCase(fetch${pascalName}.rejected, (state, action) => {\n        state.loading = false;\n        state.error = action.payload as string || 'Unknown error';\n      });\n  },\n});\n\nexport default ${camelName}Slice.reducer;`);
-      }
-    } else if (this.framework === 'vue') {
-      if (this.vuePattern === 'composable') {
-        this.result.set(`import { ref, onMounted } from 'vue';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\nexport function use${pascalName}() {\n  const data = ref<${cleanResponseType} | null>(null);\n  const loading = ref(false);\n  const error = ref<Error | null>(null);\n\n  const fetchData = async () => {\n    loading.value = true;\n    try {\n      const res = await fetch('${this.endpoint}');\n      if (!res.ok) throw new Error(\`HTTP error! status: \n\${res.status}\`);\n      data.value = await res.json();\n    } catch (err) {\n      error.value = err as Error;\n    } finally {\n      loading.value = false;\n    }\n  };\n\n  onMounted(fetchData);\n\n  return { data, loading, error, refetch: fetchData };\n}`);
-      } else if (this.vuePattern === 'pinia-store') {
-        this.result.set(`import { defineStore } from 'pinia';\nimport { ref } from 'vue';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\nexport const use${pascalName}Store = defineStore('${camelName}', () => {\n  const data = ref<${cleanResponseType} | null>(null);\n  const loading = ref(false);\n  const error = ref<string | null>(null);\n\n  async function fetch${pascalName}() {\n    loading.value = true;\n    error.value = null;\n    try {\n      const res = await fetch('${this.endpoint}');\n      if (!res.ok) throw new Error('Failed to fetch data');\n      data.value = await res.json();\n    } catch (err: any) {\n      error.value = err.message || 'Unknown error';\n    }\n    finally {\n      loading.value = false;\n    }\n  }\n\n  return { data, loading, error, fetch${pascalName} };\n});`);
-      } else if (this.vuePattern === 'context-provider') {
-        this.result.set(`import { inject, provide, InjectionKey } from 'vue';\n\nexport interface ${baseModelType} {\n  // Define fields here\n}\n\nexport class ${pascalName}ApiClient {\n  async fetch(): Promise<${cleanResponseType}> {\n    const res = await fetch('${this.endpoint}');\n    if (!res.ok) throw new Error('Fetch failed');\n    return res.json();\n  }\n}\n\nconst ApiClientKey: InjectionKey<${pascalName}ApiClient> = Symbol('${pascalName}ApiClientKey');\n\nexport function provide${pascalName}ApiClient() {\n  provide(ApiClientKey, new ${pascalName}ApiClient());\n}\n\nexport function use${pascalName}ApiClient() {\n  const client = inject(ApiClientKey);\n  if (!client) throw new Error('${pascalName}ApiClient not provided');\n  return client;\n}`);
-      }
+  onFrameworkChange(newFramework: SupportedFramework): void {
+    this.framework.set(newFramework);
+    const patterns = this.availablePatterns();
+    if (patterns.length > 0) {
+      this.pattern.set(patterns[0].id);
     }
   }
+
+  applyPreset(preset: PresetOption): void {
+    const c = preset.config;
+    if (c.framework) this.framework.set(c.framework);
+    if (c.pattern) this.pattern.set(c.pattern);
+    if (c.mode) this.mode.set(c.mode);
+    if (c.method) this.method.set(c.method);
+    if (c.endpoint) this.endpoint.set(c.endpoint);
+    if (c.resourceName !== undefined) this.resourceName.set(c.resourceName);
+    if (c.includeErrorHandling !== undefined) this.includeErrorHandling.set(c.includeErrorHandling);
+    if (c.includeCancellation !== undefined) this.includeCancellation.set(c.includeCancellation);
+    if (c.includeAuth !== undefined) this.includeAuth.set(c.includeAuth);
+    if (c.includeTsDoc !== undefined) this.includeTsDoc.set(c.includeTsDoc);
+    if (c.includePagination !== undefined) this.includePagination.set(c.includePagination);
+  }
+
+  copyCode(): void {
+    const code = this.activeCode();
+    if (!code) return;
+
+    navigator.clipboard.writeText(code).then(() => {
+      this.copied.set(true);
+      if (this.copyTimeout) clearTimeout(this.copyTimeout);
+      this.copyTimeout = setTimeout(() => this.copied.set(false), 2000);
+    });
+  }
+
+  downloadCode(): void {
+    const code = this.activeCode();
+    if (!code) return;
+
+    const ext = this.getFileExtension();
+    const filename = `${this.resourceName().toLowerCase() || 'api-client'}.${this.activeTab()}.${ext}`;
+    const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private getFileExtension(): string {
+    if (this.activeTab() === 'usage') {
+      if (this.framework() === 'react') return 'tsx';
+      if (this.framework() === 'vue') return 'vue';
+      if (this.framework() === 'svelte') return 'svelte';
+    }
+    return 'ts';
+  }
 }
-function capitalize(value: string): string { return value.charAt(0).toUpperCase() + value.slice(1); }

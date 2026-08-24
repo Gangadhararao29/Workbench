@@ -4,7 +4,17 @@ const DEFAULT_CONFIGS: Record<string, Record<string, any>> = {
   'csharp-to-typescript': { outputType: 'interface', naming: 'camel', nullable: 'null', enumOutput: 'enum' },
   'json-to-typescript': { rootName: 'Root', outputType: 'interface' },
   'json-to-csharp': { rootName: 'Root' },
-  'sql-to-csharp': { outputType: 'class', className: 'QueryResult' }
+  'sql-to-csharp': { outputType: 'class', className: 'QueryResult' },
+  'feature-generator': {
+    includeEntity: true,
+    includeDto: true,
+    includeRepository: true,
+    includeService: true,
+    includeController: true,
+    includeConfiguration: true,
+    includeFrontend: true,
+    includeAngularService: true
+  }
 };
 
 export function defaultConfigFor(toolType: string): Record<string, any> {

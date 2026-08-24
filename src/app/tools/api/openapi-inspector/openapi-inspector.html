@@ -1,1 +1,643 @@
-<div class="tool-surface-inner"><div class="field"><label>OpenAPI JSON</label><app-code-editor [value]="input()" language="json" ariaLabel="OpenAPI JSON" (valueChange)="input.set($event)"></app-code-editor></div><button mat-raised-button color="primary" (click)="inspect()">Inspect OpenAPI</button>@if(error()){<p class="error">{{error()}}</p>}<section><h2>Endpoints</h2><div class="endpoint-list">@for(endpoint of endpoints();track endpoint.method+endpoint.path){<div class="endpoint"><strong>{{endpoint.method}}</strong><code>{{endpoint.path}}</code><span>{{endpoint.summary}}</span></div>}@empty{<p>No endpoints found.</p>}</div></section><section><h2>Schemas</h2><p>{{schemas().length ? schemas().join(', ') : 'No schemas found.'}}</p></section></div>
+<div class="openapi-inspector-container">
+  <!-- Top Spec Input Section -->
+  <div class="spec-editor-card">
+    <div class="spec-header">
+      <div class="spec-title-group">
+        <h2 class="section-title">OpenAPI Specification (JSON)</h2>
+        <button type="button" class="btn-preset" (click)="loadSample()">
+          <mat-icon class="preset-icon">auto_awesome</mat-icon>
+          <span>Load Sample Spec</span>
+        </button>
+      </div>
+      <div class="spec-actions">
+        <button type="button" class="btn-action" (click)="formatJson()" matTooltip="Format & Indent JSON">
+          <mat-icon>code</mat-icon> Prettify
+        </button>
+        <button type="button" class="btn-action" (click)="clearInput()" matTooltip="Clear document">
+          <mat-icon>clear</mat-icon> Clear
+        </button>
+        <button mat-raised-button color="primary" class="btn-inspect" (click)="inspect()">
+          <mat-icon>play_arrow</mat-icon> Inspect Spec
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-wrapper">
+      <app-code-editor
+        [value]="input()"
+        language="json"
+        ariaLabel="OpenAPI JSON"
+        (valueChange)="input.set($event)">
+      </app-code-editor>
+    </div>
+
+    @if (error()) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ error() }}</span>
+      </div>
+    }
+  </div>
+
+  @if (inspection()) {
+    <!-- API Summary Banner & Server Configuration -->
+    <div class="api-summary-card">
+      <div class="summary-top">
+        <div class="api-identity">
+          <div class="api-title-row">
+            <h1 class="api-main-title">{{ inspection()!.title }}</h1>
+            <span class="version-badge">v{{ inspection()!.version }}</span>
+          </div>
+          @if (inspection()!.description) {
+            <p class="api-description">{{ inspection()!.description }}</p>
+          }
+        </div>
+
+        <!-- Target Server / Base URL Inline Edit Box -->
+        <div class="server-config-box">
+          <label class="server-label">
+            <mat-icon>dns</mat-icon> Base Server URL (used for cURL)
+          </label>
+          <div class="server-edit-wrapper" [class.is-editing]="editingServer()">
+            <input
+              #serverInput
+              type="text"
+              class="server-url-input"
+              [class.editing]="editingServer()"
+              [readonly]="!editingServer()"
+              [ngModel]="selectedServerUrl()"
+              (ngModelChange)="selectedServerUrl.set($event)"
+              (keydown.enter)="saveServerUrl(serverInput.value)"
+              (keydown.escape)="cancelEditServer()"
+              (click)="!editingServer() && startEditServer(serverInput)"
+              placeholder="https://api.example.com" />
+
+            @if (editingServer()) {
+              <div class="server-action-buttons">
+                <button
+                  type="button"
+                  class="btn-server-action btn-save-server"
+                  (click)="saveServerUrl(serverInput.value)"
+                  matTooltip="Save (Enter)">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  class="btn-server-action btn-cancel-server"
+                  (click)="cancelEditServer()"
+                  matTooltip="Cancel (Esc)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="btn-server-action btn-edit-server"
+                (click)="startEditServer(serverInput)"
+                matTooltip="Edit Base Server URL">
+                <mat-icon>edit</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics & Tabs -->
+      <div class="summary-bottom">
+        <div class="stats-pills">
+          <div class="stat-pill">
+            <span class="stat-num">{{ inspection()!.endpoints.length }}</span>
+            <span class="stat-label">Endpoints</span>
+          </div>
+          @if (methodStats()['GET']) {
+            <span class="method-pill method-get">GET: {{ methodStats()['GET'] }}</span>
+          }
+          @if (methodStats()['POST']) {
+            <span class="method-pill method-post">POST: {{ methodStats()['POST'] }}</span>
+          }
+          @if (methodStats()['PUT']) {
+            <span class="method-pill method-put">PUT: {{ methodStats()['PUT'] }}</span>
+          }
+          @if (methodStats()['PATCH']) {
+            <span class="method-pill method-patch">PATCH: {{ methodStats()['PATCH'] }}</span>
+          }
+          @if (methodStats()['DELETE']) {
+            <span class="method-pill method-delete">DEL: {{ methodStats()['DELETE'] }}</span>
+          }
+          <div class="stat-pill">
+            <span class="stat-num">{{ inspection()!.schemas.length }}</span>
+            <span class="stat-label">Schemas</span>
+          </div>
+        </div>
+
+        <div class="nav-tabs">
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab() === 'endpoints'"
+            (click)="activeTab.set('endpoints')">
+            <mat-icon>api</mat-icon> Endpoints ({{ filteredEndpoints().length }})
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab() === 'schemas'"
+            (click)="activeTab.set('schemas')">
+            <mat-icon>schema</mat-icon> Schemas ({{ inspection()!.schemas.length }})
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab() === 'overview'"
+            (click)="activeTab.set('overview')">
+            <mat-icon>info</mat-icon> API Details
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN TAB 1: Endpoints View with Grouping, Search, Filters & cURL generation -->
+    @if (activeTab() === 'endpoints') {
+      <div class="endpoints-explorer">
+        <!-- Explorer Controls: Search, Method Filter, Grouping, Bulk Actions -->
+        <div class="explorer-toolbar">
+          <!-- Search input -->
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Filter by path, summary, description, tag, or operation..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)" />
+            @if (searchQuery()) {
+              <button type="button" class="clear-search-btn" (click)="searchQuery.set('')">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+
+          <!-- Method Filter Buttons -->
+          <div class="method-filters">
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="selectedMethod() === 'ALL'"
+              (click)="selectedMethod.set('ALL')">ALL</button>
+            <button
+              type="button"
+              class="filter-pill pill-get"
+              [class.active]="selectedMethod() === 'GET'"
+              (click)="selectedMethod.set('GET')">GET</button>
+            <button
+              type="button"
+              class="filter-pill pill-post"
+              [class.active]="selectedMethod() === 'POST'"
+              (click)="selectedMethod.set('POST')">POST</button>
+            <button
+              type="button"
+              class="filter-pill pill-put"
+              [class.active]="selectedMethod() === 'PUT'"
+              (click)="selectedMethod.set('PUT')">PUT</button>
+            <button
+              type="button"
+              class="filter-pill pill-patch"
+              [class.active]="selectedMethod() === 'PATCH'"
+              (click)="selectedMethod.set('PATCH')">PATCH</button>
+            <button
+              type="button"
+              class="filter-pill pill-delete"
+              [class.active]="selectedMethod() === 'DELETE'"
+              (click)="selectedMethod.set('DELETE')">DELETE</button>
+          </div>
+
+          <!-- Group By & Display Options -->
+          <div class="view-options">
+            <div class="group-select-group">
+              <label>Group by:</label>
+              <select
+                class="group-select"
+                [ngModel]="groupBy()"
+                (ngModelChange)="groupBy.set($event)">
+                <option value="tag">🏷️ Tag (Swagger style)</option>
+                <option value="path">📁 Resource Path</option>
+                <option value="method">🔠 HTTP Method</option>
+                <option value="flat">📄 Flat List</option>
+              </select>
+            </div>
+
+            <div class="toolbar-actions">
+              <button
+                type="button"
+                class="btn-tool"
+                (click)="curlMultiline.set(!curlMultiline())"
+                matTooltip="Toggle cURL multiline format">
+                <mat-icon>wrap_text</mat-icon>
+                {{ curlMultiline() ? 'Multi-line cURL' : 'Single-line cURL' }}
+              </button>
+              <button
+                type="button"
+                class="btn-tool"
+                (click)="expandAll()"
+                matTooltip="Expand all groups and endpoints">
+                <mat-icon>unfold_more</mat-icon> Expand All
+              </button>
+              <button
+                type="button"
+                class="btn-tool"
+                (click)="collapseAll()"
+                matTooltip="Collapse all">
+                <mat-icon>unfold_less</mat-icon> Collapse
+              </button>
+              <button
+                type="button"
+                class="btn-tool copy-all-btn"
+                [class.copied]="isCopied('all-curls')"
+                (click)="copyAllCurls()"
+                matTooltip="Copy all visible endpoints as cURL statements">
+                <mat-icon>{{ isCopied('all-curls') ? 'check' : 'content_copy' }}</mat-icon>
+                {{ isCopied('all-curls') ? 'All cURLs Copied!' : 'Copy All cURLs' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Groups & Endpoints Accordion -->
+        <div class="groups-container">
+          @for (group of groupedEndpoints(); track group.name) {
+            <div class="endpoint-group-card" [class.collapsed]="isGroupCollapsed(group.name)">
+              <!-- Group Header -->
+              <div class="group-header" (click)="toggleGroup(group.name)">
+                <div class="group-header-left">
+                  <mat-icon class="group-chevron">
+                    {{ isGroupCollapsed(group.name) ? 'chevron_right' : 'expand_more' }}
+                  </mat-icon>
+                  <span class="group-title">{{ group.name }}</span>
+                  @if (group.description) {
+                    <span class="group-desc">— {{ group.description }}</span>
+                  }
+                </div>
+                <div class="group-header-right">
+                  <div class="group-method-counts">
+                    @for (m of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']; track m) {
+                      @if (group.methodCounts[m]) {
+                        <span class="mini-count {{ getMethodClass(m) }}">{{ m }}: {{ group.methodCounts[m] }}</span>
+                      }
+                    }
+                  </div>
+                  <span class="group-count-badge">{{ group.endpoints.length }}</span>
+                </div>
+              </div>
+
+              <!-- Endpoints in Group -->
+              @if (!isGroupCollapsed(group.name)) {
+                <div class="group-endpoints-list">
+                  @for (endpoint of group.endpoints; track endpoint.id) {
+                    <div class="endpoint-card" [class.expanded]="isEndpointExpanded(endpoint.id)">
+                      <!-- Main Summary Row -->
+                      <div class="endpoint-summary-row" (click)="toggleEndpoint(endpoint.id)">
+                        <div class="endpoint-identity">
+                          <span class="http-badge {{ getMethodClass(endpoint.method) }}">
+                            {{ endpoint.method }}
+                          </span>
+                          <span class="endpoint-path">{{ endpoint.path }}</span>
+                          @if (endpoint.summary) {
+                            <span class="endpoint-summary-text">{{ endpoint.summary }}</span>
+                          }
+                          @if (endpoint.deprecated) {
+                            <span class="deprecated-tag">Deprecated</span>
+                          }
+                        </div>
+
+                        <!-- Quick Action Buttons -->
+                        <div class="endpoint-quick-actions" (click)="$event.stopPropagation()">
+                          <!-- Copy cURL Statement button -->
+                          <button
+                            type="button"
+                            class="quick-btn curl-btn"
+                            [class.copied]="isCopied('curl-' + endpoint.id)"
+                            (click)="copyCurl(endpoint, $event)"
+                            matTooltip="Copy ready-to-run cURL command">
+                            <mat-icon class="btn-icon">
+                              {{ isCopied('curl-' + endpoint.id) ? 'check' : 'terminal' }}
+                            </mat-icon>
+                            <span>{{ isCopied('curl-' + endpoint.id) ? 'cURL Copied!' : 'Copy cURL' }}</span>
+                          </button>
+
+                          <!-- Copy Path button -->
+                          <button
+                            type="button"
+                            class="quick-btn path-btn"
+                            [class.copied]="isCopied('path-' + endpoint.id)"
+                            (click)="copyPath(endpoint, $event)"
+                            matTooltip="Copy endpoint path">
+                            <mat-icon class="btn-icon">
+                              {{ isCopied('path-' + endpoint.id) ? 'check' : 'link' }}
+                            </mat-icon>
+                            <span>{{ isCopied('path-' + endpoint.id) ? 'Copied' : 'Path' }}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="quick-btn expand-btn"
+                            (click)="toggleEndpoint(endpoint.id)"
+                            matTooltip="Toggle endpoint details">
+                            <mat-icon class="btn-icon">
+                              {{ isEndpointExpanded(endpoint.id) ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+                            </mat-icon>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Expanded Details Drawer -->
+                      @if (isEndpointExpanded(endpoint.id)) {
+                        <div class="endpoint-detail-drawer">
+                          <!-- Section 1: cURL Statement & Copy -->
+                          <div class="detail-section curl-box-section">
+                            <div class="section-sub-header">
+                              <span class="section-sub-title">
+                                <mat-icon>terminal</mat-icon> Generated cURL Statement
+                              </span>
+                              <div class="curl-actions">
+                                <button
+                                  type="button"
+                                  class="btn-copy-code"
+                                  [class.copied]="isCopied('curl-' + endpoint.id)"
+                                  (click)="copyCurl(endpoint, $event)">
+                                  <mat-icon>{{ isCopied('curl-' + endpoint.id) ? 'check' : 'content_copy' }}</mat-icon>
+                                  {{ isCopied('curl-' + endpoint.id) ? 'Copied to Clipboard!' : 'Copy cURL' }}
+                                </button>
+                              </div>
+                            </div>
+                            <pre class="curl-code-block"><code>{{ getCurl(endpoint) }}</code></pre>
+                          </div>
+
+                          @if (endpoint.description && endpoint.description !== endpoint.summary) {
+                            <div class="detail-section">
+                              <span class="section-sub-title"><mat-icon>description</mat-icon> Description</span>
+                              <p class="detail-description">{{ endpoint.description }}</p>
+                            </div>
+                          }
+
+                          <!-- Section 2: Parameters -->
+                          @if (endpoint.parameters.length > 0) {
+                            <div class="detail-section">
+                              <span class="section-sub-title">
+                                <mat-icon>tune</mat-icon> Parameters ({{ endpoint.parameters.length }})
+                              </span>
+                              <div class="table-wrapper">
+                                <table class="detail-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Parameter</th>
+                                      <th>Type</th>
+                                      <th>Location</th>
+                                      <th>Required</th>
+                                      <th>Description</th>
+                                      <th>Example / Default</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    @for (param of endpoint.parameters; track param.name + param.in) {
+                                      <tr>
+                                        <td><code>{{ param.name }}</code></td>
+                                        <td><span class="type-badge">{{ param.type || 'string' }}</span></td>
+                                        <td><span class="in-badge in-{{ param.in }}">{{ param.in }}</span></td>
+                                        <td>
+                                          @if (param.required) {
+                                            <span class="required-badge">required</span>
+                                          } @else {
+                                            <span class="optional-badge">optional</span>
+                                          }
+                                        </td>
+                                        <td>{{ param.description || '—' }}</td>
+                                        <td>
+                                          @if (param.example !== undefined) {
+                                            <code>{{ param.example }}</code>
+                                          } @else if (param.defaultValue !== undefined) {
+                                            <code>default: {{ param.defaultValue }}</code>
+                                          } @else {
+                                            <span class="muted-text">—</span>
+                                          }
+                                        </td>
+                                      </tr>
+                                    }
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          }
+
+                          <!-- Section 3: Request Body -->
+                          @if (endpoint.requestBody) {
+                            <div class="detail-section">
+                              <div class="section-sub-header">
+                                <span class="section-sub-title">
+                                  <mat-icon>input</mat-icon> Request Body
+                                  @if (endpoint.requestBody.required) {
+                                    <span class="required-badge">required</span>
+                                  }
+                                </span>
+                                <div class="content-types-list">
+                                  @for (ct of endpoint.requestBody.contentTypes; track ct) {
+                                    <span class="content-type-badge">{{ ct }}</span>
+                                  }
+                                </div>
+                              </div>
+                              @if (endpoint.requestBody.description) {
+                                <p class="detail-description">{{ endpoint.requestBody.description }}</p>
+                              }
+                              @if (endpoint.requestBody.sampleJson) {
+                                <div class="sample-json-block">
+                                  <div class="json-header">Sample Request Payload</div>
+                                  <pre class="json-code"><code>{{ endpoint.requestBody.sampleJson }}</code></pre>
+                                </div>
+                              }
+                            </div>
+                          }
+
+                          <!-- Section 4: Responses -->
+                          @if (endpoint.responses.length > 0) {
+                            <div class="detail-section">
+                              <span class="section-sub-title">
+                                <mat-icon>output</mat-icon> Responses ({{ endpoint.responses.length }})
+                              </span>
+                              <div class="responses-list">
+                                @for (res of endpoint.responses; track res.statusCode) {
+                                  <div class="response-item">
+                                    <span class="status-badge status-{{ res.statusCode.charAt(0) }}xx">
+                                      {{ res.statusCode }}
+                                    </span>
+                                    <span class="response-desc">{{ res.description || 'No description provided.' }}</span>
+                                    <div class="response-content-types">
+                                      @for (ct of res.contentTypes; track ct) {
+                                        <span class="content-type-badge">{{ ct }}</span>
+                                      }
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+
+                          <!-- Security & Operation metadata -->
+                          <div class="meta-footer">
+                            @if (endpoint.security.length > 0) {
+                              <div class="meta-item">
+                                <strong>Security:</strong>
+                                @for (sec of endpoint.security; track sec) {
+                                  <span class="sec-badge">{{ sec }}</span>
+                                }
+                              </div>
+                            }
+                            @if (endpoint.operationId) {
+                              <div class="meta-item">
+                                <strong>Operation ID:</strong> <code>{{ endpoint.operationId }}</code>
+                              </div>
+                            }
+                            @if (endpoint.tags.length > 0) {
+                              <div class="meta-item">
+                                <strong>Tags:</strong>
+                                @for (tag of endpoint.tags; track tag) {
+                                  <span class="tag-pill">{{ tag }}</span>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="empty-state-card">
+              <mat-icon class="empty-icon">search_off</mat-icon>
+              <h3>No matching endpoints</h3>
+              <p>Try adjusting your search filter or selected HTTP method.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- MAIN TAB 2: Schemas Explorer -->
+    @if (activeTab() === 'schemas') {
+      <div class="schemas-explorer">
+        <div class="schemas-grid">
+          @for (schema of inspection()!.schemas; track schema.name) {
+            <div class="schema-card">
+              <div class="schema-header">
+                <div class="schema-title-area">
+                  <h3 class="schema-name">{{ schema.name }}</h3>
+                  <span class="type-badge">{{ schema.type }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn-copy-code"
+                  [class.copied]="isCopied('schema-' + schema.name)"
+                  (click)="copySchemaJson(schema, $event)">
+                  <mat-icon>{{ isCopied('schema-' + schema.name) ? 'check' : 'content_copy' }}</mat-icon>
+                  {{ isCopied('schema-' + schema.name) ? 'Sample Copied!' : 'Copy Sample JSON' }}
+                </button>
+              </div>
+
+              @if (schema.description) {
+                <p class="schema-desc">{{ schema.description }}</p>
+              }
+
+              @if (schema.properties.length > 0) {
+                <div class="table-wrapper">
+                  <table class="detail-table">
+                    <thead>
+                      <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (prop of schema.properties; track prop.name) {
+                        <tr>
+                          <td><code>{{ prop.name }}</code></td>
+                          <td>
+                            <span class="type-badge">{{ prop.type }}</span>
+                            @if (prop.format) {
+                              <span class="format-badge">{{ prop.format }}</span>
+                            }
+                          </td>
+                          <td>
+                            @if (prop.required) {
+                              <span class="required-badge">required</span>
+                            } @else {
+                              <span class="optional-badge">optional</span>
+                            }
+                          </td>
+                          <td>{{ prop.description || '—' }}</td>
+                          <td>
+                            @if (prop.example !== undefined) {
+                              <code>{{ prop.example }}</code>
+                            } @else {
+                              <span class="muted-text">—</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+
+              <div class="sample-json-block">
+                <div class="json-header">Sample Schema JSON Instance</div>
+                <pre class="json-code"><code>{{ schema.sampleJson }}</code></pre>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state-card">
+              <mat-icon class="empty-icon">data_object</mat-icon>
+              <h3>No component schemas found</h3>
+              <p>This OpenAPI specification does not define component schemas under <code>components.schemas</code>.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- MAIN TAB 3: API Details & Overview -->
+    @if (activeTab() === 'overview') {
+      <div class="overview-section-container">
+        <div class="overview-card">
+          <h3 class="overview-heading"><mat-icon>dns</mat-icon> Configured Servers</h3>
+          <div class="servers-list">
+            @for (srv of inspection()!.servers; track srv.url) {
+              <div class="server-item">
+                <span class="server-url"><code>{{ srv.url }}</code></span>
+                @if (srv.description) {
+                  <span class="server-note">{{ srv.description }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (inspection()!.tags.length > 0) {
+          <div class="overview-card">
+            <h3 class="overview-heading"><mat-icon>label</mat-icon> Defined Tags</h3>
+            <div class="tags-directory">
+              @for (tag of inspection()!.tags; track tag.name) {
+                <div class="tag-directory-item">
+                  <span class="tag-title">🏷️ {{ tag.name }}</span>
+                  <span class="tag-desc">{{ tag.description || 'No description' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

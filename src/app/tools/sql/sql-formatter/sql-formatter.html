@@ -5,8 +5,14 @@
   </div>
 
   <div class="actions">
-    <button mat-raised-button color="primary" (click)="format()">Format</button>
-    <button mat-stroked-button (click)="minify()">Minify</button>
+    <button mat-stroked-button (click)="minify()">
+      <mat-icon>compress</mat-icon>
+      <span>Minify</span>
+    </button>
+    <button mat-raised-button color="primary" (click)="format()">
+      <mat-icon>auto_fix_high</mat-icon>
+      <span>Format</span>
+    </button>
   </div>
 
   <div class="field grow">

@@ -1,61 +1,170 @@
-<div class="tool-surface-inner">
-  <div class="form-grid">
-    <label>Framework
-      <select [(ngModel)]="framework" (ngModelChange)="onFrameworkChange()">
-        <option value="angular">Angular</option>
-        <option value="react">React</option>
-        <option value="vue">Vue</option>
-      </select>
-    </label>
+<div class="api-generator-root">
+  <!-- Row 1: Framework Icons (Left) and Mode Toggle (Right) -->
+  <div class="top-control-row">
+    <div class="framework-icons-group">
+      <span class="group-label">Framework</span>
+      <div class="framework-pills">
+        @for (fw of frameworks; track fw.id) {
+          <button
+            type="button"
+            class="fw-pill-btn"
+            [class.active]="framework() === fw.id"
+            (click)="onFrameworkChange(fw.id)"
+            [matTooltip]="fw.label">
+            <mat-icon class="pill-icon">{{ fw.icon }}</mat-icon>
+            <span>{{ fw.label }}</span>
+          </button>
+        }
+      </div>
+    </div>
 
-    @if (framework === 'angular') {
-      <label>Angular Pattern
-        <select [(ngModel)]="angularPattern">
-          <option value="service-method">Single Service Method</option>
-          <option value="full-service">Full Injectable Service</option>
-          <option value="signals-resource">Angular Signals Resource (rxResource)</option>
-        </select>
-      </label>
-    } @else if (framework === 'react') {
-      <label>React Pattern
-        <select [(ngModel)]="reactPattern">
-          <option value="custom-hook">Custom React Hook</option>
-          <option value="rtk-query">RTK Query (Redux Toolkit)</option>
-          <option value="redux-thunk">Redux Thunk (createAsyncThunk)</option>
-        </select>
-      </label>
-    } @else if (framework === 'vue') {
-      <label>Vue Pattern
-        <select [(ngModel)]="vuePattern">
-          <option value="composable">Composition API Composable</option>
-          <option value="pinia-store">Pinia Store Action</option>
-          <option value="context-provider">Provide/Inject API Service</option>
-        </select>
-      </label>
+    <div class="mode-toggle-group">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="mode() === 'crud'"
+        (click)="mode.set('crud')">
+        <mat-icon>view_list</mat-icon> Full REST CRUD
+      </button>
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="mode() === 'single'"
+        (click)="mode.set('single')">
+        <mat-icon>call_made</mat-icon> Single Endpoint
+      </button>
+    </div>
+  </div>
+
+  <!-- Row 2: Resource Name, Endpoint, HTTP Method, Pattern Selector -->
+  <div class="inputs-grid">
+    <div class="field-group">
+      <label class="field-label">Resource Name</label>
+      <input
+        type="text"
+        [ngModel]="resourceName()"
+        (ngModelChange)="resourceName.set($event)"
+        placeholder="Product, User, Order"
+        class="field-input" />
+    </div>
+
+    <div class="field-group span-endpoint">
+      <label class="field-label">Endpoint</label>
+      <input
+        type="text"
+        [ngModel]="endpoint()"
+        (ngModelChange)="endpoint.set($event)"
+        placeholder="/api/products or /api/users/{id}"
+        class="field-input mono" />
+    </div>
+
+    @if (mode() === 'single') {
+      <div class="field-group method-col">
+        <label class="field-label">HTTP Method</label>
+        <div class="select-wrapper">
+          <select [ngModel]="method()" (ngModelChange)="method.set($event)" class="field-select method-select">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+        </div>
+      </div>
     }
 
-    <label>HTTP method
-      <select [(ngModel)]="method">
-        <option>GET</option>
-        <option>POST</option>
-        <option>PUT</option>
-        <option>DELETE</option>
-      </select>
-    </label>
+    <div class="field-group pattern-col">
+      <label class="field-label">Pattern</label>
+      <div class="select-wrapper">
+        <select [ngModel]="pattern()" (ngModelChange)="pattern.set($event)" class="field-select">
+          @for (pat of availablePatterns(); track pat.id) {
+            <option [value]="pat.id">{{ pat.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
 
-    <label>Endpoint
-      <input [(ngModel)]="endpoint" />
+  <!-- Row 3: Direct Options Checkboxes -->
+  <div class="options-row">
+    <label class="checkbox-label">
+      <input type="checkbox" [ngModel]="includeErrorHandling()" (ngModelChange)="includeErrorHandling.set($event)" />
+      <span>Error Handling</span>
     </label>
-
-    <label>Response type
-      <input [(ngModel)]="responseType" />
+    <label class="checkbox-label">
+      <input type="checkbox" [ngModel]="includeCancellation()" (ngModelChange)="includeCancellation.set($event)" />
+      <span>Cancellation (Abort)</span>
+    </label>
+    <label class="checkbox-label">
+      <input type="checkbox" [ngModel]="includeAuth()" (ngModelChange)="includeAuth.set($event)" />
+      <span>Auth Bearer Header</span>
+    </label>
+    <label class="checkbox-label">
+      <input type="checkbox" [ngModel]="includePagination()" (ngModelChange)="includePagination.set($event)" />
+      <span>Pagination & Filters</span>
+    </label>
+    <label class="checkbox-label">
+      <input type="checkbox" [ngModel]="includeTsDoc()" (ngModelChange)="includeTsDoc.set($event)" />
+      <span>TSDoc Comments</span>
     </label>
   </div>
 
-  <button mat-raised-button color="primary" (click)="generate()">Generate client code</button>
+  <!-- Generated Output Section with Tabs & Actions -->
+  <div class="output-card">
+    <div class="output-tabs-header">
+      <div class="tabs-group">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'client'"
+          (click)="activeTab.set('client')">
+          <mat-icon>code</mat-icon> Client Code
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'dtos'"
+          (click)="activeTab.set('dtos')">
+          <mat-icon>data_object</mat-icon> TypeScript DTOs
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'tests'"
+          (click)="activeTab.set('tests')">
+          <mat-icon>fact_check</mat-icon> Unit Test Spec
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'usage'"
+          (click)="activeTab.set('usage')">
+          <mat-icon>preview</mat-icon> Component Usage
+        </button>
+      </div>
 
-  <div class="field grow">
-    <label>Generated code</label>
-    <app-code-editor [value]="result()" [language]="outputLanguage" ariaLabel="Generated API client code" [readOnly]="true"></app-code-editor>
+      <div class="tab-actions">
+        <button type="button" class="tab-action-btn" (click)="copyCode()" matTooltip="Copy generated code">
+          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+          <span>{{ copied() ? 'Copied!' : 'Copy' }}</span>
+        </button>
+        <button type="button" class="tab-action-btn" (click)="downloadCode()" matTooltip="Download as file">
+          <mat-icon>download</mat-icon>
+          <span>Download</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Monaco Code Editor Surface -->
+    <div class="editor-wrapper">
+      <app-code-editor
+        class="generated-editor"
+        [value]="activeCode()"
+        [language]="editorLanguage()"
+        [readOnly]="true"
+        wordWrap="on"
+        ariaLabel="Generated API client code">
+      </app-code-editor>
+    </div>
   </div>
 </div>
