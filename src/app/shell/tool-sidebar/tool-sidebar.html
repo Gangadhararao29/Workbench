@@ -1,7 +1,7 @@
 <div class="sidebar-header">
   <span>Tools</span>
   @if (hasOpenTools) {
-    <button mat-icon-button matTooltip="Close all tools" aria-label="Close all tools" (click)="closeAll.emit()">
+    <button mat-icon-button #closeAllTip="matTooltip" matTooltip="Close all tools" matTooltipPosition="right" aria-label="Close all tools" (click)="closeAllTip.hide(0); closeAll.emit()">
       <mat-icon>close</mat-icon>
     </button>
   }
@@ -18,20 +18,28 @@
       </mat-expansion-panel-header>
 
       @for (tool of group.tools; track tool.type) {
-        <div class="tool-row" (click)="emit(tool.type, group.id)">
+        <div class="tool-row" (click)="descTip.hide(0); emit(tool.type, group.id)">
+          <span
+            class="tool-label"
+            #descTip="matTooltip"
+            [matTooltip]="tool.description"
+            matTooltipPosition="right"
+            matTooltipShowDelay="300"
+            matTooltipHideDelay="0"
+          >{{ tool.label }}</span>
           <button
             mat-icon-button
+            class="favorite-btn"
+            #favTip="matTooltip"
             [matTooltip]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
+            matTooltipPosition="right"
+            matTooltipTouchGestures="off"
             [attr.aria-label]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
-            (click)="toggleFavorite(tool.type); $event.stopPropagation()"
+            (click)="toggleFavorite(tool.type); favTip.hide(0); $event.stopPropagation()"
           >
             <mat-icon class="favorite-icon" [class.favorite-active]="isFavorite(tool.type)" inline="true">
-              {{ isFavorite(tool.type) ? 'star_shine' : 'star' }}
+              {{ isFavorite(tool.type) ? 'star' : 'star_border' }}
             </mat-icon>
-          </button>
-          <span [matTooltip]="tool.description" matTooltipShowDelay="300">{{ tool.label }}</span>
-          <button mat-icon-button matTooltip="Open tool" aria-label="Open tool" (click)="emit(tool.type, group.id); $event.stopPropagation()">
-            <mat-icon inline="true">add</mat-icon>
           </button>
         </div>
       }

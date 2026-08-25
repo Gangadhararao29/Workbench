@@ -1,66 +1,113 @@
 <div class="tool-surface-inner">
-  <!-- Query Type & Dialect Selector Header -->
+  <!-- Top Control Bar -->
   <div class="selector-header">
-    <!-- Query Types -->
-    <div class="query-tabs">
-      <button class="query-tab" [class.active]="queryType() === 'select'" (click)="setQueryType('select')">
-        <mat-icon>search</mat-icon> SELECT
-      </button>
-      <button class="query-tab" [class.active]="queryType() === 'insert'" (click)="setQueryType('insert')">
-        <mat-icon>add_box</mat-icon> INSERT
-      </button>
-      <button class="query-tab" [class.active]="queryType() === 'update'" (click)="setQueryType('update')">
-        <mat-icon>edit</mat-icon> UPDATE
-      </button>
-      <button class="query-tab" [class.active]="queryType() === 'delete'" (click)="setQueryType('delete')">
-        <mat-icon>delete_forever</mat-icon> DELETE
-      </button>
+    <!-- Center: Query Type Tabs & Quick Templates -->
+    <div class="selector-center">
+      <!-- Query Types -->
+      <div class="query-tabs" role="tablist" aria-label="SQL Query Types">
+        <button class="query-tab" [class.active]="queryType() === 'select'" (click)="setQueryType('select')" type="button">
+          <mat-icon>search</mat-icon>
+          <span>SELECT</span>
+        </button>
+        <button class="query-tab" [class.active]="queryType() === 'insert'" (click)="setQueryType('insert')" type="button">
+          <mat-icon>add_box</mat-icon>
+          <span>INSERT</span>
+        </button>
+        <button class="query-tab" [class.active]="queryType() === 'update'" (click)="setQueryType('update')" type="button">
+          <mat-icon>edit</mat-icon>
+          <span>UPDATE</span>
+        </button>
+        <button class="query-tab" [class.active]="queryType() === 'delete'" (click)="setQueryType('delete')" type="button">
+          <mat-icon>delete_forever</mat-icon>
+          <span>DELETE</span>
+        </button>
+      </div>
+
+      <!-- Quick Templates -->
+      <div class="preset-dropdown">
+        <select #presetSelect (change)="applyPreset($any(presetSelect.value)); presetSelect.value = ''" class="form-field preset-select" aria-label="Quick templates">
+          <option value="" disabled selected>⚡ Quick Templates...</option>
+          <option value="select-complex">Joined Search & Count</option>
+          <option value="select-aggregation">Aggregation & Grouping</option>
+          <option value="insert">Insert New Record</option>
+          <option value="update">Update Status with Filter</option>
+          <option value="delete">Delete Old Records</option>
+        </select>
+      </div>
     </div>
 
-    <!-- SQL Dialect Picker -->
-    <div class="dialect-group">
-      <button class="dialect-btn" [class.active]="dialect() === 'standard'" (click)="setDialect('standard')">PostgreSQL</button>
-      <button class="dialect-btn" [class.active]="dialect() === 'mysql'" (click)="setDialect('mysql')">MySQL</button>
-      <button class="dialect-btn" [class.active]="dialect() === 'tsql'" (click)="setDialect('tsql')">T-SQL (SQL Server)</button>
-      <button class="dialect-btn" [class.active]="dialect() === 'sqlite'" (click)="setDialect('sqlite')">SQLite</button>
+    <!-- Right: SQL Dialects & Reset -->
+    <div class="selector-right">
+      <!-- SQL Dialect Picker -->
+      <div class="dialect-group" aria-label="SQL Dialects">
+        <button class="dialect-btn" [class.active]="dialect() === 'standard'" (click)="setDialect('standard')" type="button" matTooltip="PostgreSQL / Standard ANSI SQL">Postgres</button>
+        <button class="dialect-btn" [class.active]="dialect() === 'mysql'" (click)="setDialect('mysql')" type="button" matTooltip="MySQL / MariaDB syntax">MySQL</button>
+        <button class="dialect-btn" [class.active]="dialect() === 'tsql'" (click)="setDialect('tsql')" type="button" matTooltip="Microsoft SQL Server (T-SQL)">T-SQL</button>
+        <button class="dialect-btn" [class.active]="dialect() === 'sqlite'" (click)="setDialect('sqlite')" type="button" matTooltip="SQLite syntax">SQLite</button>
+        <button class="dialect-btn" [class.active]="dialect() === 'oracle'" (click)="setDialect('oracle')" type="button" matTooltip="Oracle SQL syntax">Oracle</button>
+      </div>
+
+      <button mat-stroked-button (click)="reset()" class="btn-reset-header" matTooltip="Reset builder to default state">
+        <mat-icon>restart_alt</mat-icon> Reset
+      </button>
     </div>
   </div>
 
   <!-- Main Workspace Grid -->
   <div class="builder-grid">
-    <!-- Left Column: Form Controls -->
+    <!-- Left Column: Interactive Form Controls -->
     <div class="builder-controls">
       
       <!-- Table & Columns Card -->
       <div class="grid-card base-card">
         <div class="card-header">
-          <mat-icon>table_chart</mat-icon>
-          <span>Target Table & Columns</span>
+          <div class="card-title">
+            <mat-icon>table_chart</mat-icon>
+            <span>Target Table & Columns</span>
+          </div>
         </div>
         <div class="card-body form-body">
           <div class="field-row">
-            <label for="table-input">Table Name</label>
+            <label for="table-input">Table Name <span class="req-star">*</span></label>
             <input 
               id="table-input"
               type="text" 
               [ngModel]="tableName()" 
               (ngModelChange)="tableName.set($event)" 
-              placeholder="e.g. users" 
+              placeholder="e.g. users or users u" 
               class="form-field"
             />
           </div>
 
           @if (queryType() === 'select') {
             <div class="field-row margin-top">
-              <label for="columns-input">Columns to SELECT</label>
+              <div class="label-with-actions">
+                <label for="columns-input">Columns to SELECT</label>
+                <div class="quick-tokens">
+                  <button type="button" class="token-btn" (click)="setColumns('*')">*</button>
+                  <button type="button" class="token-btn" (click)="setColumns('id, name, email')">id, name, email</button>
+                  <button type="button" class="token-btn" (click)="setColumns('COUNT(*) AS total')">COUNT(*)</button>
+                </div>
+              </div>
               <input 
                 id="columns-input"
                 type="text" 
                 [ngModel]="columns()" 
                 (ngModelChange)="columns.set($event)" 
-                placeholder="e.g. *, id, username" 
+                placeholder="e.g. *, id, name or u.id, o.amount" 
                 class="form-field"
               />
+            </div>
+
+            <div class="checkbox-row">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [checked]="distinct()" 
+                  (change)="distinct.set(!distinct())" 
+                />
+                <span>DISTINCT rows only</span>
+              </label>
             </div>
           }
         </div>
@@ -70,28 +117,45 @@
       @if (queryType() === 'insert' || queryType() === 'update') {
         <div class="grid-card data-card">
           <div class="card-header">
-            <mat-icon>view_list</mat-icon>
-            <span>Set Column Values</span>
+            <div class="card-title">
+              <mat-icon>view_list</mat-icon>
+              <span>{{ queryType() === 'insert' ? 'Columns & Insert Values' : 'Update Column Values (SET)' }}</span>
+            </div>
+            <span class="clause-count-badge">{{ dataPairs().length }} field{{ dataPairs().length === 1 ? '' : 's' }}</span>
           </div>
           <div class="card-body form-body">
             <div class="list-container">
               @for (pair of dataPairs(); track $index) {
                 <div class="pair-row">
                   <input 
-                    [(ngModel)]="pair.column" 
+                    [ngModel]="pair.column" 
+                    (ngModelChange)="updatePair($index, 'column', $event)"
                     placeholder="Column Name" 
                     class="form-field column-field"
+                    aria-label="Column Name"
                   />
                   <span class="equals-symbol">=</span>
                   <input 
-                    [(ngModel)]="pair.value" 
-                    placeholder="Value (e.g. 'Ada', 28)" 
+                    [ngModel]="pair.value" 
+                    (ngModelChange)="updatePair($index, 'value', $event)"
+                    placeholder="Value (e.g. 'Ada', 28, NOW())" 
                     class="form-field value-field"
+                    aria-label="Field Value"
                   />
-                  <button mat-icon-button color="warn" (click)="removePair($index)" class="btn-delete" aria-label="Delete field">
+                  <label class="raw-toggle" matTooltip="Treat as raw SQL expression without quotes (e.g. NOW(), NULL, col + 1)">
+                    <input 
+                      type="checkbox" 
+                      [checked]="pair.isRaw" 
+                      (change)="updatePair($index, 'isRaw', !pair.isRaw)" 
+                    />
+                    <span>Raw</span>
+                  </label>
+                  <button mat-icon-button color="warn" (click)="removePair($index)" class="btn-delete" aria-label="Delete field" matTooltip="Remove field">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
+              } @empty {
+                <div class="no-clauses-prompt">No fields added yet.</div>
               }
               <button mat-stroked-button (click)="addPair()" class="btn-add">
                 <mat-icon>add</mat-icon> Add Field
@@ -105,34 +169,51 @@
       @if (queryType() === 'select') {
         <div class="grid-card join-card">
           <div class="card-header">
-            <mat-icon>join_inner</mat-icon>
-            <span>JOIN Clauses</span>
+            <div class="card-title">
+              <mat-icon>join_inner</mat-icon>
+              <span>JOIN Clauses</span>
+            </div>
+            <span class="clause-count-badge">{{ joins().length }} join{{ joins().length === 1 ? '' : 's' }}</span>
           </div>
           <div class="card-body form-body">
             <div class="list-container">
               @for (join of joins(); track $index) {
                 <div class="clause-row join-row">
-                  <select [(ngModel)]="join.type" class="form-field join-type-field">
-                    <option value="INNER">INNER</option>
-                    <option value="LEFT">LEFT</option>
-                    <option value="RIGHT">RIGHT</option>
-                    <option value="FULL">FULL</option>
+                  <select 
+                    [ngModel]="join.type" 
+                    (ngModelChange)="updateJoin($index, 'type', $event)"
+                    class="form-field join-type-field"
+                    aria-label="Join Type"
+                  >
+                    <option value="INNER">INNER JOIN</option>
+                    <option value="LEFT">LEFT JOIN</option>
+                    <option value="RIGHT">RIGHT JOIN</option>
+                    <option value="FULL">FULL OUTER</option>
+                    <option value="CROSS">CROSS JOIN</option>
                   </select>
                   <input 
-                    [(ngModel)]="join.table" 
-                    placeholder="Join Table" 
+                    [ngModel]="join.table" 
+                    (ngModelChange)="updateJoin($index, 'table', $event)"
+                    placeholder="Join Table (e.g. orders or orders o)" 
                     class="form-field join-table-field"
+                    aria-label="Join Table"
                   />
-                  <span class="on-label">ON</span>
-                  <input 
-                    [(ngModel)]="join.condition" 
-                    placeholder="e.g. orders.user_id = users.id" 
-                    class="form-field join-condition-field"
-                  />
-                  <button mat-icon-button color="warn" (click)="removeJoin($index)" class="btn-delete" aria-label="Delete Join">
+                  @if (join.type !== 'CROSS') {
+                    <span class="on-label">ON</span>
+                    <input 
+                      [ngModel]="join.condition" 
+                      (ngModelChange)="updateJoin($index, 'condition', $event)"
+                      placeholder="e.g. o.user_id = u.id" 
+                      class="form-field join-condition-field"
+                      aria-label="Join Condition"
+                    />
+                  }
+                  <button mat-icon-button color="warn" (click)="removeJoin($index)" class="btn-delete" aria-label="Delete Join" matTooltip="Remove join">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
+              } @empty {
+                <div class="no-clauses-prompt">No table joins configured.</div>
               }
               <button mat-stroked-button (click)="addJoin()" class="btn-add">
                 <mat-icon>add</mat-icon> Add Join
@@ -146,53 +227,85 @@
       @if (queryType() !== 'insert') {
         <div class="grid-card where-card">
           <div class="card-header">
-            <mat-icon>filter_alt</mat-icon>
-            <span>Filters (WHERE Clauses)</span>
+            <div class="card-title">
+              <mat-icon>filter_alt</mat-icon>
+              <span>Filters (WHERE Clauses)</span>
+            </div>
+            <span class="clause-count-badge">{{ wheres().length }} condition{{ wheres().length === 1 ? '' : 's' }}</span>
           </div>
           <div class="card-body form-body">
             <div class="list-container">
               @for (where of wheres(); track $index) {
                 <div class="clause-row where-row">
                   @if ($index > 0) {
-                    <select [(ngModel)]="where.conjunction" class="form-field conj-field">
+                    <select 
+                      [ngModel]="where.conjunction" 
+                      (ngModelChange)="updateWhere($index, 'conjunction', $event)"
+                      class="form-field conj-field"
+                      aria-label="Logical Conjunction"
+                    >
                       <option value="AND">AND</option>
                       <option value="OR">OR</option>
+                      <option value="AND NOT">AND NOT</option>
+                      <option value="OR NOT">OR NOT</option>
                     </select>
                   } @else {
                     <span class="where-label">WHERE</span>
                   }
                   
                   <input 
-                    [(ngModel)]="where.column" 
-                    placeholder="Column" 
+                    [ngModel]="where.column" 
+                    (ngModelChange)="updateWhere($index, 'column', $event)"
+                    placeholder="Column name" 
                     class="form-field where-col-field"
+                    aria-label="Filter column"
                   />
 
-                  <select [(ngModel)]="where.operator" class="form-field where-op-field">
+                  <select 
+                    [ngModel]="where.operator" 
+                    (ngModelChange)="updateWhere($index, 'operator', $event)"
+                    class="form-field where-op-field"
+                    aria-label="Comparison operator"
+                  >
                     <option value="=">=</option>
-                    <option value="!=">!=</option>
+                    <option value="!=">!= (Not Equal)</option>
+                    <option value="<>">&lt;&gt;</option>
                     <option value=">">&gt;</option>
+                    <option value=">=">&gt;=</option>
                     <option value="<">&lt;</option>
+                    <option value="<=">&lt;=</option>
                     <option value="LIKE">LIKE</option>
-                    <option value="IN">IN</option>
+                    <option value="ILIKE">ILIKE (Case-insensitive)</option>
+                    <option value="NOT LIKE">NOT LIKE</option>
+                    <option value="IN">IN (...)</option>
+                    <option value="NOT IN">NOT IN (...)</option>
+                    <option value="BETWEEN">BETWEEN ... AND ...</option>
                     <option value="IS NULL">IS NULL</option>
                     <option value="IS NOT NULL">IS NOT NULL</option>
                   </select>
 
                   @if (where.operator !== 'IS NULL' && where.operator !== 'IS NOT NULL') {
                     <input 
-                      [(ngModel)]="where.value" 
-                      placeholder="Value" 
+                      [ngModel]="where.value" 
+                      (ngModelChange)="updateWhere($index, 'value', $event)"
+                      [placeholder]="where.operator === 'IN' ? 'val1, val2 or (1, 2)' : (where.operator === 'BETWEEN' ? '1 AND 10' : 'Value')" 
                       class="form-field where-val-field"
+                      aria-label="Filter value"
                     />
                   }
 
-                  <button mat-icon-button color="warn" (click)="removeWhere($index)" class="btn-delete" aria-label="Delete Filter">
+                  <button mat-icon-button color="warn" (click)="removeWhere($index)" class="btn-delete" aria-label="Delete Filter" matTooltip="Remove filter">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
               } @empty {
-                <div class="no-clauses-prompt">No WHERE conditions configured (query affects all rows).</div>
+                <div class="no-clauses-prompt">
+                  @if (queryType() === 'update' || queryType() === 'delete') {
+                    <span class="warn-text">⚠️ No WHERE condition: This query will update/delete ALL rows in the table!</span>
+                  } @else {
+                    <span>No WHERE conditions configured (query returns all rows).</span>
+                  }
+                </div>
               }
               <button mat-stroked-button (click)="addWhere()" class="btn-add margin-top">
                 <mat-icon>add</mat-icon> Add Filter Condition
@@ -202,12 +315,53 @@
         </div>
       }
 
+      <!-- GROUP BY & HAVING Card (SELECT mode only) -->
+      @if (queryType() === 'select') {
+        <div class="grid-card group-card">
+          <div class="card-header">
+            <div class="card-title">
+              <mat-icon>functions</mat-icon>
+              <span>Aggregation & Grouping (Optional)</span>
+            </div>
+          </div>
+          <div class="card-body form-body">
+            <div class="field-grid-2">
+              <div class="field-row">
+                <label for="groupby-input">GROUP BY Columns</label>
+                <input 
+                  id="groupby-input"
+                  type="text" 
+                  [ngModel]="groupBy()" 
+                  (ngModelChange)="groupBy.set($event)" 
+                  placeholder="e.g. u.id, u.role" 
+                  class="form-field"
+                />
+              </div>
+              <div class="field-row">
+                <label for="having-input">HAVING Condition</label>
+                <input 
+                  id="having-input"
+                  type="text" 
+                  [ngModel]="having()" 
+                  (ngModelChange)="having.set($event)" 
+                  placeholder="e.g. COUNT(o.id) > 5" 
+                  class="form-field"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Order & Pagination Card (SELECT mode only) -->
       @if (queryType() === 'select') {
         <div class="grid-card sort-card">
           <div class="card-header">
-            <mat-icon>sort</mat-icon>
-            <span>Sorting & Pagination</span>
+            <div class="card-title">
+              <mat-icon>sort</mat-icon>
+              <span>Sorting & Pagination</span>
+            </div>
+            <span class="clause-count-badge">{{ orderBys().length }} sort{{ orderBys().length === 1 ? '' : 's' }}</span>
           </div>
           <div class="card-body form-body pagination-body">
             <!-- Order By list -->
@@ -217,15 +371,32 @@
                 @for (order of orderBys(); track $index) {
                   <div class="order-row">
                     <input 
-                      [(ngModel)]="order.column" 
-                      placeholder="Column Name" 
+                      [ngModel]="order.column" 
+                      (ngModelChange)="updateOrderBy($index, 'column', $event)"
+                      placeholder="Column Name (e.g. created_at)" 
                       class="form-field order-col-field"
+                      aria-label="Order by column"
                     />
-                    <select [(ngModel)]="order.direction" class="form-field order-dir-field">
-                      <option value="ASC">ASC</option>
-                      <option value="DESC">DESC</option>
+                    <select 
+                      [ngModel]="order.direction" 
+                      (ngModelChange)="updateOrderBy($index, 'direction', $event)"
+                      class="form-field order-dir-field"
+                      aria-label="Order direction"
+                    >
+                      <option value="ASC">ASC (Ascending)</option>
+                      <option value="DESC">DESC (Descending)</option>
                     </select>
-                    <button mat-icon-button color="warn" (click)="removeOrderBy($index)" class="btn-delete" aria-label="Delete Sort">
+                    <select 
+                      [ngModel]="order.nulls" 
+                      (ngModelChange)="updateOrderBy($index, 'nulls', $event)"
+                      class="form-field order-nulls-field"
+                      aria-label="Nulls placement"
+                    >
+                      <option value="">Nulls: Default</option>
+                      <option value="NULLS FIRST">NULLS FIRST</option>
+                      <option value="NULLS LAST">NULLS LAST</option>
+                    </select>
+                    <button mat-icon-button color="warn" (click)="removeOrderBy($index)" class="btn-delete" aria-label="Delete Sort" matTooltip="Remove sort">
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
@@ -236,12 +407,13 @@
               </div>
             </div>
 
+            <!-- Pagination limits -->
             <div class="pagination-row">
               <div class="field-row half-width">
-                <label for="limit-input">Row Limit</label>
+                <label for="limit-input">Row Limit / Top</label>
                 <input 
                   id="limit-input"
-                  type="number" 
+                  type="text" 
                   [ngModel]="limit()" 
                   (ngModelChange)="limit.set($event)" 
                   placeholder="e.g. 50" 
@@ -249,10 +421,10 @@
                 />
               </div>
               <div class="field-row half-width">
-                <label for="offset-input">Row Offset</label>
+                <label for="offset-input">Row Offset / Skip</label>
                 <input 
                   id="offset-input"
-                  type="number" 
+                  type="text" 
                   [ngModel]="offset()" 
                   (ngModelChange)="offset.set($event)" 
                   placeholder="e.g. 0" 
@@ -266,7 +438,7 @@
 
     </div>
 
-    <!-- Right Column: Live Output Snippet -->
+    <!-- Right Column: Live Output & Code Editor -->
     <div class="builder-output">
       <div class="grid-card output-sql-card">
         <div class="card-header console-header">
@@ -274,17 +446,82 @@
             <mat-icon>code</mat-icon>
             <span>Generated SQL</span>
           </div>
-          <div class="console-actions">
-            <button mat-stroked-button (click)="reset()" class="btn-reset">
-              <mat-icon>restart_alt</mat-icon> Reset
+
+          <!-- Center: Format selector pill -->
+          <div class="format-toggle" aria-label="SQL Output Format">
+            <button 
+              type="button" 
+              class="format-btn" 
+              [class.active]="outputFormat() === 'formatted'" 
+              (click)="setOutputFormat('formatted')"
+              matTooltip="Format with indentation & uppercase keywords"
+            >
+              Pretty
             </button>
-            <button mat-raised-button color="primary" (click)="copySql()" class="btn-copy">
-              <mat-icon>content_copy</mat-icon> Copy SQL
+            <button 
+              type="button" 
+              class="format-btn" 
+              [class.active]="outputFormat() === 'compact'" 
+              (click)="setOutputFormat('compact')"
+              matTooltip="Standard compact format"
+            >
+              Compact
+            </button>
+            <button 
+              type="button" 
+              class="format-btn" 
+              [class.active]="outputFormat() === 'minified'" 
+              (click)="setOutputFormat('minified')"
+              matTooltip="Single line minified SQL"
+            >
+              Minify
+            </button>
+          </div>
+
+          <!-- Right: Regenerate & Copy icon buttons -->
+          <div class="console-actions">
+            <button 
+              mat-icon-button 
+              (click)="regenerate()" 
+              class="btn-icon-action" 
+              [class.spinning]="isRegenerating()"
+              matTooltip="Regenerate SQL"
+              aria-label="Regenerate SQL"
+            >
+              <mat-icon [class.spin-icon]="isRegenerating()">refresh</mat-icon>
+            </button>
+
+            <button 
+              mat-icon-button 
+              (click)="copySql()" 
+              class="btn-icon-action btn-icon-copy"
+              [class.copied]="copied()"
+              [matTooltip]="copied() ? 'Copied!' : 'Copy SQL'"
+              aria-label="Copy SQL"
+            >
+              <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
             </button>
           </div>
         </div>
+
+        @if (isUnsafeQuery()) {
+          <div class="safety-warning-banner">
+            <mat-icon>warning</mat-icon>
+            <div class="safety-text">
+              <strong>Caution: Unrestricted {{ queryType() | uppercase }} Query</strong>
+              <span>There are no WHERE filters configured. Executing this will modify or delete ALL rows in the table!</span>
+            </div>
+          </div>
+        }
+
         <div class="card-body console-body">
-          <pre class="console-output">{{ generatedSql() }}</pre>
+          <app-code-editor 
+            [value]="generatedSql()" 
+            language="sql" 
+            ariaLabel="Generated SQL Output" 
+            [readOnly]="true"
+            [wordWrap]="'on'"
+          ></app-code-editor>
         </div>
       </div>
     </div>

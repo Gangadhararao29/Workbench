@@ -1,13 +1,22 @@
+:host {
+	display: block;
+	flex: 0 0 auto;
+	overflow: hidden;
+}
+
 .tab-strip {
 	display: flex;
-	min-height: 52px;
+	height: 48px;
+	min-height: 48px;
 	align-items: stretch;
 	gap: 4px;
 	overflow-x: auto;
+	overflow-y: hidden;
 	box-sizing: border-box;
 	padding: 6px 12px 0;
 	border-bottom: 1px solid var(--mat-sys-outline-variant);
 	background: var(--mat-sys-surface-container);
+	scrollbar-width: thin;
 }
 
 .tab {
@@ -22,6 +31,7 @@
 	border-radius: 6px 6px 0 0;
 	color: var(--mat-sys-on-surface-variant);
 	cursor: pointer;
+	box-sizing: border-box;
 }
 
 .tab span {
@@ -34,13 +44,13 @@
 
 .tab button {
 	display: inline-flex;
-	flex: 0 0 40px;
+	flex: 0 0 28px;
 	align-self: center;
 	align-items: center;
 	justify-content: center;
-	width: 40px;
-	height: 40px;
-	min-width: 40px;
+	width: 28px;
+	height: 28px;
+	min-width: 28px;
 	box-sizing: border-box;
 	padding: 0;
 	margin: 0;
@@ -49,11 +59,11 @@
 
 .tab button mat-icon {
 	display: block;
-	width: 24px;
-	height: 24px;
+	width: 18px;
+	height: 18px;
 	margin: 0;
-	font-size: 24px;
-	line-height: 24px;
+	font-size: 18px;
+	line-height: 18px;
 }
 
 .tab.active {

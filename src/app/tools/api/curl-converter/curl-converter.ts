@@ -7,11 +7,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   CURL_PRESETS,
-  TARGET_OPTIONS,
+  TECHNOLOGIES,
   CurlPreset,
-  CurlTargetLanguage,
   ParsedCurlRequest,
-  TargetOption,
+  TechnologyId,
+  TechnologyOption,
   convertCurl,
   formatCurlCommand,
   parseCurlCommand
@@ -31,27 +31,26 @@ export class CurlConverter implements OnInit {
   -H "Authorization: Bearer sample_jwt_token" \\
   -H "Accept: application/json"`);
 
-  target = signal<CurlTargetLanguage>('csharp');
+  selectedTech = signal<TechnologyId>('csharp');
+  selectedType = signal<string>('httpclient');
+
   result = signal('');
   errorMessage = signal('');
   copied = signal(false);
   parsedRequest = signal<ParsedCurlRequest | null>(null);
 
   presets: CurlPreset[] = CURL_PRESETS;
-  targets: TargetOption[] = TARGET_OPTIONS;
+  technologies: TechnologyOption[] = TECHNOLOGIES;
 
-  targetGroups = computed(() => {
-    const groups: { [key: string]: TargetOption[] } = {};
-    for (const t of this.targets) {
-      if (!groups[t.group]) groups[t.group] = [];
-      groups[t.group].push(t);
-    }
-    return Object.entries(groups).map(([name, options]) => ({ name, options }));
+  availableTypes = computed(() => {
+    const found = this.technologies.find(t => t.id === this.selectedTech());
+    return found ? found.types : [];
   });
 
   outputLanguage = computed(() => {
-    const found = this.targets.find(t => t.id === this.target());
-    return found ? found.editorLanguage : 'csharp';
+    const types = this.availableTypes();
+    const foundType = types.find(t => t.id === this.selectedType());
+    return foundType ? foundType.editorLanguage : 'csharp';
   });
 
   ngOnInit(): void {
@@ -63,8 +62,17 @@ export class CurlConverter implements OnInit {
     this.convert();
   }
 
-  onTargetChange(targetId: CurlTargetLanguage): void {
-    this.target.set(targetId);
+  onTechChange(techId: TechnologyId): void {
+    this.selectedTech.set(techId);
+    const types = this.technologies.find(t => t.id === techId)?.types || [];
+    if (!types.some(t => t.id === this.selectedType())) {
+      this.selectedType.set(types[0]?.id || '');
+    }
+    this.convert();
+  }
+
+  onTypeChange(typeId: string): void {
+    this.selectedType.set(typeId);
     this.convert();
   }
 
@@ -81,7 +89,7 @@ export class CurlConverter implements OnInit {
       const parsed = parseCurlCommand(source);
       this.parsedRequest.set(parsed);
       this.errorMessage.set('');
-      const generated = convertCurl(source, this.target());
+      const generated = convertCurl(source, this.selectedTech(), this.selectedType());
       this.result.set(generated);
     } catch (err: any) {
       this.errorMessage.set(err.message || 'Invalid cURL syntax. Check flags and quotation marks.');

@@ -1,10 +1,10 @@
 <div class="tool-surface-inner">
-  <!-- Top Bar: Presets & Quick Actions -->
+  <!-- Top Bar: Quick Sample Templates & Actions -->
   <div class="top-bar">
     <div class="presets-section">
       <span class="section-label">
         <mat-icon>auto_stories</mat-icon>
-        <span>Sample Templates:</span>
+        <span>Templates:</span>
       </span>
       <div class="preset-pills">
         @for (preset of presets; track preset.name) {
@@ -33,16 +33,16 @@
           mat-stroked-button
           class="action-btn"
           (click)="formatCurl()"
-          matTooltip="Clean and format cURL command with line continuations">
+          matTooltip="Format cURL command">
           <mat-icon>auto_fix_high</mat-icon>
-          <span>Beautify cURL</span>
+          <span>Beautify</span>
         </button>
         <button
           type="button"
           mat-stroked-button
           class="action-btn"
           (click)="clear()"
-          matTooltip="Clear input and output">
+          matTooltip="Clear input and result">
           <mat-icon>clear</mat-icon>
           <span>Clear</span>
         </button>
@@ -59,7 +59,7 @@
     </div>
   </div>
 
-  <!-- Parsed Request Breakdown / Inspector Badge -->
+  <!-- Parsed Request Breakdown Badge -->
   @if (parsedRequest(); as req) {
     <div class="request-summary-bar">
       <div class="summary-item">
@@ -68,7 +68,7 @@
       </div>
       <div class="summary-tags">
         @if (req.headers.length > 0) {
-          <span class="summary-tag" matTooltip="{{ req.headers.length }} request headers specified">
+          <span class="summary-tag" matTooltip="{{ req.headers.length }} request headers">
             <mat-icon>layers</mat-icon>
             {{ req.headers.length }} Headers
           </span>
@@ -97,47 +97,50 @@
     </div>
   }
 
-  <!-- Conversion Target & Action Bar -->
-  <div class="controls-row">
-    <div class="target-select-wrapper">
-      <label for="target-selector">Generate Target Code</label>
-      <div class="select-container">
-        <mat-icon class="select-icon">code</mat-icon>
+  <!-- Single-Line Technology & Type Selection Bar -->
+  <div class="target-options-bar">
+    <div class="target-select-field">
+      <label for="tech-selector">Technology</label>
+      <div class="select-wrapper">
+        <mat-icon class="select-icon">developer_mode</mat-icon>
         <select
-          id="target-selector"
-          [ngModel]="target()"
-          (ngModelChange)="onTargetChange($event)"
-          aria-label="Select Target Language">
-          @for (group of targetGroups(); track group.name) {
-            <optgroup [label]="group.name">
-              @for (opt of group.options; track opt.id) {
-                <option [value]="opt.id">{{ opt.name }}</option>
-              }
-            </optgroup>
+          id="tech-selector"
+          [ngModel]="selectedTech()"
+          (ngModelChange)="onTechChange($event)"
+          aria-label="Select Technology">
+          @for (tech of technologies; track tech.id) {
+            <option [value]="tech.id">{{ tech.name }}</option>
           }
         </select>
       </div>
     </div>
 
-    <div class="output-actions">
+    <div class="target-select-field">
+      <label for="type-selector">Client / Library</label>
+      <div class="select-wrapper">
+        <mat-icon class="select-icon">extension</mat-icon>
+        <select
+          id="type-selector"
+          [ngModel]="selectedType()"
+          (ngModelChange)="onTypeChange($event)"
+          aria-label="Select Client Library">
+          @for (typeOpt of availableTypes(); track typeOpt.id) {
+            <option [value]="typeOpt.id">{{ typeOpt.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="target-actions">
       <button
         type="button"
         mat-flat-button
         color="primary"
-        class="convert-btn"
-        (click)="convert()">
-        <mat-icon>sync</mat-icon>
-        <span>Convert</span>
-      </button>
-
-      <button
-        type="button"
-        mat-stroked-button
         class="copy-btn"
         [class.copied]="copied()"
         (click)="copyResult()"
         [disabled]="!result()"
-        matTooltip="Copy generated code to clipboard">
+        matTooltip="Copy generated code">
         <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
         <span>{{ copied() ? 'Copied!' : 'Copy Code' }}</span>
       </button>

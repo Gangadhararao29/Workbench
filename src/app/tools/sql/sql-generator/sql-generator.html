@@ -15,11 +15,6 @@
       <input type="number" min="1" [(ngModel)]="pageSize" (ngModelChange)="generate()" />
     </label>
 
-    <label class="field-columns">
-      Columns
-      <textarea [(ngModel)]="columns" (ngModelChange)="generate()"></textarea>
-    </label>
-
     <label class="field-join-table">
       Join table (optional)
       <input [(ngModel)]="joinTable" (ngModelChange)="generate()" />
@@ -28,6 +23,11 @@
     <label class="field-join-col">
       Join column
       <input [(ngModel)]="joinColumn" (ngModelChange)="generate()" />
+    </label>
+
+    <label class="field-columns">
+      Columns
+      <textarea [(ngModel)]="columns" (ngModelChange)="generate()"></textarea>
     </label>
   </div>
 

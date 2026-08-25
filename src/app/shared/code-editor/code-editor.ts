@@ -68,7 +68,30 @@ function configureMonacoWorkers() {
 @Component({
   selector: 'app-code-editor',
   standalone: true,
-  template: '<div #editorHost class="code-editor"></div>',
+  template: `
+    <div class="code-editor-container" [class.is-resizing]="isResizing">
+      <div #editorHost class="code-editor"></div>
+      @if (resizable) {
+        <div
+          class="resize-handle"
+          (pointerdown)="onResizeStart($event)"
+          (pointermove)="onResizeMove($event)"
+          (pointerup)="onResizeEnd($event)"
+          (pointercancel)="onResizeEnd($event)"
+          (keydown)="onResizeKeydown($event)"
+          tabindex="0"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize code editor height"
+          title="Drag to resize height (or use Up/Down arrow keys)"
+        >
+          <div class="resize-grip">
+            <span class="grip-line"></span>
+          </div>
+        </div>
+      }
+    </div>
+  `,
   styleUrls: ['./code-editor.css'],
 })
 export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
@@ -78,6 +101,8 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   @Input() readOnly = false;
   @Input() wordWrap: 'on' | 'off' = 'off';
   @Input() lineNumbers: 'on' | 'off' = 'on';
+  @Input() resizable = true;
+  @Input() minHeight = 100;
   @Output() valueChange = new EventEmitter<string>();
   @ViewChild('editorHost', { static: true }) editorHost!: ElementRef<HTMLDivElement>;
 
@@ -88,6 +113,12 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   // re-setting it when the change originated from the editor itself,
   // which would otherwise create an infinite update loop.
   private lastPushedValue: string | undefined;
+
+  isResizing = false;
+  private startY = 0;
+  private startHeight = 0;
+
+  constructor(private elementRef: ElementRef<HTMLElement>) {}
 
   ngAfterViewInit() {
     configureMonacoWorkers();
@@ -126,6 +157,63 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
         this.valueChange.emit(current);
       }
     });
+  }
+
+  onResizeStart(event: PointerEvent) {
+    if (event.button !== 0 && event.pointerType === 'mouse') return;
+    this.isResizing = true;
+    this.startY = event.clientY;
+    const hostEl = this.elementRef.nativeElement;
+    this.startHeight = hostEl.getBoundingClientRect().height;
+
+    const target = event.currentTarget as HTMLElement;
+    if (target?.setPointerCapture) {
+      try {
+        target.setPointerCapture(event.pointerId);
+      } catch {}
+    }
+    event.preventDefault();
+  }
+
+  onResizeMove(event: PointerEvent) {
+    if (!this.isResizing) return;
+    const deltaY = event.clientY - this.startY;
+    const newHeight = Math.max(this.minHeight, Math.round(this.startHeight + deltaY));
+    const hostEl = this.elementRef.nativeElement;
+    hostEl.style.height = `${newHeight}px`;
+    hostEl.style.flex = 'none';
+    this.editor?.layout();
+  }
+
+  onResizeEnd(event: PointerEvent) {
+    if (!this.isResizing) return;
+    this.isResizing = false;
+    const target = event.currentTarget as HTMLElement;
+    if (target?.releasePointerCapture && target.hasPointerCapture(event.pointerId)) {
+      try {
+        target.releasePointerCapture(event.pointerId);
+      } catch {}
+    }
+    this.editor?.layout();
+  }
+
+  onResizeKeydown(event: KeyboardEvent) {
+    if (!this.resizable) return;
+    const hostEl = this.elementRef.nativeElement;
+    const currentHeight = hostEl.getBoundingClientRect().height;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      const newHeight = currentHeight + 24;
+      hostEl.style.height = `${newHeight}px`;
+      hostEl.style.flex = 'none';
+      this.editor?.layout();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      const newHeight = Math.max(this.minHeight, currentHeight - 24);
+      hostEl.style.height = `${newHeight}px`;
+      hostEl.style.flex = 'none';
+      this.editor?.layout();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {

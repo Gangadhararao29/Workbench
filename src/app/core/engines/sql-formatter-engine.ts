@@ -33,6 +33,69 @@ export function formatSql(source: string, options: SqlFormatterOptions = {}): st
   });
 }
 
+/**
+ * Compact format: Splits by major SQL clause (SELECT, FROM, JOIN, WHERE, etc.)
+ * on separate lines, but keeps column lists, conditions, and expressions compact and inline.
+ */
+export function compactSql(source: string, options: SqlFormatterOptions = {}): string {
+  const minified = minifySql(source);
+  if (!minified) return '';
+
+  const clauseKeywords = [
+    'SELECT',
+    'FROM',
+    'INNER JOIN',
+    'LEFT OUTER JOIN',
+    'RIGHT OUTER JOIN',
+    'FULL OUTER JOIN',
+    'LEFT JOIN',
+    'RIGHT JOIN',
+    'FULL JOIN',
+    'CROSS JOIN',
+    'JOIN',
+    'WHERE',
+    'GROUP BY',
+    'HAVING',
+    'ORDER BY',
+    'LIMIT',
+    'OFFSET',
+    'FETCH FIRST',
+    'FETCH NEXT',
+    'INSERT INTO',
+    'VALUES',
+    'UPDATE',
+    'SET',
+    'DELETE FROM',
+    'UNION ALL',
+    'UNION',
+    'EXCEPT',
+    'INTERSECT',
+    'ON CONFLICT',
+    'RETURNING'
+  ];
+
+  // Regex to split on major clause keywords outside string literals
+  const clausePattern = new RegExp(`\\b(${clauseKeywords.map(k => k.replace(/ /g, '\\s+')).join('|')})\\b`, 'gi');
+  
+  let formatted = minified.replace(clausePattern, match => `\n${match.toUpperCase()}`);
+
+  if (options.uppercaseKeywords !== false) {
+    const inlineKeywords = [
+      'DISTINCT', 'AS', 'AND', 'OR', 'NOT', 'IN', 'IS NULL', 'IS NOT NULL',
+      'BETWEEN', 'LIKE', 'ILIKE', 'ASC', 'DESC', 'NULLS FIRST', 'NULLS LAST',
+      'ON', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'TOP', 'ROWS', 'ROW', 'ONLY',
+      'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'COALESCE', 'NOW()', 'CURRENT_TIMESTAMP'
+    ];
+    formatted = uppercaseKeywordsOutsideQuotes(formatted, inlineKeywords);
+  }
+
+  return formatted
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
 export function minifySql(source: string): string {
   let result = '';
   let quote: "'" | '"' | '`' | null = null;
@@ -68,6 +131,45 @@ export function minifySql(source: string): string {
   }
 
   return result.trim();
+}
+
+function uppercaseKeywordsOutsideQuotes(source: string, keywords: string[]): string {
+  const pattern = new RegExp(`\\b(${keywords.map(k => k.replace(/ /g, '\\s+')).join('|')})\\b`, 'gi');
+  
+  let result = '';
+  let inQuote: "'" | '"' | '`' | null = null;
+  let buffer = '';
+
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i];
+    const next = source[i + 1];
+
+    if (inQuote) {
+      result += char;
+      if (char === inQuote && next === inQuote) {
+        result += next;
+        i++;
+      } else if (char === inQuote) {
+        inQuote = null;
+      }
+      continue;
+    }
+
+    if (char === "'" || char === '"' || char === '`') {
+      result += buffer.replace(pattern, m => m.toUpperCase());
+      buffer = '';
+      inQuote = char;
+      result += char;
+    } else {
+      buffer += char;
+    }
+  }
+
+  if (buffer) {
+    result += buffer.replace(pattern, m => m.toUpperCase());
+  }
+
+  return result;
 }
 
 function dialectFor(

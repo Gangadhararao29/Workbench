@@ -8,12 +8,10 @@ import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   generateApiClient,
   FRAMEWORK_OPTIONS,
-  API_GENERATOR_PRESETS,
   ApiGeneratorConfig,
   SupportedFramework,
   AnyPattern,
   GenerationMode,
-  PresetOption,
   GenerationResult
 } from '../../../core/engines/api-client-generator-engine';
 
@@ -35,7 +33,6 @@ export class ApiGenerator implements OnInit {
   @Input({ required: true }) instanceId!: string;
 
   frameworks = FRAMEWORK_OPTIONS;
-  presets = API_GENERATOR_PRESETS;
 
   // Framework & Mode
   framework = signal<SupportedFramework>('angular');
@@ -113,7 +110,10 @@ export class ApiGenerator implements OnInit {
   });
 
   ngOnInit(): void {
-    this.applyPreset(this.presets[0]);
+    const patterns = this.availablePatterns();
+    if (patterns.length > 0) {
+      this.pattern.set(patterns[0].id);
+    }
   }
 
   onFrameworkChange(newFramework: SupportedFramework): void {
@@ -124,19 +124,11 @@ export class ApiGenerator implements OnInit {
     }
   }
 
-  applyPreset(preset: PresetOption): void {
-    const c = preset.config;
-    if (c.framework) this.framework.set(c.framework);
-    if (c.pattern) this.pattern.set(c.pattern);
-    if (c.mode) this.mode.set(c.mode);
-    if (c.method) this.method.set(c.method);
-    if (c.endpoint) this.endpoint.set(c.endpoint);
-    if (c.resourceName !== undefined) this.resourceName.set(c.resourceName);
-    if (c.includeErrorHandling !== undefined) this.includeErrorHandling.set(c.includeErrorHandling);
-    if (c.includeCancellation !== undefined) this.includeCancellation.set(c.includeCancellation);
-    if (c.includeAuth !== undefined) this.includeAuth.set(c.includeAuth);
-    if (c.includeTsDoc !== undefined) this.includeTsDoc.set(c.includeTsDoc);
-    if (c.includePagination !== undefined) this.includePagination.set(c.includePagination);
+  setMode(newMode: GenerationMode): void {
+    this.mode.set(newMode);
+    if (newMode === 'single' && !this.method()) {
+      this.method.set('GET');
+    }
   }
 
   copyCode(): void {

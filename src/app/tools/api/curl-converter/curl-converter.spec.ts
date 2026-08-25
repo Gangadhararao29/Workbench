@@ -16,29 +16,50 @@ describe('CurlConverter Component', () => {
     await fixture.whenStable();
   });
 
-  it('should create and initialize with converted code', () => {
+  it('should create and initialize with converted C# code', () => {
     expect(component).toBeTruthy();
-    expect(component.result()).toBeTruthy();
-    expect(component.parsedRequest()).toBeTruthy();
+    expect(component.selectedTech()).toBe('csharp');
+    expect(component.selectedType()).toBe('httpclient');
+    expect(component.result()).toContain('HttpClient');
   });
 
-  it('should reactively convert on input changes', () => {
-    component.onInputChange('curl -X POST "https://api.test.com/v1/auth" -H "Content-Type: application/json" -d "{\\"token\\":\\"abc\\"}"');
-    expect(component.parsedRequest()?.method).toBe('POST');
-    expect(component.parsedRequest()?.url).toBe('https://api.test.com/v1/auth');
-    expect(component.result()).toContain('HttpRequestMessage');
+  it('should switch technology to React and default to Fetch', () => {
+    component.onTechChange('react');
+    expect(component.selectedTech()).toBe('react');
+    expect(component.result()).toContain('export function ApiComponent');
+    expect(component.result()).toContain('fetch');
   });
 
-  it('should convert to chosen target language on target change', () => {
-    component.onTargetChange('python-requests');
-    expect(component.target()).toBe('python-requests');
-    expect(component.outputLanguage()).toBe('python');
+  it('should switch type to Axios for React', () => {
+    component.onTechChange('react');
+    component.onTypeChange('axios');
+    expect(component.result()).toContain("import axios from 'axios'");
+    expect(component.result()).toContain('axios.');
+  });
+
+  it('should convert to Angular HttpClient', () => {
+    component.onTechChange('angular');
+    component.onTypeChange('httpclient');
+    expect(component.result()).toContain('@angular/common/http');
+    expect(component.result()).toContain('inject(HttpClient)');
+  });
+
+  it('should convert to Python Requests and HTTPX', () => {
+    component.onTechChange('python');
+    component.onTypeChange('requests');
     expect(component.result()).toContain('import requests');
+
+    component.onTypeChange('httpx');
+    expect(component.result()).toContain('import httpx');
   });
 
-  it('should load preset templates', () => {
-    component.loadPreset('Basic Authentication');
-    expect(component.parsedRequest()?.basicAuth).toBeDefined();
+  it('should convert to Java OkHttp and HttpClient', () => {
+    component.onTechChange('java');
+    component.onTypeChange('okhttp');
+    expect(component.result()).toContain('okhttp3.OkHttpClient');
+
+    component.onTypeChange('httpclient');
+    expect(component.result()).toContain('java.net.http.HttpClient');
   });
 
   it('should handle invalid cURL input with clear error message', () => {

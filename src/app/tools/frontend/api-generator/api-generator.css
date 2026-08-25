@@ -9,7 +9,7 @@
   box-sizing: border-box;
 }
 
-/* Row 1: Framework Icons & Mode Toggle */
+/* Row 1: Framework Icons (Left) & Mode Toggle (Right) */
 .top-control-row {
   display: flex;
   align-items: center;
@@ -73,6 +73,7 @@
   color: var(--mat-sys-on-primary-container);
   border-color: var(--mat-sys-primary);
   font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 /* Mode Toggle Group (Right) */
@@ -119,35 +120,24 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Row 2: Inputs Grid */
+/* Row 2: Inputs Grid (Single Line alignment) */
 .inputs-grid {
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1.5fr;
   gap: 12px;
-  flex-wrap: wrap;
+  align-items: flex-end;
+  transition: grid-template-columns 0.18s ease;
+}
+
+.inputs-grid.single-mode {
+  grid-template-columns: 1fr 1.8fr 110px 1.5fr;
 }
 
 .field-group {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  flex: 1;
-  min-width: 150px;
-}
-
-.field-group.span-endpoint {
-  flex: 2;
-  min-width: 200px;
-}
-
-.field-group.method-col {
-  flex: 0 0 110px;
-  min-width: 110px;
-}
-
-.field-group.pattern-col {
-  flex: 1.5;
-  min-width: 180px;
+  min-width: 0;
 }
 
 .field-label {
@@ -186,13 +176,35 @@
   border-color: var(--mat-sys-primary);
 }
 
+/* Method badge styles */
+.method-select[data-method="GET"] {
+  color: #10b981;
+  font-weight: 600;
+}
+.method-select[data-method="POST"] {
+  color: #3b82f6;
+  font-weight: 600;
+}
+.method-select[data-method="PUT"] {
+  color: #f59e0b;
+  font-weight: 600;
+}
+.method-select[data-method="PATCH"] {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+.method-select[data-method="DELETE"] {
+  color: #ef4444;
+  font-weight: 600;
+}
+
 /* Row 3: Direct Options Checkboxes */
 .options-row {
   display: flex;
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
-  padding: 8px 12px;
+  padding: 8px 14px;
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
@@ -350,21 +362,14 @@ app-code-editor.generated-editor {
     align-items: stretch;
   }
   .mode-toggle-group {
-    justify-content: stretch;
+    width: 100%;
   }
   .mode-btn {
     flex: 1;
   }
-  .inputs-grid {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .field-group,
-  .field-group.span-endpoint,
-  .field-group.method-col,
-  .field-group.pattern-col {
-    width: 100%;
-    min-width: 100%;
+  .inputs-grid,
+  .inputs-grid.single-mode {
+    grid-template-columns: 1fr;
   }
   .options-row {
     gap: 12px;

@@ -1,5 +1,3 @@
-import { parseCurlCommand } from './curl-engine';
-
 export type SupportedFramework = 'angular' | 'react' | 'vue' | 'svelte' | 'axios' | 'fetch';
 
 export type AngularPattern = 'signals-resource' | 'full-service' | 'signals-store' | 'service-method';
@@ -108,115 +106,6 @@ export const FRAMEWORK_OPTIONS: FrameworkOption[] = [
   }
 ];
 
-export interface PresetOption {
-  name: string;
-  description: string;
-  config: Partial<ApiGeneratorConfig>;
-}
-
-export const API_GENERATOR_PRESETS: PresetOption[] = [
-  {
-    name: 'ASP.NET Core Products CRUD',
-    description: 'Full REST CRUD client for Product management (/api/products)',
-    config: {
-      framework: 'angular',
-      pattern: 'full-service',
-      mode: 'crud',
-      method: 'GET',
-      endpoint: '/api/products',
-      responseType: 'ProductDto[]',
-      requestBodyType: 'CreateProductDto',
-      resourceName: 'Product',
-      baseUrlStrategy: 'relative',
-      includeErrorHandling: true,
-      includeCancellation: true,
-      includeAuth: true,
-      includeTsDoc: true,
-      includePagination: true
-    }
-  },
-  {
-    name: 'User Authentication & Login',
-    description: 'Single endpoint POST for JWT login (/api/auth/login)',
-    config: {
-      framework: 'react',
-      pattern: 'tanstack-query',
-      mode: 'single',
-      method: 'POST',
-      endpoint: '/api/auth/login',
-      responseType: 'AuthResponseDto',
-      requestBodyType: 'LoginRequestDto',
-      resourceName: 'Auth',
-      baseUrlStrategy: 'env',
-      includeErrorHandling: true,
-      includeCancellation: false,
-      includeAuth: false,
-      includeTsDoc: true,
-      includePagination: false
-    }
-  },
-  {
-    name: 'Paginated Orders List',
-    description: 'Paginated GET query with filtering parameters (/api/orders)',
-    config: {
-      framework: 'react',
-      pattern: 'tanstack-query',
-      mode: 'single',
-      method: 'GET',
-      endpoint: '/api/orders',
-      responseType: 'OrderDto[]',
-      requestBodyType: '',
-      resourceName: 'Order',
-      baseUrlStrategy: 'env',
-      includeErrorHandling: true,
-      includeCancellation: true,
-      includeAuth: true,
-      includeTsDoc: true,
-      includePagination: true
-    }
-  },
-  {
-    name: 'Customer Detail by ID',
-    description: 'GET single customer detail endpoint (/api/customers/{id})',
-    config: {
-      framework: 'vue',
-      pattern: 'composable',
-      mode: 'single',
-      method: 'GET',
-      endpoint: '/api/customers/{id}',
-      responseType: 'CustomerDetailDto',
-      requestBodyType: '',
-      resourceName: 'Customer',
-      baseUrlStrategy: 'relative',
-      includeErrorHandling: true,
-      includeCancellation: true,
-      includeAuth: true,
-      includeTsDoc: true,
-      includePagination: false
-    }
-  },
-  {
-    name: 'Document / File Upload',
-    description: 'POST endpoint for multipart file upload (/api/documents/upload)',
-    config: {
-      framework: 'fetch',
-      pattern: 'modern-fetch',
-      mode: 'single',
-      method: 'POST',
-      endpoint: '/api/documents/upload',
-      responseType: 'UploadResultDto',
-      requestBodyType: 'FormData',
-      resourceName: 'Document',
-      baseUrlStrategy: 'parameterized',
-      includeErrorHandling: true,
-      includeCancellation: true,
-      includeAuth: true,
-      includeTsDoc: true,
-      includePagination: false
-    }
-  }
-];
-
 export function generateApiClient(config: ApiGeneratorConfig): GenerationResult {
   const norm = normalizeConfig(config);
 
@@ -267,10 +156,9 @@ export function normalizeConfig(config: ApiGeneratorConfig): ApiGeneratorConfig 
   baseEndpointUrl: string;
   pathParams: string[];
 } {
-  const endpoint = config.endpoint.trim() || '/api/resource';
+  const endpoint = config.endpoint?.trim() || '/api/resource';
   const pathParts = endpoint.split('?')[0].split('/').filter(Boolean);
-  
-  // Extract path params like {id} or :id
+
   const pathParams: string[] = [];
   const cleanParts = pathParts.map(p => {
     if (p.startsWith('{') && p.endsWith('}')) {
@@ -291,7 +179,7 @@ export function normalizeConfig(config: ApiGeneratorConfig): ApiGeneratorConfig 
 
   const resourceCamel = toCamelCase(rawResource.replace(/Dto$/i, ''));
   const resourcePascal = capitalize(resourceCamel);
-  
+
   const resourcePluralCamel = pluralize(resourceCamel);
   const resourcePluralPascal = capitalize(resourcePluralCamel);
 
@@ -331,7 +219,9 @@ export function normalizeConfig(config: ApiGeneratorConfig): ApiGeneratorConfig 
 // 1. ANGULAR CLIENT GENERATORS
 // ----------------------------------------------------------------------------
 function generateAngularClient(cfg: ReturnType<typeof normalizeConfig>): string {
-  const { resourcePascal, resourceCamel, resourcePluralCamel, baseItemType, cleanEndpoint, baseEndpointUrl, pathParams } = cfg;
+  const { resourcePascal, resourceCamel, resourcePluralCamel, resourcePluralPascal, baseItemType, cleanEndpoint, baseEndpointUrl, pathParams } = cfg;
+
+  const doc = (text: string) => cfg.includeTsDoc ? `  /**\n   * ${text}\n   */\n` : '';
 
   if (cfg.pattern === 'service-method') {
     const methodLower = cfg.method.toLowerCase();
@@ -348,18 +238,64 @@ function generateAngularClient(cfg: ReturnType<typeof normalizeConfig>): string 
       ...(cfg.includePagination && cfg.method === 'GET' ? ['{ params: this.buildParams(params) }'] : [])
     ].filter(Boolean).join(', ');
 
-    const docStr = cfg.includeTsDoc
-      ? `  /**\n   * Executes ${cfg.method} request against ${cfg.endpoint}\n   */\n`
-      : '';
-
-    return `${docStr}  ${methodLower}${resourcePascal}(${paramSignature}): Observable<${cfg.responseType}> {\n    return this.http.${methodLower}<${cfg.responseType}>(${httpCallArgs});\n  }`;
+    return `${doc(`Executes ${cfg.method} request against ${cfg.endpoint}`)}  ${methodLower}${resourcePascal}(${paramSignature}): Observable<${cfg.responseType}> {\n    return this.http.${methodLower}<${cfg.responseType}>(${httpCallArgs});\n  }`;
   }
 
   if (cfg.pattern === 'signals-resource') {
+    if (cfg.mode === 'single' && cfg.method !== 'GET') {
+      const isMutation = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+      const paramSignature = [
+        ...pathParams.map(p => `${p}: string | number`),
+        ...(isMutation ? [`payload: ${cfg.requestBodyType}`] : [])
+      ].join(', ');
+
+      return `import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient${cfg.includeErrorHandling ? ', HttpErrorResponse' : ''} } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { ${baseItemType}${isMutation ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ${resourcePascal}ActionService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = '${baseEndpointUrl}';
+
+  readonly loading = signal<boolean>(false);
+  readonly error = signal<string | null>(null);
+  readonly result = signal<${cfg.responseType} | null>(null);
+
+${doc(`Execute ${cfg.method} ${cfg.endpoint}`)}  async execute(${paramSignature}): Promise<${cfg.responseType}> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const res = await firstValueFrom(
+        this.http.${cfg.method.toLowerCase()}<${cfg.responseType}>(
+          ${pathParams.length ? `\`\${this.baseUrl}${cleanEndpoint}\`` : 'this.baseUrl'}${isMutation ? ', payload' : ''}
+        )
+      );
+      this.result.set(res);
+      return res;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const msg = err instanceof HttpErrorResponse ? err.message : 'Request failed';
+      this.error.set(msg);` : `this.error.set(err.message || 'Request failed');`}
+      throw err;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  reset(): void {
+    this.result.set(null);
+    this.error.set(null);
+    this.loading.set(false);
+  }
+}`;
+    }
+
     return `import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient${cfg.includePagination ? ', HttpParams' : ''} } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
 import { ${baseItemType}${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
 @Injectable({
@@ -370,12 +306,7 @@ export class ${resourcePascal}ResourceService {
   private readonly baseUrl = '${baseEndpointUrl}';
 
   ${cfg.includePagination ? `// Reactive filter / query state
-  readonly queryParams = signal<${resourcePascal}QueryParams>({ page: 1, pageSize: 20 });\n` : ''}
-  /**
-   * Modern Angular Signal Resource for ${resourcePascal}
-   * Auto-refetches whenever reactive signal dependencies change.
-   */
-  readonly ${resourceCamel}Resource = rxResource({
+  readonly queryParams = signal<${resourcePascal}QueryParams>({ page: 1, pageSize: 20 });\n` : ''}${doc(`Angular Signal Resource for ${resourcePascal}. Auto-refetches when dependencies change.`)}  readonly ${resourceCamel}Resource = rxResource({
     request: () => (${cfg.includePagination ? 'this.queryParams()' : '{}'}),
     loader: (${cfg.includePagination ? '({ request })' : '()'}) => {
       ${cfg.includePagination ? `let params = new HttpParams();
@@ -386,21 +317,78 @@ export class ${resourcePascal}ResourceService {
     }
   });
 
-  // Convenience computed signals
   readonly items = this.${resourceCamel}Resource.value;
   readonly isLoading = this.${resourceCamel}Resource.isLoading;
   readonly error = this.${resourceCamel}Resource.error;
 
-  /** Reload resource manually */
-  reload(): void {
+${doc('Reload resource manually')}  reload(): void {
     this.${resourceCamel}Resource.reload();
   }
 }`;
   }
 
   if (cfg.pattern === 'signals-store') {
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+      const methodLower = cfg.method.toLowerCase();
+      const paramSignature = [
+        ...pathParams.map(p => `${p}: string | number`),
+        ...(isMutation ? [`payload: ${cfg.requestBodyType}`] : [])
+      ].join(', ');
+
+      return `import { Injectable, inject, signal, computed } from '@angular/core';
+import { HttpClient${cfg.includeErrorHandling ? ', HttpErrorResponse' : ''} } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { ${baseItemType}${isMutation ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export interface ${resourcePascal}SingleState {
+  data: ${cfg.responseType} | null;
+  loading: boolean;
+  error: string | null;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ${resourcePascal}Store {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = '${baseEndpointUrl}';
+
+  private readonly state = signal<${resourcePascal}SingleState>({
+    data: null,
+    loading: false,
+    error: null
+  });
+
+  readonly data = computed(() => this.state().data);
+  readonly loading = computed(() => this.state().loading);
+  readonly error = computed(() => this.state().error);
+
+${doc(`Execute ${cfg.method} request`)}  async execute(${paramSignature}): Promise<${cfg.responseType}> {
+    this.state.update(s => ({ ...s, loading: true, error: null }));
+    try {
+      const res = await firstValueFrom(
+        this.http.${methodLower}<${cfg.responseType}>(
+          ${pathParams.length ? `\`\${this.baseUrl}${cleanEndpoint}\`` : 'this.baseUrl'}${isMutation ? ', payload' : ''}
+        )
+      );
+      this.state.update(s => ({ ...s, data: res, loading: false }));
+      return res;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const message = err instanceof HttpErrorResponse ? err.message : 'API call failed';
+      this.state.update(s => ({ ...s, error: message, loading: false }));` : `this.state.update(s => ({ ...s, error: err.message || 'API call failed', loading: false }));`}
+      throw err;
+    }
+  }
+
+  reset(): void {
+    this.state.set({ data: null, loading: false, error: null });
+  }
+}`;
+    }
+
     return `import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient${cfg.includeErrorHandling ? ', HttpErrorResponse' : ''} } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
 
@@ -418,7 +406,6 @@ export class ${resourcePascal}Store {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '${baseEndpointUrl}';
 
-  // State Signals
   private readonly state = signal<${resourcePascal}State>({
     items: [],
     selectedItem: null,
@@ -426,47 +413,63 @@ export class ${resourcePascal}Store {
     error: null
   });
 
-  // Public Selectors
   readonly items = computed(() => this.state().items);
   readonly selectedItem = computed(() => this.state().selectedItem);
   readonly loading = computed(() => this.state().loading);
   readonly error = computed(() => this.state().error);
   readonly totalCount = computed(() => this.state().items.length);
 
-  async loadAll(): Promise<void> {
+${doc(`Load all ${resourcePluralCamel}`)}  async loadAll(): Promise<void> {
     this.state.update(s => ({ ...s, loading: true, error: null }));
     try {
       const items = await firstValueFrom(this.http.get<${baseItemType}[]>(this.baseUrl));
       this.state.update(s => ({ ...s, items, loading: false }));
-    } catch (err) {
-      const message = err instanceof HttpErrorResponse ? err.message : 'Failed to load ${resourcePluralCamel}';
-      this.state.update(s => ({ ...s, error: message, loading: false }));
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const message = err instanceof HttpErrorResponse ? err.message : 'Failed to load ${resourcePluralCamel}';
+      this.state.update(s => ({ ...s, error: message, loading: false }));` : `this.state.update(s => ({ ...s, error: err.message, loading: false }));`}
     }
   }
 
-  async create(dto: Create${resourcePascal}Dto): Promise<${baseItemType}> {
+${doc(`Create new ${resourceCamel}`)}  async create(dto: Create${resourcePascal}Dto): Promise<${baseItemType}> {
     this.state.update(s => ({ ...s, loading: true, error: null }));
     try {
       const created = await firstValueFrom(this.http.post<${baseItemType}>(this.baseUrl, dto));
       this.state.update(s => ({ ...s, items: [...s.items, created], loading: false }));
       return created;
-    } catch (err) {
-      const message = err instanceof HttpErrorResponse ? err.message : 'Failed to create ${resourceCamel}';
-      this.state.update(s => ({ ...s, error: message, loading: false }));
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const message = err instanceof HttpErrorResponse ? err.message : 'Failed to create ${resourceCamel}';
+      this.state.update(s => ({ ...s, error: message, loading: false }));` : `this.state.update(s => ({ ...s, error: err.message, loading: false }));`}
       throw err;
     }
   }
 
-  async delete(id: string | number): Promise<void> {
+${doc(`Update ${resourceCamel}`)}  async update(id: string | number, dto: Update${resourcePascal}Dto): Promise<${baseItemType}> {
+    this.state.update(s => ({ ...s, loading: true, error: null }));
+    try {
+      const updated = await firstValueFrom(this.http.put<${baseItemType}>(\`\${this.baseUrl}/\${id}\`, dto));
+      this.state.update(s => ({
+        ...s,
+        items: s.items.map(item => ((item as any).id === id ? updated : item)),
+        loading: false
+      }));
+      return updated;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const message = err instanceof HttpErrorResponse ? err.message : 'Failed to update ${resourceCamel}';
+      this.state.update(s => ({ ...s, error: message, loading: false }));` : `this.state.update(s => ({ ...s, error: err.message, loading: false }));`}
+      throw err;
+    }
+  }
+
+${doc(`Delete ${resourceCamel}`)}  async delete(id: string | number): Promise<void> {
     try {
       await firstValueFrom(this.http.delete(\`\${this.baseUrl}/\${id}\`));
       this.state.update(s => ({
         ...s,
         items: s.items.filter(item => (item as any).id !== id)
       }));
-    } catch (err) {
-      const message = err instanceof HttpErrorResponse ? err.message : 'Failed to delete ${resourceCamel}';
-      this.state.update(s => ({ ...s, error: message }));
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const message = err instanceof HttpErrorResponse ? err.message : 'Failed to delete ${resourceCamel}';
+      this.state.update(s => ({ ...s, error: message }));` : `this.state.update(s => ({ ...s, error: err.message }));`}
       throw err;
     }
   }
@@ -475,11 +478,14 @@ export class ${resourcePascal}Store {
 
   // full-service (Default Angular)
   if (cfg.mode === 'crud') {
+    const errorHandlingImports = cfg.includeErrorHandling ? `, HttpErrorResponse` : '';
+    const rxjsErrorImports = cfg.includeErrorHandling ? `, throwError` : '';
+    const rxjsOpImports = cfg.includeErrorHandling ? `import { catchError, retry } from 'rxjs/operators';\n` : '';
+
     return `import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
-import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams, PaginatedResult` : ''} } from './${resourceCamel}.models';
+import { HttpClient${cfg.includePagination ? ', HttpParams' : ''}${errorHandlingImports} } from '@angular/common/http';
+import { Observable${rxjsErrorImports} } from 'rxjs';
+${rxjsOpImports}import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams, PaginatedResult` : ''} } from './${resourceCamel}.models';
 
 @Injectable({
   providedIn: 'root'
@@ -488,59 +494,43 @@ export class ${resourcePascal}Service {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '${baseEndpointUrl}';
 
-  /**
-   * Get all ${resourcePluralCamel} with optional filtering and pagination
-   */
-  getAll(${cfg.includePagination ? `params?: ${resourcePascal}QueryParams` : ''}): Observable<${cfg.includePagination ? `PaginatedResult<${baseItemType}>` : `${baseItemType}[]`}> {
+${doc(`Get all ${resourcePluralCamel} with optional filtering and pagination`)}  getAll(${cfg.includePagination ? `params?: ${resourcePascal}QueryParams` : ''}): Observable<${cfg.includePagination ? `PaginatedResult<${baseItemType}>` : `${baseItemType}[]`}> {
     ${cfg.includePagination ? `let httpParams = new HttpParams();
     if (params) {
       Object.entries(params).forEach(([key, val]) => {
         if (val !== undefined && val !== null) httpParams = httpParams.set(key, val.toString());
       });
     }` : ''}
-    return this.http.get<${cfg.includePagination ? `PaginatedResult<${baseItemType}>` : `${baseItemType}[]`}>(this.baseUrl${cfg.includePagination ? ', { params: httpParams }' : ''}).pipe(
+    return this.http.get<${cfg.includePagination ? `PaginatedResult<${baseItemType}>` : `${baseItemType}[]`}>(this.baseUrl${cfg.includePagination ? ', { params: httpParams }' : ''})${cfg.includeErrorHandling ? `.pipe(
       retry(1),
       catchError(this.handleError)
-    );
+    )` : ''};
   }
 
-  /**
-   * Get single ${resourceCamel} by ID
-   */
-  getById(id: string | number): Observable<${baseItemType}> {
-    return this.http.get<${baseItemType}>(\`\${this.baseUrl}/\${id}\`).pipe(
+${doc(`Get single ${resourceCamel} by ID`)}  getById(id: string | number): Observable<${baseItemType}> {
+    return this.http.get<${baseItemType}>(\`\${this.baseUrl}/\${id}\`)${cfg.includeErrorHandling ? `.pipe(
       catchError(this.handleError)
-    );
+    )` : ''};
   }
 
-  /**
-   * Create new ${resourceCamel}
-   */
-  create(payload: Create${resourcePascal}Dto): Observable<${baseItemType}> {
-    return this.http.post<${baseItemType}>(this.baseUrl, payload).pipe(
+${doc(`Create new ${resourceCamel}`)}  create(payload: Create${resourcePascal}Dto): Observable<${baseItemType}> {
+    return this.http.post<${baseItemType}>(this.baseUrl, payload)${cfg.includeErrorHandling ? `.pipe(
       catchError(this.handleError)
-    );
+    )` : ''};
   }
 
-  /**
-   * Update entire ${resourceCamel}
-   */
-  update(id: string | number, payload: Update${resourcePascal}Dto): Observable<${baseItemType}> {
-    return this.http.put<${baseItemType}>(\`\${this.baseUrl}/\${id}\`, payload).pipe(
+${doc(`Update entire ${resourceCamel}`)}  update(id: string | number, payload: Update${resourcePascal}Dto): Observable<${baseItemType}> {
+    return this.http.put<${baseItemType}>(\`\${this.baseUrl}/\${id}\`, payload)${cfg.includeErrorHandling ? `.pipe(
       catchError(this.handleError)
-    );
+    )` : ''};
   }
 
-  /**
-   * Delete ${resourceCamel} by ID
-   */
-  delete(id: string | number): Observable<void> {
-    return this.http.delete<void>(\`\${this.baseUrl}/\${id}\`).pipe(
+${doc(`Delete ${resourceCamel} by ID`)}  delete(id: string | number): Observable<void> {
+    return this.http.delete<void>(\`\${this.baseUrl}/\${id}\`)${cfg.includeErrorHandling ? `.pipe(
       catchError(this.handleError)
-    );
+    )` : ''};
   }
-
-  private handleError(error: HttpErrorResponse): Observable<never> {
+${cfg.includeErrorHandling ? `\n  private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'An unknown API error occurred';
     if (error.error instanceof ErrorEvent) {
       errorMessage = \`Client error: \${error.error.message}\`;
@@ -548,7 +538,7 @@ export class ${resourcePascal}Service {
       errorMessage = \`Server returned code \${error.status}: \${error.message}\`;
     }
     return throwError(() => new Error(errorMessage));
-  }
+  }` : ''}
 }`;
   }
 
@@ -568,10 +558,9 @@ export class ${resourcePascal}Service {
   ].filter(Boolean).join(', ');
 
   return `import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { ${baseItemType}${isMutation ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+import { HttpClient${cfg.includePagination ? ', HttpParams' : ''}${cfg.includeErrorHandling ? ', HttpErrorResponse' : ''} } from '@angular/common/http';
+import { Observable${cfg.includeErrorHandling ? ', throwError' : ''} } from 'rxjs';
+${cfg.includeErrorHandling ? `import { catchError } from 'rxjs/operators';\n` : ''}import { ${baseItemType}${isMutation ? `, ${cfg.requestBodyType}` : ''}${cfg.includePagination && cfg.method === 'GET' ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
 @Injectable({
   providedIn: 'root'
@@ -580,19 +569,23 @@ export class ${resourcePascal}Service {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '${baseEndpointUrl}';
 
-  /**
-   * ${cfg.method} request to ${cfg.endpoint}
-   */
-  ${methodLower}${resourcePascal}(${paramSignature}): Observable<${cfg.responseType}> {
-    return this.http.${methodLower}<${cfg.responseType}>(${httpCallArgs}).pipe(
+${doc(`${cfg.method} request to ${cfg.endpoint}`)}  ${methodLower}${resourcePascal}(${paramSignature}): Observable<${cfg.responseType}> {
+    return this.http.${methodLower}<${cfg.responseType}>(${httpCallArgs})${cfg.includeErrorHandling ? `.pipe(
       catchError(this.handleError)
-    );
+    )` : ''};
   }
 
-  private handleError(error: HttpErrorResponse): Observable<never> {
+  ${cfg.includePagination && cfg.method === 'GET' ? `private buildParams(params?: ${resourcePascal}QueryParams): HttpParams {
+    let httpParams = new HttpParams();
+    if (!params) return httpParams;
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null) httpParams = httpParams.set(key, val.toString());
+    });
+    return httpParams;
+  }\n` : ''}${cfg.includeErrorHandling ? `  private handleError(error: HttpErrorResponse): Observable<never> {
     const message = error.error?.message || error.message || 'API request failed';
     return throwError(() => new Error(message));
-  }
+  }` : ''}
 }`;
 }
 
@@ -601,15 +594,97 @@ export class ${resourcePascal}Service {
 // ----------------------------------------------------------------------------
 function generateReactClient(cfg: ReturnType<typeof normalizeConfig>): string {
   const { resourcePascal, resourceCamel, resourcePluralCamel, resourcePluralPascal, baseItemType, cleanEndpoint, baseEndpointUrl, pathParams } = cfg;
+  const doc = (text: string) => cfg.includeTsDoc ? `/** ${text} */\n` : '';
 
   if (cfg.pattern === 'tanstack-query') {
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+
+      if (isMutation) {
+        const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+        const mutationParamType = pathParams.length
+          ? `{ ${pathParams.map(p => `${p}: string | number`).join('; ')}${hasBody ? `; payload: ${cfg.requestBodyType}` : ''} }`
+          : (hasBody ? cfg.requestBodyType : 'void');
+
+        return `import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+async function execute${resourcePascal}(params: ${mutationParamType}): Promise<${cfg.responseType}> {
+  ${pathParams.length ? `const url = \`\${BASE_URL}${cleanEndpoint.replace(/\${([^}]+)}/g, 'params.$1')}\`;` : `const url = BASE_URL;`}
+  const res = await fetch(url, {
+    method: '${cfg.method}',
+    headers: {
+      'Content-Type': 'application/json',
+      ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+    },
+    ${hasBody ? `body: JSON.stringify(${pathParams.length ? 'params.payload' : 'params'}),` : ''}
+  });
+
+  ${cfg.includeErrorHandling ? `if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Request failed with status ' + res.status);
+  }` : ''}
+
+  ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'return {} as any;' : 'return res.json();'}
+}
+
+${doc(`Mutation Hook for ${cfg.method} ${cfg.endpoint}`)}export function use${resourcePascal}Mutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: execute${resourcePascal},
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['${resourceCamel}'] });
+    }
+  });
+}`;
+      }
+
+      // Single GET query
+      return `import { useQuery } from '@tanstack/react-query';
+import { ${baseItemType}${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+export const ${resourceCamel}Keys = {
+  all: ['${resourceCamel}'] as const,
+  detail: (${pathParams.map(p => `${p}: string | number`).join(', ')}) => [...${resourceCamel}Keys.all, 'detail', ${pathParams.join(', ')}] as const,
+};
+
+async function fetch${resourcePascal}(${[...pathParams.map(p => `${p}: string | number`), ...(cfg.includePagination ? [`params?: ${resourcePascal}QueryParams`] : [])].join(', ')}): Promise<${cfg.responseType}> {
+  ${pathParams.length ? `const url = new URL(\`\${BASE_URL}${cleanEndpoint}\`, window.location.origin);` : `const url = new URL(BASE_URL, window.location.origin);`}
+  ${cfg.includePagination ? `if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
+    });
+  }` : ''}
+  const res = await fetch(url.toString(), {
+    headers: {
+      'Content-Type': 'application/json',
+      ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+    }
+  });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Failed to fetch ${resourceCamel}: \${res.statusText}\`);` : ''}
+  return res.json();
+}
+
+${doc(`Hook to fetch ${resourcePascal}`)}export function use${resourcePascal}(${pathParams.map(p => `${p}: string | number`).join(', ')}${pathParams.length ? ', ' : ''}enabled = true) {
+  return useQuery({
+    queryKey: ${pathParams.length ? `${resourceCamel}Keys.detail(${pathParams.join(', ')})` : `['${resourceCamel}']`},
+    queryFn: () => fetch${resourcePascal}(${pathParams.join(', ')}),
+    enabled: ${pathParams.length ? pathParams.map(p => `Boolean(${p})`).join(' && ') + ' && enabled' : 'enabled'},
+  });
+}`;
+    }
+
+    // CRUD TanStack Query
     return `import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
 const BASE_URL = '${baseEndpointUrl}';
 
-/** Query Keys Factory for ${resourcePascal} */
-export const ${resourceCamel}Keys = {
+${doc(`Query Keys Factory for ${resourcePascal}`)}export const ${resourceCamel}Keys = {
   all: ['${resourceCamel}'] as const,
   lists: () => [...${resourceCamel}Keys.all, 'list'] as const,
   list: (params?: ${resourcePascal}QueryParams) => [...${resourceCamel}Keys.lists(), { params }] as const,
@@ -620,45 +695,58 @@ export const ${resourceCamel}Keys = {
 // API Fetch Helpers
 async function fetch${resourcePluralPascal}(params?: ${resourcePascal}QueryParams): Promise<${cfg.responseType}> {
   const url = new URL(BASE_URL, window.location.origin);
-  if (params) {
+  ${cfg.includePagination ? `if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
     });
-  }
+  }` : ''}
   const res = await fetch(url.toString(), {
-    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token')}\`` : ''} }
+    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} }
   });
-  if (!res.ok) throw new Error(\`Failed to fetch ${resourcePluralCamel}: \${res.statusText}\`);
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Failed to fetch ${resourcePluralCamel}: \${res.statusText}\`);` : ''}
   return res.json();
 }
 
 async function fetch${resourcePascal}ById(id: string | number): Promise<${baseItemType}> {
   const res = await fetch(\`\${BASE_URL}/\${id}\`);
-  if (!res.ok) throw new Error(\`Failed to fetch ${resourceCamel}: \${res.statusText}\`);
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Failed to fetch ${resourceCamel}: \${res.statusText}\`);` : ''}
   return res.json();
 }
 
 async function create${resourcePascal}(payload: Create${resourcePascal}Dto): Promise<${baseItemType}> {
   const res = await fetch(BASE_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error('Failed to create ${resourceCamel}');
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to create ${resourceCamel}');` : ''}
   return res.json();
 }
 
-/** Hook to fetch ${resourcePluralPascal} list */
-export function use${resourcePluralPascal}(params?: ${resourcePascal}QueryParams) {
+async function update${resourcePascal}({ id, payload }: { id: string | number; payload: Update${resourcePascal}Dto }): Promise<${baseItemType}> {
+  const res = await fetch(\`\${BASE_URL}/\${id}\`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+    body: JSON.stringify(payload)
+  });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to update ${resourceCamel}');` : ''}
+  return res.json();
+}
+
+async function delete${resourcePascal}(id: string | number): Promise<void> {
+  const res = await fetch(\`\${BASE_URL}/\${id}\`, { method: 'DELETE' });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to delete ${resourceCamel}');` : ''}
+}
+
+${doc(`Hook to fetch ${resourcePluralPascal} list`)}export function use${resourcePluralPascal}(params?: ${resourcePascal}QueryParams) {
   return useQuery({
     queryKey: ${resourceCamel}Keys.list(params),
     queryFn: () => fetch${resourcePluralPascal}(params),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/** Hook to fetch single ${resourceCamel} by ID */
-export function use${resourcePascal}(id: string | number, enabled = true) {
+${doc(`Hook to fetch single ${resourceCamel} by ID`)}export function use${resourcePascal}(id: string | number, enabled = true) {
   return useQuery({
     queryKey: ${resourceCamel}Keys.detail(id),
     queryFn: () => fetch${resourcePascal}ById(id),
@@ -666,11 +754,31 @@ export function use${resourcePascal}(id: string | number, enabled = true) {
   });
 }
 
-/** Hook to create ${resourceCamel} with automatic query cache invalidation */
-export function useCreate${resourcePascal}() {
+${doc(`Hook to create ${resourceCamel}`)}export function useCreate${resourcePascal}() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: create${resourcePascal},
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
+    },
+  });
+}
+
+${doc(`Hook to update ${resourcePascal}`)}export function useUpdate${resourcePascal}() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: update${resourcePascal},
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
+    },
+  });
+}
+
+${doc(`Hook to delete ${resourcePascal}`)}export function useDelete${resourcePascal}() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: delete${resourcePascal},
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
     },
@@ -679,6 +787,42 @@ export function useCreate${resourcePascal}() {
   }
 
   if (cfg.pattern === 'rtk-query') {
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+      return `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { ${baseItemType}${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export const ${resourceCamel}Api = createApi({
+  reducerPath: '${resourceCamel}Api',
+  baseQuery: fetchBaseQuery({
+    baseUrl: '${baseEndpointUrl}',
+    prepareHeaders: (headers) => {
+      ${cfg.includeAuth ? `const token = localStorage.getItem('token');
+      if (token) headers.set('authorization', \`Bearer \${token}\`);` : ''}
+      return headers;
+    }
+  }),
+  tagTypes: ['${resourcePascal}'],
+  endpoints: (builder) => ({
+    ${isMutation ? `${resourceCamel}Action: builder.mutation<${cfg.responseType}, ${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? cfg.requestBodyType : 'void'}>({
+      query: (body) => ({
+        url: '${cleanEndpoint.replace(baseEndpointUrl, '') || ''}',
+        method: '${cfg.method}',
+        ${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? 'body,' : ''}
+      }),
+      invalidatesTags: ['${resourcePascal}'],
+    })` : `get${resourcePascal}: builder.query<${cfg.responseType}, void>({
+      query: () => '${cleanEndpoint.replace(baseEndpointUrl, '') || ''}',
+      providesTags: ['${resourcePascal}'],
+    })`},
+  }),
+});
+
+export const {
+  ${isMutation ? `use${resourcePascal}ActionMutation` : `useGet${resourcePascal}Query`}
+} = ${resourceCamel}Api;`;
+    }
+
     return `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
 
@@ -750,7 +894,7 @@ export const fetch${resourcePluralPascal} = createAsyncThunk(
   '${resourceCamel}/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(BASE_URL);
+      const response = await fetch(BASE_URL${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
       if (!response.ok) throw new Error('Network response was not ok');
       return (await response.json()) as ${cfg.responseType};
     } catch (err: any) {
@@ -765,7 +909,7 @@ export const create${resourcePascal} = createAsyncThunk(
     try {
       const response = await fetch(BASE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
         body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error('Failed to create ${resourceCamel}');
@@ -825,21 +969,20 @@ import { ${baseItemType}, Create${resourcePascal}Dto } from './${resourceCamel}.
 const BASE_URL = '${baseEndpointUrl}';
 
 async function fetcher<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('API fetch error');
+  const res = await fetch(url${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('API fetch error');` : ''}
   return res.json();
 }
 
 async function sendRequest(url: string, { arg }: { arg: Create${resourcePascal}Dto }) {
   return fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
     body: JSON.stringify(arg),
   }).then(res => res.json());
 }
 
-/** SWR Hook for fetching ${resourcePluralPascal} */
-export function use${resourcePluralPascal}() {
+${doc(`SWR Hook for fetching ${resourcePluralPascal}`)}export function use${resourcePluralPascal}() {
   const { data, error, isLoading, mutate } = useSWR<${cfg.responseType}>(BASE_URL, fetcher);
   return {
     ${resourcePluralCamel}: data,
@@ -850,8 +993,7 @@ export function use${resourcePluralPascal}() {
   };
 }
 
-/** SWR Mutation Hook for creating ${resourcePascal} */
-export function useCreate${resourcePascal}() {
+${doc(`SWR Mutation Hook for creating ${resourcePascal}`)}export function useCreate${resourcePascal}() {
   const { trigger, isMutating, error } = useSWRMutation(BASE_URL, sendRequest);
   return {
     create${resourcePascal}: trigger,
@@ -861,8 +1003,66 @@ export function useCreate${resourcePascal}() {
 }`;
   }
 
-  // custom-hook (Default React)
-  return `import { useState, useEffect, useCallback, useRef } from 'react';
+  // React custom-hook
+  if (cfg.mode === 'single' && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method)) {
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+    return `import { useState, useCallback } from 'react';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export interface Use${resourcePascal}MutationResult {
+  data: ${cfg.responseType} | null;
+  loading: boolean;
+  error: Error | null;
+  execute: (${hasBody ? `payload: ${cfg.requestBodyType}` : ''}) => Promise<${cfg.responseType}>;
+  reset: () => void;
+}
+
+export function use${resourcePascal}Mutation(): Use${resourcePascal}MutationResult {
+  const [data, setData] = useState<${cfg.responseType} | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const execute = useCallback(async (${hasBody ? `payload: ${cfg.requestBodyType}` : ''}): Promise<${cfg.responseType}> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('${cfg.endpoint}', {
+        method: '${cfg.method}',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        ${hasBody ? 'body: JSON.stringify(payload),' : ''}
+      });
+
+      ${cfg.includeErrorHandling ? `if (!response.ok) {
+        throw new Error(\`HTTP error! status: \${response.status}\`);
+      }` : ''}
+
+      const json = await response.json();
+      setData(json);
+      return json;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const errObj = err instanceof Error ? err : new Error(String(err));
+      setError(errObj);
+      throw errObj;` : `throw err;`}
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+    setLoading(false);
+  }, []);
+
+  return { data, loading, error, execute, reset };
+}`;
+  }
+
+  // React custom-hook for GET / CRUD
+  return `import { useState, useEffect, useCallback${cfg.includeCancellation ? ', useRef' : ''} } from 'react';
 import { ${baseItemType} } from './${resourceCamel}.models';
 
 export interface Use${resourcePascal}Result {
@@ -876,9 +1076,7 @@ export function use${resourcePascal}(): Use${resourcePascal}Result {
   const [data, setData] = useState<${cfg.responseType} | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  const fetchData = useCallback(async () => {
+  ${cfg.includeCancellation ? 'const abortControllerRef = useRef<AbortController | null>(null);\n' : ''}  const fetchData = useCallback(async () => {
     ${cfg.includeCancellation ? `abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;` : ''}
@@ -887,16 +1085,17 @@ export function use${resourcePascal}(): Use${resourcePascal}Result {
     setError(null);
 
     try {
-      const response = await fetch('${cfg.endpoint}'${cfg.includeCancellation ? ', { signal: controller.signal }' : ''});
-      if (!response.ok) {
+      const response = await fetch('${cfg.endpoint}', {
+        ${cfg.includeCancellation ? 'signal: controller.signal,' : ''}
+        ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` }` : ''}
+      });
+      ${cfg.includeErrorHandling ? `if (!response.ok) {
         throw new Error(\`HTTP error! status: \${response.status}\`);
-      }
+      }` : ''}
       const json = await response.json();
       setData(json);
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        setError(err instanceof Error ? err : new Error(String(err)));
-      }
+      ${cfg.includeErrorHandling ? `${cfg.includeCancellation ? `if (err.name !== 'AbortError') {\n        setError(err instanceof Error ? err : new Error(String(err)));\n      }` : `setError(err instanceof Error ? err : new Error(String(err)));`}` : ''}
     } finally {
       setLoading(false);
     }
@@ -915,66 +1114,256 @@ export function use${resourcePascal}(): Use${resourcePascal}Result {
 // 3. VUE CLIENT GENERATORS
 // ----------------------------------------------------------------------------
 function generateVueClient(cfg: ReturnType<typeof normalizeConfig>): string {
-  const { resourcePascal, resourceCamel, resourcePluralCamel, resourcePluralPascal, baseItemType, cleanEndpoint, baseEndpointUrl } = cfg;
+  const { resourcePascal, resourceCamel, resourcePluralCamel, resourcePluralPascal, baseItemType, cleanEndpoint, baseEndpointUrl, pathParams } = cfg;
+  const doc = (text: string) => cfg.includeTsDoc ? `/** ${text} */\n` : '';
 
   if (cfg.pattern === 'vue-query') {
-    return `import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
-import { ${baseItemType}, Create${resourcePascal}Dto } from './${resourceCamel}.models';
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+      if (isMutation) {
+        const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+        return `import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
 
 const BASE_URL = '${baseEndpointUrl}';
 
-export function use${resourcePluralPascal}Query() {
-  return useQuery({
-    queryKey: ['${resourceCamel}', 'list'],
-    queryFn: async (): Promise<${cfg.responseType}> => {
-      const res = await fetch(BASE_URL);
-      if (!res.ok) throw new Error('Failed to fetch ${resourcePluralCamel}');
-      return res.json();
-    }
-  });
-}
-
-export function useCreate${resourcePascal}Mutation() {
+${doc(`Mutation hook for ${cfg.method} ${cfg.endpoint}`)}export function use${resourcePascal}Mutation() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (payload: Create${resourcePascal}Dto): Promise<${baseItemType}> => {
+    mutationFn: async (${hasBody ? `payload: ${cfg.requestBodyType}` : ''}): Promise<${cfg.responseType}> => {
       const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        method: '${cfg.method}',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        ${hasBody ? 'body: JSON.stringify(payload),' : ''}
       });
-      if (!res.ok) throw new Error('Failed to create ${resourceCamel}');
-      return res.json();
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`API request failed with status \${res.status}\`);` : ''}
+      ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'return {} as any;' : 'return res.json();'}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['${resourceCamel}'] });
     }
   });
 }`;
+      }
+
+      return `import { useQuery } from '@tanstack/vue-query';
+import { ${baseItemType}${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+${doc(`Query hook for fetching ${resourcePascal}`)}export function use${resourcePascal}Query(${cfg.includePagination ? `params?: ${resourcePascal}QueryParams` : ''}) {
+  return useQuery({
+    queryKey: ['${resourceCamel}', ${cfg.includePagination ? 'params' : "'single'"}],
+    queryFn: async (): Promise<${cfg.responseType}> => {
+      ${cfg.includePagination ? `const url = new URL(BASE_URL, window.location.origin);
+      if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
+        });
+      }` : ''}
+      const res = await fetch(${cfg.includePagination ? 'url.toString()' : 'BASE_URL'}${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to fetch ${resourceCamel}');` : ''}
+      return res.json();
+    }
+  });
+}`;
+    }
+
+    // Full REST CRUD Vue Query
+    return `import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
+import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+${doc(`Query keys factory for ${resourcePascal}`)}export const ${resourceCamel}Keys = {
+  all: ['${resourceCamel}'] as const,
+  lists: () => [...${resourceCamel}Keys.all, 'list'] as const,
+  list: (params?: ${resourcePascal}QueryParams) => [...${resourceCamel}Keys.lists(), { params }] as const,
+  details: () => [...${resourceCamel}Keys.all, 'detail'] as const,
+  detail: (id: string | number) => [...${resourceCamel}Keys.details(), id] as const,
+};
+
+${doc(`Query hook for ${resourcePluralCamel} list`)}export function use${resourcePluralPascal}Query(params?: ${resourcePascal}QueryParams) {
+  return useQuery({
+    queryKey: ${resourceCamel}Keys.list(params),
+    queryFn: async (): Promise<${cfg.responseType}> => {
+      const url = new URL(BASE_URL, window.location.origin);
+      ${cfg.includePagination ? `if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
+        });
+      }` : ''}
+      const res = await fetch(url.toString()${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to fetch ${resourcePluralCamel}');` : ''}
+      return res.json();
+    }
+  });
+}
+
+${doc(`Query hook for single ${resourceCamel} by ID`)}export function use${resourcePascal}ByIdQuery(id: string | number) {
+  return useQuery({
+    queryKey: ${resourceCamel}Keys.detail(id),
+    queryFn: async (): Promise<${baseItemType}> => {
+      const res = await fetch(\`\${BASE_URL}/\${id}\`);
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to fetch ${resourceCamel}');` : ''}
+      return res.json();
+    },
+    enabled: Boolean(id)
+  });
+}
+
+${doc(`Mutation hook for creating ${resourceCamel}`)}export function useCreate${resourcePascal}Mutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Create${resourcePascal}Dto): Promise<${baseItemType}> => {
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+        body: JSON.stringify(payload)
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to create ${resourceCamel}');` : ''}
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
+    }
+  });
+}
+
+${doc(`Mutation hook for updating ${resourceCamel}`)}export function useUpdate${resourcePascal}Mutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string | number; payload: Update${resourcePascal}Dto }): Promise<${baseItemType}> => {
+      const res = await fetch(\`\${BASE_URL}/\${id}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+        body: JSON.stringify(payload)
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to update ${resourceCamel}');` : ''}
+      return res.json();
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
+    }
+  });
+}
+
+${doc(`Mutation hook for deleting ${resourceCamel}`)}export function useDelete${resourcePascal}Mutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string | number): Promise<void> => {
+      const res = await fetch(\`\${BASE_URL}/\${id}\`, { method: 'DELETE' });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to delete ${resourceCamel}');` : ''}
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
+    }
+  });
+}`;
   }
 
   if (cfg.pattern === 'pinia-store') {
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+      const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+      return `import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+${doc(`Pinia store for ${resourcePascal}`)}export const use${resourcePascal}Store = defineStore('${resourceCamel}', () => {
+  const data = ref<${cfg.responseType} | null>(null);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+
+  async function execute(${hasBody ? `payload: ${cfg.requestBodyType}` : ''}) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch('${cfg.endpoint}', {
+        method: '${cfg.method}',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        ${hasBody ? 'body: JSON.stringify(payload),' : ''}
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Request failed with status \${res.status}\`);` : ''}
+      ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'data.value = null;' : 'data.value = await res.json();'}
+      return data.value;
+    } catch (err: any) {
+      error.value = err.message || 'Request failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function reset() {
+    data.value = null;
+    error.value = null;
+    loading.value = false;
+  }
+
+  return {
+    data,
+    loading,
+    error,
+    execute,
+    reset
+  };
+});`;
+    }
+
     return `import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
+import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
-export const use${resourcePascal}Store = defineStore('${resourceCamel}', () => {
+${doc(`Pinia store for ${resourcePascal} management`)}export const use${resourcePascal}Store = defineStore('${resourceCamel}', () => {
   const items = ref<${baseItemType}[]>([]);
   const currentItem = ref<${baseItemType} | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
   const itemCount = computed(() => items.value.length);
+  const getItemById = computed(() => (id: string | number) => items.value.find(i => (i as any).id === id));
 
-  async function fetchAll() {
+  async function fetchAll(params?: ${resourcePascal}QueryParams) {
     loading.value = true;
     error.value = null;
     try {
-      const res = await fetch('${baseEndpointUrl}');
-      if (!res.ok) throw new Error('Failed to fetch ${resourcePluralCamel}');
-      items.value = await res.json();
+      const url = new URL('${baseEndpointUrl}', window.location.origin);
+      ${cfg.includePagination ? `if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
+        });
+      }` : ''}
+      const res = await fetch(url.toString()${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to fetch ${resourcePluralCamel}');` : ''}
+      const data = await res.json();
+      items.value = Array.isArray(data) ? data : data.items || [];
     } catch (err: any) {
       error.value = err.message || 'Unknown error';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchById(id: string | number) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(\`${baseEndpointUrl}/\${id}\`);
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to fetch ${resourceCamel}');` : ''}
+      currentItem.value = await res.json();
+      return currentItem.value;
+    } catch (err: any) {
+      error.value = err.message;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -985,10 +1374,10 @@ export const use${resourcePascal}Store = defineStore('${resourceCamel}', () => {
     try {
       const res = await fetch('${baseEndpointUrl}', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
         body: JSON.stringify(dto)
       });
-      if (!res.ok) throw new Error('Failed to create item');
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to create item');` : ''}
       const created = await res.json();
       items.value.push(created);
       return created;
@@ -1000,64 +1389,205 @@ export const use${resourcePascal}Store = defineStore('${resourceCamel}', () => {
     }
   }
 
+  async function updateItem(id: string | number, dto: Update${resourcePascal}Dto) {
+    loading.value = true;
+    try {
+      const res = await fetch(\`${baseEndpointUrl}/\${id}\`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+        body: JSON.stringify(dto)
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to update item');` : ''}
+      const updated = await res.json();
+      const idx = items.value.findIndex(i => (i as any).id === id);
+      if (idx !== -1) items.value[idx] = updated;
+      return updated;
+    } catch (err: any) {
+      error.value = err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function deleteItem(id: string | number) {
+    loading.value = true;
+    try {
+      const res = await fetch(\`${baseEndpointUrl}/\${id}\`, { method: 'DELETE' });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to delete item');` : ''}
+      items.value = items.value.filter(i => (i as any).id !== id);
+    } catch (err: any) {
+      error.value = err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function clearError() {
+    error.value = null;
+  }
+
   return {
     items,
     currentItem,
     loading,
     error,
     itemCount,
+    getItemById,
     fetchAll,
-    createItem
+    fetchById,
+    createItem,
+    updateItem,
+    deleteItem,
+    clearError
   };
 });`;
   }
 
   if (cfg.pattern === 'nuxt-fetch') {
-    return `import { ${baseItemType} } from './${resourceCamel}.models';
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+      const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+      return `import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
 
 export function use${resourcePascal}Api() {
   const config = useRuntimeConfig();
   const apiBase = config.public.apiBase || '${baseEndpointUrl}';
 
-  const getAll = () => useFetch<${cfg.responseType}>(\`\${apiBase}\`, {
+  ${isMutation ? `const execute = (${hasBody ? `body: ${cfg.requestBodyType}` : ''}) => $fetch<${cfg.responseType}>(\`\${apiBase}${cleanEndpoint.replace(baseEndpointUrl, '')}\`, {
+    method: '${cfg.method}',
+    ${hasBody ? 'body,' : ''}
+    ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${useCookie('token').value || ''}\` }` : ''}
+  });
+
+  return { execute };` : `const fetch = () => useFetch<${cfg.responseType}>(\`\${apiBase}${cleanEndpoint.replace(baseEndpointUrl, '')}\`, {
+    key: '${resourceCamel}-single',
+    lazy: true,
+    ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${useCookie('token').value || ''}\` }` : ''}
+  });
+
+  return { fetch };`}
+}`;
+    }
+
+    return `import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+export function use${resourcePascal}Api() {
+  const config = useRuntimeConfig();
+  const apiBase = config.public.apiBase || '${baseEndpointUrl}';
+
+  const getAll = (params?: ${resourcePascal}QueryParams) => useFetch<${cfg.responseType}>(\`\${apiBase}\`, {
     key: '${resourceCamel}-list',
     lazy: true,
+    ${cfg.includePagination ? 'query: params,' : ''}
+    ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${useCookie('token').value || ''}\` }` : ''}
   });
 
   const getById = (id: string | number) => useFetch<${baseItemType}>(\`\${apiBase}/\${id}\`, {
     key: \`${resourceCamel}-\${id}\`
   });
 
-  const create = (body: any) => $fetch<${baseItemType}>(\`\${apiBase}\`, {
+  const create = (body: Create${resourcePascal}Dto) => $fetch<${baseItemType}>(\`\${apiBase}\`, {
     method: 'POST',
-    body
+    body,
+    ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${useCookie('token').value || ''}\` }` : ''}
+  });
+
+  const update = (id: string | number, body: Update${resourcePascal}Dto) => $fetch<${baseItemType}>(\`\${apiBase}/\${id}\`, {
+    method: 'PUT',
+    body,
+    ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${useCookie('token').value || ''}\` }` : ''}
   });
 
   const remove = (id: string | number) => $fetch<void>(\`\${apiBase}/\${id}\`, {
     method: 'DELETE'
   });
 
-  return { getAll, getById, create, remove };
+  return { getAll, getById, create, update, remove };
 }`;
   }
 
   if (cfg.pattern === 'context-provider') {
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+      const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+      return `import { inject, provide, InjectionKey } from 'vue';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export class ${resourcePascal}ApiClient {
+  private baseUrl = '${baseEndpointUrl}';
+
+  async execute(${hasBody ? `payload: ${cfg.requestBodyType}` : ''}): Promise<${cfg.responseType}> {
+    const res = await fetch(\`\${this.baseUrl}${cleanEndpoint.replace(baseEndpointUrl, '')}\`, {
+      method: '${cfg.method}',
+      headers: {
+        'Content-Type': 'application/json',
+        ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+      },
+      ${hasBody ? 'body: JSON.stringify(payload),' : ''}
+    });
+    ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('API execute request failed');` : ''}
+    ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'return {} as any;' : 'return res.json();'}
+  }
+}
+
+export const ${resourcePascal}ApiKey: InjectionKey<${resourcePascal}ApiClient> = Symbol('${resourcePascal}ApiClient');
+
+export function provide${resourcePascal}Client(): ${resourcePascal}ApiClient {
+  const client = new ${resourcePascal}ApiClient();
+  provide(${resourcePascal}ApiKey, client);
+  return client;
+}
+
+export function use${resourcePascal}Client(): ${resourcePascal}ApiClient {
+  const client = inject(${resourcePascal}ApiKey);
+  if (!client) throw new Error('${resourcePascal}ApiClient was not provided in component tree.');
+  return client;
+}`;
+    }
+
     return `import { inject, provide, InjectionKey } from 'vue';
-import { ${baseItemType} } from './${resourceCamel}.models';
+import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
 
 export class ${resourcePascal}ApiClient {
   private baseUrl = '${baseEndpointUrl}';
 
   async fetchAll(): Promise<${cfg.responseType}> {
-    const res = await fetch(this.baseUrl);
-    if (!res.ok) throw new Error('Fetch failed');
+    const res = await fetch(this.baseUrl${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
+    ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Fetch failed');` : ''}
     return res.json();
   }
 
   async getById(id: string | number): Promise<${baseItemType}> {
     const res = await fetch(\`\${this.baseUrl}/\${id}\`);
-    if (!res.ok) throw new Error('Fetch by ID failed');
+    ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Fetch by ID failed');` : ''}
     return res.json();
+  }
+
+  async create(dto: Create${resourcePascal}Dto): Promise<${baseItemType}> {
+    const res = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+      body: JSON.stringify(dto)
+    });
+    ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Create failed');` : ''}
+    return res.json();
+  }
+
+  async update(id: string | number, dto: Update${resourcePascal}Dto): Promise<${baseItemType}> {
+    const res = await fetch(\`\${this.baseUrl}/\${id}\`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+      body: JSON.stringify(dto)
+    });
+    ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Update failed');` : ''}
+    return res.json();
+  }
+
+  async delete(id: string | number): Promise<void> {
+    const res = await fetch(\`\${this.baseUrl}/\${id}\`, { method: 'DELETE' });
+    ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Delete failed');` : ''}
   }
 }
 
@@ -1076,24 +1606,96 @@ export function use${resourcePascal}Client(): ${resourcePascal}ApiClient {
 }`;
   }
 
-  // composable (Default Vue)
-  return `import { ref, onMounted, readonly } from 'vue';
-import { ${baseItemType} } from './${resourceCamel}.models';
+  // composable (Default Vue 3 Composition API Composable)
+  if (cfg.mode === 'single') {
+    const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
 
-export function use${resourcePascal}() {
+    if (isMutation) {
+      return `import { ref, readonly } from 'vue';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export function use${resourcePascal}Mutation() {
   const data = ref<${cfg.responseType} | null>(null);
   const loading = ref(false);
   const error = ref<Error | null>(null);
 
-  const fetchData = async () => {
+  const execute = async (${hasBody ? `payload: ${cfg.requestBodyType}` : ''}): Promise<${cfg.responseType}> => {
     loading.value = true;
     error.value = null;
+
     try {
-      const res = await fetch('${cfg.endpoint}');
-      if (!res.ok) throw new Error(\`HTTP error! status: \${res.status}\`);
+      const res = await fetch('${cfg.endpoint}', {
+        method: '${cfg.method}',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        ${hasBody ? 'body: JSON.stringify(payload),' : ''}
+      });
+
+      ${cfg.includeErrorHandling ? `if (!res.ok) {
+        throw new Error(\`HTTP error! status: \${res.status}\`);
+      }` : ''}
+
+      ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'data.value = {} as any;' : 'data.value = await res.json();'}
+      return data.value as ${cfg.responseType};
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `const errObj = err instanceof Error ? err : new Error(String(err));
+      error.value = errObj;
+      throw errObj;` : `throw err;`}
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const reset = () => {
+    data.value = null;
+    error.value = null;
+    loading.value = false;
+  };
+
+  return {
+    data: readonly(data),
+    loading: readonly(loading),
+    error: readonly(error),
+    execute,
+    reset
+  };
+}`;
+    }
+
+    // Single Endpoint GET Composable
+    const urlExpr = pathParams.length ? `\`${cleanEndpoint}\`` : `'${cfg.endpoint}'`;
+    const signature = pathParams.length ? pathParams.map(p => `${p}?: string | number`).join(', ') : '';
+
+    return `import { ref, onMounted${cfg.includeCancellation ? ', onUnmounted' : ''}, readonly } from 'vue';
+import { ${baseItemType}${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+export function use${resourcePascal}(${signature}) {
+  const data = ref<${cfg.responseType} | null>(null);
+  const loading = ref(false);
+  const error = ref<Error | null>(null);
+  ${cfg.includeCancellation ? 'let abortController: AbortController | null = null;\n' : ''}  const fetchData = async () => {
+    ${cfg.includeCancellation ? `if (abortController) abortController.abort();
+    abortController = new AbortController();` : ''}
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const res = await fetch(${urlExpr}, {
+        ${cfg.includeCancellation ? 'signal: abortController.signal,' : ''}
+        ${cfg.includeAuth ? `headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` }` : ''}
+      });
+
+      ${cfg.includeErrorHandling ? `if (!res.ok) {
+        throw new Error(\`HTTP error! status: \${res.status}\`);
+      }` : ''}
+
       data.value = await res.json();
     } catch (err: any) {
-      error.value = err instanceof Error ? err : new Error(String(err));
+      ${cfg.includeErrorHandling ? `${cfg.includeCancellation ? `if (err.name !== 'AbortError') {\n        error.value = err instanceof Error ? err : new Error(String(err));\n      }` : `error.value = err instanceof Error ? err : new Error(String(err));`}` : ''}
     } finally {
       loading.value = false;
     }
@@ -1101,11 +1703,155 @@ export function use${resourcePascal}() {
 
   onMounted(fetchData);
 
-  return {
+  ${cfg.includeCancellation ? `onUnmounted(() => {
+    if (abortController) abortController.abort();
+  });\n` : ''}  return {
     data: readonly(data),
     loading: readonly(loading),
     error: readonly(error),
     refetch: fetchData
+  };
+}`;
+  }
+
+  // Full REST CRUD Vue Composable
+  return `import { ref, onMounted${cfg.includeCancellation ? ', onUnmounted' : ''}, readonly } from 'vue';
+import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+export function use${resourcePascal}Api() {
+  const items = ref<${baseItemType}[]>([]);
+  const currentItem = ref<${baseItemType} | null>(null);
+  const loading = ref(false);
+  const isSubmitting = ref(false);
+  const error = ref<Error | null>(null);
+  ${cfg.includeCancellation ? 'let abortController: AbortController | null = null;\n' : ''}  const baseUrl = '${baseEndpointUrl}';
+
+${doc(`Fetch all ${resourcePluralCamel}`)}  const fetchAll = async (${cfg.includePagination ? `params?: ${resourcePascal}QueryParams` : ''}) => {
+    ${cfg.includeCancellation ? `if (abortController) abortController.abort();
+    abortController = new AbortController();` : ''}
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const url = new URL(baseUrl, window.location.origin);
+      ${cfg.includePagination ? `if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
+        });
+      }` : ''}
+
+      const res = await fetch(url.toString(), {
+        ${cfg.includeCancellation ? 'signal: abortController.signal,' : ''}
+        headers: {
+          'Accept': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        }
+      });
+
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Failed to fetch \${res.statusText}\`);` : ''}
+      const data = await res.json();
+      items.value = Array.isArray(data) ? data : data.items || [];
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `${cfg.includeCancellation ? `if (err.name !== 'AbortError') {\n        error.value = err instanceof Error ? err : new Error(String(err));\n      }` : `error.value = err instanceof Error ? err : new Error(String(err));`}` : ''}
+    } finally {
+      loading.value = false;
+    }
+  };
+
+${doc(`Fetch single ${resourceCamel} by ID`)}  const fetchById = async (id: string | number) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(\`\${baseUrl}/\${id}\`);
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Failed to fetch ${resourceCamel} #\${id}\`);` : ''}
+      currentItem.value = await res.json();
+      return currentItem.value;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `error.value = err instanceof Error ? err : new Error(String(err));\n      throw error.value;` : `throw err;`}
+    } finally {
+      loading.value = false;
+    }
+  };
+
+${doc(`Create a new ${resourceCamel}`)}  const create = async (payload: Create${resourcePascal}Dto): Promise<${baseItemType}> => {
+    isSubmitting.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        body: JSON.stringify(payload)
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Create request failed');` : ''}
+      const created = await res.json();
+      items.value.push(created);
+      return created;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `error.value = err instanceof Error ? err : new Error(String(err));\n      throw error.value;` : `throw err;`}
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
+
+${doc(`Update ${resourceCamel} by ID`)}  const update = async (id: string | number, payload: Update${resourcePascal}Dto): Promise<${baseItemType}> => {
+    isSubmitting.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(\`\${baseUrl}/\${id}\`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        body: JSON.stringify(payload)
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Update request failed');` : ''}
+      const updated = await res.json();
+      const idx = items.value.findIndex(i => (i as any).id === id);
+      if (idx !== -1) items.value[idx] = updated;
+      return updated;
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `error.value = err instanceof Error ? err : new Error(String(err));\n      throw error.value;` : `throw err;`}
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
+
+${doc(`Delete ${resourceCamel} by ID`)}  const remove = async (id: string | number): Promise<void> => {
+    isSubmitting.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(\`\${baseUrl}/\${id}\`, { method: 'DELETE' });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Delete request failed');` : ''}
+      items.value = items.value.filter(i => (i as any).id !== id);
+    } catch (err: any) {
+      ${cfg.includeErrorHandling ? `error.value = err instanceof Error ? err : new Error(String(err));\n      throw error.value;` : `throw err;`}
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
+
+  onMounted(() => {
+    fetchAll();
+  });
+
+  ${cfg.includeCancellation ? `onUnmounted(() => {
+    if (abortController) abortController.abort();
+  });\n` : ''}  return {
+    items: readonly(items),
+    currentItem: readonly(currentItem),
+    loading: readonly(loading),
+    isSubmitting: readonly(isSubmitting),
+    error: readonly(error),
+    fetchAll,
+    fetchById,
+    create,
+    update,
+    remove
   };
 }`;
 }
@@ -1116,22 +1862,35 @@ export function use${resourcePascal}() {
 function generateSvelteClient(cfg: ReturnType<typeof normalizeConfig>): string {
   const { resourcePascal, resourceCamel, baseItemType, baseEndpointUrl } = cfg;
 
-  return `import { ${baseItemType} } from './${resourceCamel}.models';
+  if (cfg.mode === 'single') {
+    const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
 
-export function create${resourcePascal}Client(baseUrl = '${baseEndpointUrl}') {
+    return `import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export function create${resourcePascal}Client(endpoint = '${cfg.endpoint}') {
   let data = $state<${cfg.responseType} | null>(null);
   let loading = $state(false);
   let error = $state<string | null>(null);
 
-  async function load() {
+  async function execute(${hasBody ? `payload: ${cfg.requestBodyType}` : ''}) {
     loading = true;
     error = null;
     try {
-      const res = await fetch(baseUrl);
-      if (!res.ok) throw new Error(\`HTTP error \${res.status}\`);
-      data = await res.json();
+      const res = await fetch(endpoint, {
+        method: '${cfg.method}',
+        headers: {
+          'Content-Type': 'application/json',
+          ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+        },
+        ${hasBody ? 'body: JSON.stringify(payload),' : ''}
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`HTTP error \${res.status}\`);` : ''}
+      ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'data = {} as any;' : 'data = await res.json();'}
+      return data;
     } catch (e: any) {
-      error = e.message || 'Failed to load ${resourceCamel}';
+      error = e.message || 'Request failed';
+      throw e;
     } finally {
       loading = false;
     }
@@ -1141,7 +1900,61 @@ export function create${resourcePascal}Client(baseUrl = '${baseEndpointUrl}') {
     get data() { return data; },
     get loading() { return loading; },
     get error() { return error; },
-    load
+    execute
+  };
+}`;
+  }
+
+  return `import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
+
+export function create${resourcePascal}Client(baseUrl = '${baseEndpointUrl}') {
+  let items = $state<${baseItemType}[]>([]);
+  let loading = $state(false);
+  let error = $state<string | null>(null);
+
+  async function load() {
+    loading = true;
+    error = null;
+    try {
+      const res = await fetch(baseUrl${cfg.includeAuth ? `, { headers: { 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\` } }` : ''});
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`HTTP error \${res.status}\`);` : ''}
+      items = await res.json();
+    } catch (e: any) {
+      error = e.message || 'Failed to load ${resourceCamel}';
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function create(dto: Create${resourcePascal}Dto) {
+    loading = true;
+    try {
+      const res = await fetch(baseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+        body: JSON.stringify(dto)
+      });
+      ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to create');` : ''}
+      const created = await res.json();
+      items = [...items, created];
+      return created;
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function remove(id: string | number) {
+    await fetch(\`\${baseUrl}/\${id}\`, { method: 'DELETE' });
+    items = items.filter(i => (i as any).id !== id);
+  }
+
+  return {
+    get items() { return items; },
+    get loading() { return loading; },
+    get error() { return error; },
+    load,
+    create,
+    remove
   };
 }`;
 }
@@ -1150,10 +1963,58 @@ export function create${resourcePascal}Client(baseUrl = '${baseEndpointUrl}') {
 // 5. AXIOS CLIENT GENERATORS
 // ----------------------------------------------------------------------------
 function generateAxiosClient(cfg: ReturnType<typeof normalizeConfig>): string {
-  const { resourcePascal, resourceCamel, resourcePluralCamel, baseItemType, baseEndpointUrl } = cfg;
+  const { resourcePascal, resourceCamel, baseItemType, cleanEndpoint, baseEndpointUrl, pathParams } = cfg;
+
+  if (cfg.mode === 'single') {
+    const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+    const methodLower = cfg.method.toLowerCase();
+
+    return `import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export class ${resourcePascal}ApiClient {
+  private readonly client: AxiosInstance;
+
+  constructor(baseURL: string = '${baseEndpointUrl}') {
+    this.client = axios.create({
+      baseURL,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      timeout: 10000,
+    });
+
+    ${cfg.includeAuth ? `this.client.interceptors.request.use((config) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (token && config.headers) {
+        config.headers.Authorization = \`Bearer \${token}\`;
+      }
+      return config;
+    });` : ''}
+
+    ${cfg.includeErrorHandling ? `this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const customError = new Error(error.response?.data?.message || error.message || 'API request failed');
+        return Promise.reject(customError);
+      }
+    );` : ''}
+  }
+
+  async execute(${[...pathParams.map(p => `${p}: string | number`), ...(hasBody ? [`payload: ${cfg.requestBodyType}`] : []), 'config?: AxiosRequestConfig'].join(', ')}): Promise<${cfg.responseType}> {
+    ${pathParams.length ? `const url = \`${cleanEndpoint.replace(baseEndpointUrl, '')}\`;` : `const url = '';`}
+    const res: AxiosResponse<${cfg.responseType}> = await this.client.${methodLower}(url${hasBody ? ', payload' : ''}, config);
+    return res.data;
+  }
+}
+
+export const ${resourceCamel}ApiClient = new ${resourcePascal}ApiClient();`;
+  }
 
   return `import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
+import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
 export class ${resourcePascal}ApiClient {
   private readonly client: AxiosInstance;
@@ -1187,8 +2048,8 @@ export class ${resourcePascal}ApiClient {
     );` : ''}
   }
 
-  async getAll(config?: AxiosRequestConfig): Promise<${cfg.responseType}> {
-    const res: AxiosResponse<${cfg.responseType}> = await this.client.get('', config);
+  async getAll(${cfg.includePagination ? `params?: ${resourcePascal}QueryParams, ` : ''}config?: AxiosRequestConfig): Promise<${cfg.responseType}> {
+    const res: AxiosResponse<${cfg.responseType}> = await this.client.get('', { ...config${cfg.includePagination ? ', params' : ''} });
     return res.data;
   }
 
@@ -1219,7 +2080,62 @@ export const ${resourceCamel}ApiClient = new ${resourcePascal}ApiClient();`;
 // 6. MODERN FETCH CLIENT GENERATOR
 // ----------------------------------------------------------------------------
 function generateFetchClient(cfg: ReturnType<typeof normalizeConfig>): string {
-  const { resourcePascal, resourceCamel, baseItemType, baseEndpointUrl } = cfg;
+  const { resourcePascal, resourceCamel, baseItemType, cleanEndpoint, baseEndpointUrl, pathParams } = cfg;
+
+  if (cfg.mode === 'single') {
+    const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+
+    return `import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+export interface RequestOptions extends RequestInit {
+  params?: Record<string, string | number | boolean | undefined>;
+}
+
+export class ${resourcePascal}FetchClient {
+  constructor(private readonly baseUrl: string = '${baseEndpointUrl}') {}
+
+  async execute(${[...pathParams.map(p => `${p}: string | number`), ...(hasBody ? [`payload: ${cfg.requestBodyType}`] : []), 'options: RequestOptions = {}'].join(', ')}): Promise<${cfg.responseType}> {
+    const { params, headers, ...customConfig } = options;
+    const url = new URL(${pathParams.length ? `\`\${this.baseUrl}${cleanEndpoint}\`` : 'this.baseUrl'}, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const config: RequestInit = {
+      method: '${cfg.method}',
+      ...customConfig,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ${cfg.includeAuth ? `'Authorization': typeof window !== 'undefined' ? \`Bearer \${localStorage.getItem('token') || ''}\` : '',` : ''}
+        ...headers,
+      },
+      ${hasBody ? 'body: JSON.stringify(payload),' : ''}
+    };
+
+    const response = await fetch(url.toString(), config);
+
+    ${cfg.includeErrorHandling ? `if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(\`HTTP \${response.status} (\${response.statusText}): \${errorBody || 'Request failed'}\`);
+    }` : ''}
+
+    if (response.status === 204 || '${cfg.method}' === 'DELETE') {
+      return {} as ${cfg.responseType};
+    }
+
+    return response.json();
+  }
+}
+
+export const ${resourceCamel}Client = new ${resourcePascal}FetchClient();`;
+  }
 
   return `import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto } from './${resourceCamel}.models';
 
@@ -1254,10 +2170,10 @@ export class ${resourcePascal}FetchClient {
 
     const response = await fetch(url.toString(), config);
 
-    if (!response.ok) {
+    ${cfg.includeErrorHandling ? `if (!response.ok) {
       const errorBody = await response.text();
       throw new Error(\`HTTP \${response.status} (\${response.statusText}): \${errorBody || 'Request failed'}\`);
-    }
+    }` : ''}
 
     if (response.status === 204) {
       return {} as T;
@@ -1301,6 +2217,50 @@ export const ${resourceCamel}Client = new ${resourcePascal}FetchClient();`;
 // ----------------------------------------------------------------------------
 export function generateTypeScriptDtos(cfg: ReturnType<typeof normalizeConfig>): string {
   const { resourcePascal, baseItemType } = cfg;
+
+  if (cfg.mode === 'single') {
+    const hasRequestBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method) && cfg.requestBodyType && cfg.requestBodyType !== 'void';
+    return `/**
+ * Data Transfer Objects (DTOs) for ${resourcePascal} API
+ */
+
+export interface ${baseItemType} {
+  id: string | number;
+  name: string;
+  description?: string;
+  status?: 'active' | 'inactive' | 'pending';
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any;
+}
+
+${hasRequestBody && cfg.requestBodyType !== baseItemType ? `export interface ${cfg.requestBodyType} {
+  name: string;
+  description?: string;
+  [key: string]: any;
+}\n` : ''}
+${cfg.includePagination && cfg.method === 'GET' ? `export interface ${resourcePascal}QueryParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortDescending?: boolean;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}\n` : ''}
+export interface ApiErrorResponse {
+  statusCode: number;
+  message: string;
+  errors?: Record<string, string[]>;
+  timestamp?: string;
+}`;
+  }
 
   return `/**
  * Data Transfer Objects (DTOs) and Models for ${resourcePascal}
@@ -1358,6 +2318,47 @@ export function generateUnitTestSpec(cfg: ReturnType<typeof normalizeConfig>): s
   const { resourcePascal, resourceCamel, baseItemType, baseEndpointUrl } = cfg;
 
   if (cfg.framework === 'angular') {
+    if (cfg.mode === 'single') {
+      return `import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { ${resourcePascal}Service } from './${resourceCamel}.service';
+import { ${baseItemType} } from './${resourceCamel}.models';
+
+describe('${resourcePascal}Service', () => {
+  let service: ${resourcePascal}Service;
+  let httpMock: HttpTestingController;
+
+  const mockItem: ${baseItemType} = {
+    id: 1,
+    name: 'Sample ${resourcePascal}',
+    status: 'active'
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [${resourcePascal}Service]
+    });
+    service = TestBed.inject(${resourcePascal}Service);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('should execute ${cfg.method} request against ${cfg.endpoint}', () => {
+    service.${cfg.method.toLowerCase()}${resourcePascal}(${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? '{ name: "Test" } as any' : ''}).subscribe((res: any) => {
+      expect(res).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('${baseEndpointUrl}'));
+    expect(req.request.method).toBe('${cfg.method}');
+    req.flush(mockItem);
+  });
+});`;
+    }
+
     return `import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ${resourcePascal}Service } from './${resourceCamel}.service';
@@ -1416,6 +2417,50 @@ describe('${resourcePascal}Service', () => {
   }
 
   // Vitest / Jest universal client test
+  if (cfg.mode === 'single') {
+    return `import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ${resourcePascal}ApiClient } from './${resourceCamel}.client';
+import { ${baseItemType} } from './${resourceCamel}.models';
+
+describe('${resourcePascal} Client (${cfg.method} ${cfg.endpoint})', () => {
+  const mockItem: ${baseItemType} = {
+    id: 1,
+    name: 'Test ${resourcePascal}',
+    status: 'active'
+  };
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should execute ${cfg.method} request successfully', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockItem,
+      status: 200,
+    } as Response);
+
+    const client = new ${resourcePascal}ApiClient();
+    const result = await client.execute(${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? '{ name: "Test" } as any' : ''});
+
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(result).toEqual(mockItem);
+  });
+
+  it('should throw error when server returns error status', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Server error',
+    } as Response);
+
+    const client = new ${resourcePascal}ApiClient();
+    await expect(client.execute(${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? '{ name: "Test" } as any' : ''})).rejects.toThrow();
+  });
+});`;
+  }
+
   return `import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ${resourcePascal}ApiClient } from './${resourceCamel}.client';
 import { ${baseItemType} } from './${resourceCamel}.models';
@@ -1467,6 +2512,60 @@ export function generateComponentUsage(cfg: ReturnType<typeof normalizeConfig>):
   const { resourcePascal, resourceCamel, resourcePluralCamel, resourcePluralPascal, baseItemType } = cfg;
 
   if (cfg.framework === 'angular') {
+    if (cfg.mode === 'single') {
+      return `import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ${resourcePascal}Service } from './${resourceCamel}.service';
+import { ${baseItemType} } from './${resourceCamel}.models';
+
+@Component({
+  selector: 'app-${resourceCamel}-view',
+  standalone: true,
+  imports: [CommonModule],
+  template: \`
+    <div class="${resourceCamel}-container">
+      <h2>${resourcePascal} Action (${cfg.method})</h2>
+
+      @if (loading()) {
+        <p>Processing...</p>
+      }
+
+      @if (error()) {
+        <div class="alert alert-error">{{ error() }}</div>
+      }
+
+      @if (data()) {
+        <pre>{{ data() | json }}</pre>
+      }
+
+      <button (click)="onExecute()">Execute ${cfg.method}</button>
+    </div>
+  \`
+})
+export class ${resourcePascal}ViewComponent {
+  private readonly ${resourceCamel}Service = inject(${resourcePascal}Service);
+
+  data = signal<${baseItemType} | null>(null);
+  loading = signal<boolean>(false);
+  error = signal<string | null>(null);
+
+  onExecute(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.${resourceCamel}Service.${cfg.method.toLowerCase()}${resourcePascal}(${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? '{ name: "Test" } as any' : ''}).subscribe({
+      next: (res: any) => {
+        this.data.set(res);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.message);
+        this.loading.set(false);
+      }
+    });
+  }
+}`;
+    }
+
     return `import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ${resourcePascal}Service } from './${resourceCamel}.service';
@@ -1533,6 +2632,50 @@ export class ${resourcePascal}ListComponent implements OnInit {
   }
 
   if (cfg.framework === 'react') {
+    if (cfg.mode === 'single') {
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method)) {
+        return `import React from 'react';
+import { use${resourcePascal}Mutation } from './${resourceCamel}.hooks';
+
+export function ${resourcePascal}ActionComponent() {
+  const mutation = use${resourcePascal}Mutation();
+
+  const handleAction = () => {
+    mutation.mutate(${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? '{ name: "New ${resourcePascal}" } as any' : ''});
+  };
+
+  return (
+    <div className="${resourceCamel}-action">
+      <h2>${resourcePascal} (${cfg.method})</h2>
+      <button onClick={handleAction} disabled={mutation.isPending}>
+        {mutation.isPending ? 'Processing...' : 'Submit ${cfg.method}'}
+      </button>
+
+      {mutation.isError && <div className="error">{(mutation.error as Error).message}</div>}
+      {mutation.isSuccess && <pre>{JSON.stringify(mutation.data, null, 2)}</pre>}
+    </div>
+  );
+}`;
+      }
+
+      return `import React from 'react';
+import { use${resourcePascal} } from './${resourceCamel}.hooks';
+
+export function ${resourcePascal}DetailComponent() {
+  const { data, isLoading, error } = use${resourcePascal}();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {(error as Error).message}</div>;
+
+  return (
+    <div className="${resourceCamel}-detail">
+      <h2>${resourcePascal} View</h2>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}`;
+    }
+
     return `import React from 'react';
 import { use${resourcePluralPascal}, useCreate${resourcePascal} } from './${resourceCamel}.hooks';
 
@@ -1566,27 +2709,83 @@ export function ${resourcePascal}Manager() {
   }
 
   if (cfg.framework === 'vue') {
-    return `<script setup lang="ts">
-import { onMounted } from 'vue';
+    if (cfg.mode === 'single') {
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method)) {
+        return `<script setup lang="ts">
+import { use${resourcePascal}Mutation } from './use${resourcePascal}';
+
+const { data, loading, error, execute, reset } = use${resourcePascal}Mutation();
+
+const handleSubmit = async () => {
+  await execute(${['POST', 'PUT', 'PATCH'].includes(cfg.method) ? '{ name: "Sample Item" } as any' : ''});
+};
+</script>
+
+<template>
+  <div class="${resourceCamel}-action-view">
+    <h2>${resourcePascal} (${cfg.method})</h2>
+
+    <button :disabled="loading" @click="handleSubmit">
+      {{ loading ? 'Executing...' : 'Submit ${cfg.method}' }}
+    </button>
+
+    <div v-if="error" class="error">{{ error.message }}</div>
+    <pre v-if="data">{{ JSON.stringify(data, null, 2) }}</pre>
+  </div>
+</template>`;
+      }
+
+      return `<script setup lang="ts">
 import { use${resourcePascal} } from './use${resourcePascal}';
 
 const { data, loading, error, refetch } = use${resourcePascal}();
 </script>
 
 <template>
+  <div class="${resourceCamel}-detail-view">
+    <h2>${resourcePascal} Detail</h2>
+
+    <div v-if="loading">Loading...</div>
+    <div v-else-if="error" class="error">{{ error.message }}</div>
+    <pre v-else-if="data">{{ JSON.stringify(data, null, 2) }}</pre>
+
+    <button @click="refetch">Refresh</button>
+  </div>
+</template>`;
+    }
+
+    // Vue CRUD usage
+    return `<script setup lang="ts">
+import { use${resourcePascal}Api } from './use${resourcePascal}';
+
+const { items, loading, isSubmitting, error, fetchAll, create, remove } = use${resourcePascal}Api();
+
+const handleCreate = async () => {
+  await create({ name: 'New ${resourcePascal}', status: 'active' });
+};
+
+const handleDelete = async (id: string | number) => {
+  await remove(id);
+};
+</script>
+
+<template>
   <div class="${resourceCamel}-view">
-    <h2>${resourcePascal} List</h2>
+    <h2>${resourcePascal} Management</h2>
+
+    <button :disabled="isSubmitting" @click="handleCreate">+ Add ${resourcePascal}</button>
 
     <div v-if="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error.message }}</div>
 
-    <ul v-else-if="data">
-      <li v-for="item in (Array.isArray(data) ? data : (data as any).items)" :key="item.id">
+    <ul v-else-if="items.length">
+      <li v-for="item in items" :key="item.id">
         <strong>{{ item.name }}</strong> - {{ item.status }}
+        <button @click="handleDelete(item.id)">Delete</button>
       </li>
     </ul>
 
-    <button @click="refetch">Refresh</button>
+    <button @click="() => fetchAll()">Refresh</button>
   </div>
 </template>`;
   }
@@ -1605,51 +2804,14 @@ const { data, loading, error, refetch } = use${resourcePascal}();
     <p>Loading...</p>
   {:else if client.error}
     <p class="error">{client.error}</p>
-  {:else if client.data}
+  {:else if client.items}
     <ul>
-      {#each client.data as item}
+      {#each client.items as item}
         <li>{item.name}</li>
       {/each}
     </ul>
   {/if}
 </div>`;
-}
-
-// ----------------------------------------------------------------------------
-// 10. IMPORTERS (cURL & OpenAPI)
-// ----------------------------------------------------------------------------
-export function importFromCurlCommand(curlStr: string): Partial<ApiGeneratorConfig> {
-  const req = parseCurlCommand(curlStr);
-
-  let method: ApiGeneratorConfig['method'] = 'GET';
-  const m = req.method.toUpperCase();
-  if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(m)) {
-    method = m as ApiGeneratorConfig['method'];
-  }
-
-  let requestBodyType = '';
-  if (req.body && req.bodyType === 'json') {
-    try {
-      const parsed = JSON.parse(req.body);
-      const keys = Object.keys(parsed);
-      requestBodyType = keys.length ? 'CustomRequestDto' : '';
-    } catch {
-      requestBodyType = 'any';
-    }
-  }
-
-  const endpointPath = req.pathname || '/api/resource';
-  const lastSegment = endpointPath.split('/').filter(Boolean).pop() || 'resource';
-  const resourceName = capitalize(toCamelCase(lastSegment));
-
-  return {
-    method,
-    endpoint: endpointPath,
-    resourceName,
-    responseType: `${resourceName}Dto`,
-    requestBodyType: requestBodyType || (method === 'POST' ? `Create${resourceName}Dto` : `Update${resourceName}Dto`),
-    includeAuth: req.headers.some(h => h.name.toLowerCase() === 'authorization')
-  };
 }
 
 // Helpers
@@ -1658,10 +2820,12 @@ function toCamelCase(str: string): string {
 }
 
 function capitalize(str: string): string {
+  if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function pluralize(str: string): string {
+  if (!str) return '';
   if (str.endsWith('y') && !/[aeiou]y$/i.test(str)) {
     return str.slice(0, -1) + 'ies';
   }

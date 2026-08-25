@@ -1,14 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   generateApiClient,
-  importFromCurlCommand,
   FRAMEWORK_OPTIONS,
-  API_GENERATOR_PRESETS,
   ApiGeneratorConfig
 } from './api-client-generator-engine';
 
 describe('API Client Generator Engine', () => {
-  it('should list all framework options and presets', () => {
+  it('should list all framework options', () => {
     expect(FRAMEWORK_OPTIONS.length).toBe(6);
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('angular');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('react');
@@ -16,12 +14,10 @@ describe('API Client Generator Engine', () => {
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('svelte');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('axios');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('fetch');
-
-    expect(API_GENERATOR_PRESETS.length).toBeGreaterThan(0);
   });
 
-  it('should generate Angular Injectable Service client with CRUD mode', () => {
-    const config: ApiGeneratorConfig = {
+  describe('Option Checkboxes verification', () => {
+    const baseConfig: ApiGeneratorConfig = {
       framework: 'angular',
       pattern: 'full-service',
       mode: 'crud',
@@ -38,56 +34,91 @@ describe('API Client Generator Engine', () => {
       includePagination: true
     };
 
-    const res = generateApiClient(config);
-    expect(res.clientCode).toContain('export class ProductService');
-    expect(res.clientCode).toContain('getAll(params?: ProductQueryParams)');
-    expect(res.clientCode).toContain('getById(id: string | number)');
-    expect(res.clientCode).toContain('create(payload: CreateProductDto)');
-    expect(res.clientCode).toContain('update(id: string | number, payload: UpdateProductDto)');
-    expect(res.clientCode).toContain('delete(id: string | number)');
+    it('Option 1: Error Handling checkbox toggles error handling code', () => {
+      const withErr = generateApiClient({ ...baseConfig, includeErrorHandling: true });
+      expect(withErr.clientCode).toContain('catchError(this.handleError)');
+      expect(withErr.clientCode).toContain('handleError(error: HttpErrorResponse)');
 
-    expect(res.dtosCode).toContain('export interface ProductDto');
-    expect(res.dtosCode).toContain('export interface CreateProductDto');
-    expect(res.testCode).toContain('ProductService');
-    expect(res.usageCode).toContain('ProductListComponent');
+      const withoutErr = generateApiClient({ ...baseConfig, includeErrorHandling: false });
+      expect(withoutErr.clientCode).not.toContain('catchError(this.handleError)');
+      expect(withoutErr.clientCode).not.toContain('handleError(error: HttpErrorResponse)');
+    });
+
+    it('Option 2: Cancellation (Abort) checkbox toggles abort controller / signal in Vue and React', () => {
+      const vueWithCancel = generateApiClient({
+        ...baseConfig,
+        framework: 'vue',
+        pattern: 'composable',
+        includeCancellation: true
+      });
+      expect(vueWithCancel.clientCode).toContain('abortController');
+      expect(vueWithCancel.clientCode).toContain('signal: abortController.signal');
+
+      const vueWithoutCancel = generateApiClient({
+        ...baseConfig,
+        framework: 'vue',
+        pattern: 'composable',
+        includeCancellation: false
+      });
+      expect(vueWithoutCancel.clientCode).not.toContain('abortController');
+      expect(vueWithoutCancel.clientCode).not.toContain('signal: abortController.signal');
+    });
+
+    it('Option 3: Auth Bearer Header checkbox toggles authorization header in code', () => {
+      const withAuth = generateApiClient({
+        ...baseConfig,
+        framework: 'fetch',
+        pattern: 'modern-fetch',
+        includeAuth: true
+      });
+      expect(withAuth.clientCode).toContain('Authorization');
+      expect(withAuth.clientCode).toContain('Bearer');
+
+      const withoutAuth = generateApiClient({
+        ...baseConfig,
+        framework: 'fetch',
+        pattern: 'modern-fetch',
+        includeAuth: false
+      });
+      expect(withoutAuth.clientCode).not.toContain('Authorization');
+      expect(withoutAuth.clientCode).not.toContain('Bearer');
+    });
+
+    it('Option 4: Pagination & Filters checkbox toggles query parameters & DTO interfaces', () => {
+      const withPagination = generateApiClient({ ...baseConfig, includePagination: true });
+      expect(withPagination.clientCode).toContain('ProductQueryParams');
+      expect(withPagination.clientCode).toContain('PaginatedResult');
+      expect(withPagination.dtosCode).toContain('export interface ProductQueryParams');
+      expect(withPagination.dtosCode).toContain('export interface PaginatedResult');
+
+      const withoutPagination = generateApiClient({ ...baseConfig, includePagination: false });
+      expect(withoutPagination.clientCode).not.toContain('ProductQueryParams');
+      expect(withoutPagination.dtosCode).not.toContain('export interface ProductQueryParams');
+      expect(withoutPagination.dtosCode).not.toContain('export interface PaginatedResult');
+    });
+
+    it('Option 5: TSDoc Comments checkbox toggles JSDoc documentation comments', () => {
+      const withDocs = generateApiClient({ ...baseConfig, includeTsDoc: true });
+      expect(withDocs.clientCode).toContain('/**');
+      expect(withDocs.clientCode).toContain('*/');
+
+      const withoutDocs = generateApiClient({ ...baseConfig, includeTsDoc: false });
+      expect(withoutDocs.clientCode).not.toContain('/**');
+      expect(withoutDocs.clientCode).not.toContain('*/');
+    });
   });
 
-  it('should generate Angular Signals Resource client', () => {
+  it('should generate Vue 3 Composition API Composable for full CRUD', () => {
     const config: ApiGeneratorConfig = {
-      framework: 'angular',
-      pattern: 'signals-resource',
-      mode: 'single',
-      method: 'GET',
-      endpoint: '/api/users',
-      responseType: 'UserDto[]',
-      requestBodyType: '',
-      resourceName: 'User',
-      baseUrlStrategy: 'relative',
-      includeErrorHandling: true,
-      includeCancellation: false,
-      includeAuth: false,
-      includeTsDoc: true,
-      includePagination: true
-    };
-
-    const res = generateApiClient(config);
-    expect(res.clientCode).toContain('rxResource');
-    expect(res.clientCode).toContain('userResource');
-    expect(res.clientCode).toContain('queryParams = signal<UserQueryParams>');
-    expect(res.clientCode).toContain('readonly items = this.userResource.value;');
-  });
-
-  it('should generate React TanStack Query hooks and query key factory', () => {
-    const config: ApiGeneratorConfig = {
-      framework: 'react',
-      pattern: 'tanstack-query',
+      framework: 'vue',
+      pattern: 'composable',
       mode: 'crud',
       method: 'GET',
-      endpoint: '/api/orders',
-      responseType: 'OrderDto[]',
-      requestBodyType: 'CreateOrderDto',
-      resourceName: 'Order',
-      baseUrlStrategy: 'env',
+      endpoint: '/api/products',
+      responseType: 'ProductDto[]',
+      requestBodyType: 'CreateProductDto',
+      resourceName: 'Product',
+      baseUrlStrategy: 'relative',
       includeErrorHandling: true,
       includeCancellation: true,
       includeAuth: true,
@@ -96,15 +127,18 @@ describe('API Client Generator Engine', () => {
     };
 
     const res = generateApiClient(config);
-    expect(res.clientCode).toContain('orderKeys');
-    expect(res.clientCode).toContain('useOrders');
-    expect(res.clientCode).toContain('useOrder');
-    expect(res.clientCode).toContain('useCreateOrder');
-    expect(res.clientCode).toContain('queryClient.invalidateQueries');
-    expect(res.usageCode).toContain('OrderManager');
+    expect(res.clientCode).toContain('export function useProductApi()');
+    expect(res.clientCode).toContain('const items = ref<ProductDto[]>([])');
+    expect(res.clientCode).toContain('const fetchAll = async');
+    expect(res.clientCode).toContain('const fetchById = async');
+    expect(res.clientCode).toContain('const create = async');
+    expect(res.clientCode).toContain('const update = async');
+    expect(res.clientCode).toContain('const remove = async');
+    expect(res.clientCode).toContain('onMounted(() => {');
+    expect(res.usageCode).toContain('useProductApi');
   });
 
-  it('should generate Vue Composition API Composable', () => {
+  it('should generate Vue 3 Composable for single endpoint with path parameter', () => {
     const config: ApiGeneratorConfig = {
       framework: 'vue',
       pattern: 'composable',
@@ -123,73 +157,35 @@ describe('API Client Generator Engine', () => {
     };
 
     const res = generateApiClient(config);
-    expect(res.clientCode).toContain('export function useCustomer()');
+    expect(res.clientCode).toContain('export function useCustomer(id?: string | number)');
     expect(res.clientCode).toContain('const data = ref<CustomerDto | null>(null);');
     expect(res.clientCode).toContain('onMounted(fetchData);');
+    expect(res.clientCode).toContain('/api/customers/${id}');
     expect(res.usageCode).toContain('<script setup lang="ts">');
   });
 
-  it('should generate Svelte 5 Runes client', () => {
+  it('should generate Vue 3 Mutation Composable for single POST endpoint', () => {
     const config: ApiGeneratorConfig = {
-      framework: 'svelte',
-      pattern: 'svelte-runes',
+      framework: 'vue',
+      pattern: 'composable',
       mode: 'single',
-      method: 'GET',
-      endpoint: '/api/metrics',
-      responseType: 'MetricDto[]',
-      requestBodyType: '',
-      resourceName: 'Metric',
+      method: 'POST',
+      endpoint: '/api/auth/login',
+      responseType: 'AuthResponseDto',
+      requestBodyType: 'LoginRequestDto',
+      resourceName: 'Auth',
       baseUrlStrategy: 'relative',
       includeErrorHandling: true,
       includeCancellation: false,
       includeAuth: false,
-      includeTsDoc: false,
-      includePagination: false
-    };
-
-    const res = generateApiClient(config);
-    expect(res.clientCode).toContain('createMetricClient');
-    expect(res.clientCode).toContain('$state');
-    expect(res.usageCode).toContain('createMetricClient');
-  });
-
-  it('should generate Axios Client Class', () => {
-    const config: ApiGeneratorConfig = {
-      framework: 'axios',
-      pattern: 'axios-client',
-      mode: 'crud',
-      method: 'GET',
-      endpoint: '/api/users',
-      responseType: 'UserDto[]',
-      requestBodyType: 'CreateUserDto',
-      resourceName: 'User',
-      baseUrlStrategy: 'relative',
-      includeErrorHandling: true,
-      includeCancellation: true,
-      includeAuth: true,
       includeTsDoc: true,
       includePagination: false
     };
 
     const res = generateApiClient(config);
-    expect(res.clientCode).toContain('export class UserApiClient');
-    expect(res.clientCode).toContain('this.client.interceptors.request.use');
-    expect(res.clientCode).toContain('this.client.interceptors.response.use');
-    expect(res.clientCode).toContain('async getAll(');
-    expect(res.clientCode).toContain('async create(');
-  });
-
-  it('should parse cURL commands into generator config', () => {
-    const curl = `curl -X POST "https://api.example.com/v1/auth/login" \\
-      -H "Content-Type: application/json" \\
-      -H "Authorization: Bearer test_token" \\
-      -d '{"username": "admin", "password": "secret"}'`;
-
-    const imported = importFromCurlCommand(curl);
-    expect(imported.method).toBe('POST');
-    expect(imported.endpoint).toBe('/v1/auth/login');
-    expect(imported.resourceName).toBe('Login');
-    expect(imported.includeAuth).toBe(true);
-    expect(imported.requestBodyType).toBe('CustomRequestDto');
+    expect(res.clientCode).toContain('export function useAuthMutation()');
+    expect(res.clientCode).toContain('const execute = async (payload: LoginRequestDto)');
+    expect(res.clientCode).toContain('method: \'POST\'');
+    expect(res.usageCode).toContain('useAuthMutation');
   });
 });

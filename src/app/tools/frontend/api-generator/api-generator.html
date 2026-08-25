@@ -1,5 +1,5 @@
 <div class="api-generator-root">
-  <!-- Row 1: Framework Icons (Left) and Mode Toggle (Right) -->
+  <!-- Row 1: Framework Icons (Left) and Mode Toggle (Right) aligned in single line -->
   <div class="top-control-row">
     <div class="framework-icons-group">
       <span class="group-label">Framework</span>
@@ -23,22 +23,22 @@
         type="button"
         class="mode-btn"
         [class.active]="mode() === 'crud'"
-        (click)="mode.set('crud')">
+        (click)="setMode('crud')">
         <mat-icon>view_list</mat-icon> Full REST CRUD
       </button>
       <button
         type="button"
         class="mode-btn"
         [class.active]="mode() === 'single'"
-        (click)="mode.set('single')">
+        (click)="setMode('single')">
         <mat-icon>call_made</mat-icon> Single Endpoint
       </button>
     </div>
   </div>
 
-  <!-- Row 2: Resource Name, Endpoint, HTTP Method, Pattern Selector -->
-  <div class="inputs-grid">
-    <div class="field-group">
+  <!-- Row 2: Resource Name, Endpoint, HTTP Method (if Single), Pattern Selector aligned in single line -->
+  <div class="inputs-grid" [class.single-mode]="mode() === 'single'">
+    <div class="field-group resource-field">
       <label class="field-label">Resource Name</label>
       <input
         type="text"
@@ -48,7 +48,7 @@
         class="field-input" />
     </div>
 
-    <div class="field-group span-endpoint">
+    <div class="field-group endpoint-field">
       <label class="field-label">Endpoint</label>
       <input
         type="text"
@@ -59,10 +59,14 @@
     </div>
 
     @if (mode() === 'single') {
-      <div class="field-group method-col">
+      <div class="field-group method-field">
         <label class="field-label">HTTP Method</label>
         <div class="select-wrapper">
-          <select [ngModel]="method()" (ngModelChange)="method.set($event)" class="field-select method-select">
+          <select
+            [ngModel]="method()"
+            (ngModelChange)="method.set($event)"
+            class="field-select method-select"
+            [attr.data-method]="method()">
             <option value="GET">GET</option>
             <option value="POST">POST</option>
             <option value="PUT">PUT</option>
@@ -73,7 +77,7 @@
       </div>
     }
 
-    <div class="field-group pattern-col">
+    <div class="field-group pattern-field">
       <label class="field-label">Pattern</label>
       <div class="select-wrapper">
         <select [ngModel]="pattern()" (ngModelChange)="pattern.set($event)" class="field-select">

@@ -1,17 +1,107 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   height: 200px;
-  min-height: 50px;
+  min-height: 80px;
   box-sizing: border-box;
-  resize: vertical;
+  overflow: hidden;
+  position: relative;
+  resize: none;
+}
+
+.code-editor-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 .code-editor {
+  flex: 1 1 auto;
   width: 100%;
   height: 100%;
-  min-height: 50px;
+  min-height: 60px;
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px 6px 0 0;
+  box-sizing: border-box;
+}
+
+:host(:not([resizable])) .code-editor,
+.code-editor-container:not(:has(.resize-handle)) .code-editor {
   border-radius: 6px;
+}
+
+.resize-handle {
+  flex: 0 0 auto;
+  height: 14px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mat-sys-surface-container, #1e2430);
+  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0 0 6px 6px;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+/* Invisible hit area expansion for seamless touch dragging */
+.resize-handle::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  z-index: 5;
+}
+
+.resize-handle:hover,
+.resize-handle:focus-visible,
+.code-editor-container.is-resizing .resize-handle {
+  background: var(--mat-sys-surface-container-highest, #2c3545);
+  border-color: var(--mat-sys-primary, #60a5fa);
+  outline: none;
+}
+
+.resize-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 6px;
+  pointer-events: none;
+}
+
+.grip-line {
+  width: 32px;
+  height: 3px;
+  background: var(--mat-sys-outline, #64748b);
+  border-radius: 2px;
+  transition: background-color 0.15s ease, width 0.15s ease, background 0.15s ease;
+}
+
+.resize-handle:hover .grip-line,
+.resize-handle:focus-visible .grip-line,
+.code-editor-container.is-resizing .grip-line {
+  background: var(--mat-sys-primary, #60a5fa);
+  width: 48px;
+}
+
+/* Touch device adaptations */
+@media (pointer: coarse) {
+  .resize-handle {
+    height: 22px;
+  }
+  .grip-line {
+    height: 4px;
+    width: 44px;
+  }
 }
