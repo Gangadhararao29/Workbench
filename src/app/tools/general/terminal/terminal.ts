@@ -4,6 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+type Category = 'git' | 'docker' | 'npm' | 'dotnet' | 'k8s';
+
 interface CommandParam {
   key: string;
   label: string;
@@ -28,17 +30,17 @@ interface CommandTemplate {
 export class TerminalTool {
   @Input({ required: true }) instanceId!: string;
 
-  activeCategory = signal<'git' | 'docker' | 'npm' | 'dotnet' | 'k8s'>('git');
+  activeCategory = signal<Category>('git');
   searchQuery = signal('');
   activeLevel = signal<'all' | 'basic' | 'advanced'>('all');
   selectedCommand = signal<CommandTemplate | null>(null);
-  
+
   // Custom values for command parameters
   paramValues = signal<Record<string, string>>({});
 
-  commands: Record<'git' | 'docker' | 'npm' | 'dotnet' | 'k8s', CommandTemplate[]> = {
+  commands: Record<Category, CommandTemplate[]> = {
     git: [
-      // --- Basic ---
+      // --- Basic (ordered roughly by daily-use frequency) ---
       {
         name: 'Clone Repository',
         description: 'Clone a repository into a new directory.',
@@ -49,11 +51,18 @@ export class TerminalTool {
         level: 'basic'
       },
       {
-        name: 'Create & Switch Branch',
-        description: 'Create a new local branch and check it out.',
-        command: 'git checkout -b {branchName}',
+        name: 'Check Status',
+        description: 'Show the working tree status: staged, unstaged, and untracked changes.',
+        command: 'git status',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'Stage Changes',
+        description: 'Add file changes to the staging area before committing.',
+        command: 'git add {filePath}',
         params: [
-          { key: 'branchName', label: 'Branch Name', default: 'feature/new-api' }
+          { key: 'filePath', label: 'File Path (or . for all)', default: '.' }
         ],
         level: 'basic'
       },
@@ -67,6 +76,24 @@ export class TerminalTool {
         level: 'basic'
       },
       {
+        name: 'Pull Latest Changes',
+        description: 'Fetch and merge changes from the remote branch.',
+        command: 'git pull origin {branchName}',
+        params: [
+          { key: 'branchName', label: 'Branch Name', default: 'main' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Create & Switch Branch',
+        description: 'Create a new local branch and check it out.',
+        command: 'git checkout -b {branchName}',
+        params: [
+          { key: 'branchName', label: 'Branch Name', default: 'feature/new-api' }
+        ],
+        level: 'basic'
+      },
+      {
         name: 'Push New Branch',
         description: 'Push a new branch to origin and track it upstream.',
         command: 'git push -u origin {branchName}',
@@ -76,11 +103,29 @@ export class TerminalTool {
         level: 'basic'
       },
       {
+        name: 'View Diff',
+        description: 'Show unstaged changes between working directory and last commit.',
+        command: 'git diff {filePath}',
+        params: [
+          { key: 'filePath', label: 'File Path (optional)', default: '' }
+        ],
+        level: 'basic'
+      },
+      {
         name: 'Stash Work-in-Progress',
         description: 'Temporarily shelve changes without committing.',
         command: 'git stash save "{message}"',
         params: [
           { key: 'message', label: 'Stash Description', default: 'WIP: form validation' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Unstage File',
+        description: 'Remove a file from the staging area without discarding its changes.',
+        command: 'git reset HEAD {filePath}',
+        params: [
+          { key: 'filePath', label: 'File Path', default: 'src/app.ts' }
         ],
         level: 'basic'
       },
@@ -157,8 +202,37 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
+        name: 'Interactive Rebase / Squash',
+        description: 'Rebase and squash your commits on current branch.',
+        command: 'git rebase -i HEAD~{numCommits}',
+        params: [
+          { key: 'numCommits', label: 'Number of Commits to inspect', default: '3' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Cherry Pick Commit',
+        description: 'Apply the changes introduced by an existing commit to your current branch.',
+        command: 'git cherry-pick {commitHash}',
+        params: [
+          { key: 'commitHash', label: 'Commit SHA Hash', default: 'a1b2c3d' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Revert Commit',
+        description: 'Create a new commit that reverts the changes of a past commit.',
+        command: 'git revert {commitHash}',
+        params: [
+          { key: 'commitHash', label: 'Commit SHA Hash to revert', default: 'a1b2c3d' }
+        ],
+        level: 'advanced'
+      },
+      {
         name: 'Apply Specific Stash Index',
         description: 'Restore and apply changes from a specific stash without removing it from the list.',
+        // NOTE: double braces are intentional — {{stashIndex}} is param-substituted
+        // down to {stashIndex} -> value, leaving git's own stash@{N} syntax intact.
         command: 'git stash apply stash@{{stashIndex}}',
         params: [
           { key: 'stashIndex', label: 'Stash Index Number', default: '0' }
@@ -189,33 +263,6 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
-        name: 'Interactive Rebase / Squash',
-        description: 'Rebase and squash your commits on current branch.',
-        command: 'git rebase -i HEAD~{numCommits}',
-        params: [
-          { key: 'numCommits', label: 'Number of Commits to inspect', default: '3' }
-        ],
-        level: 'advanced'
-      },
-      {
-        name: 'Cherry Pick Commit',
-        description: 'Apply the changes introduced by an existing commit to your current branch.',
-        command: 'git cherry-pick {commitHash}',
-        params: [
-          { key: 'commitHash', label: 'Commit SHA Hash', default: 'a1b2c3d' }
-        ],
-        level: 'advanced'
-      },
-      {
-        name: 'Revert Commit',
-        description: 'Create a new commit that reverts the changes of a past commit.',
-        command: 'git revert {commitHash}',
-        params: [
-          { key: 'commitHash', label: 'Commit SHA Hash to revert', default: 'a1b2c3d' }
-        ],
-        level: 'advanced'
-      },
-      {
         name: 'Pretty Graph History',
         description: 'Display a graphic representation of commit history.',
         command: 'git log --graph --oneline --decorate --all',
@@ -241,10 +288,44 @@ export class TerminalTool {
           { key: 'filePath', label: 'File Path', default: 'src/App.ts' }
         ],
         level: 'advanced'
+      },
+      {
+        name: 'Tag a Release',
+        description: 'Create an annotated tag, commonly used to mark release versions.',
+        command: 'git tag -a {tagName} -m "{message}"',
+        params: [
+          { key: 'tagName', label: 'Tag Name', default: 'v1.0.0' },
+          { key: 'message', label: 'Tag Message', default: 'Release version 1.0.0' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Add Worktree',
+        description: 'Check out a branch into a separate working directory without switching your main one.',
+        command: 'git worktree add {path} {branchName}',
+        params: [
+          { key: 'path', label: 'New Worktree Directory', default: '../hotfix' },
+          { key: 'branchName', label: 'Branch Name', default: 'hotfix/urgent-fix' }
+        ],
+        level: 'advanced'
       }
     ],
     docker: [
       // --- Basic ---
+      {
+        name: 'List Running Containers',
+        description: 'Show currently running containers.',
+        command: 'docker ps',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'List All Containers',
+        description: 'Show all containers, including stopped ones.',
+        command: 'docker ps -a',
+        params: [],
+        level: 'basic'
+      },
       {
         name: 'Run Container',
         description: 'Start a container in detached mode with port mapping.',
@@ -254,16 +335,6 @@ export class TerminalTool {
           { key: 'containerPort', label: 'Container Port', default: '80' },
           { key: 'name', label: 'Container Name', default: 'my-web-app' },
           { key: 'image', label: 'Docker Image', default: 'nginx:latest' }
-        ],
-        level: 'basic'
-      },
-      {
-        name: 'Follow Container Logs',
-        description: 'View and stream logs from a specific container.',
-        command: 'docker logs -f --tail {numLines} {containerId}',
-        params: [
-          { key: 'numLines', label: 'Number of Lines', default: '100' },
-          { key: 'containerId', label: 'Container Name or ID', default: 'my-web-app' }
         ],
         level: 'basic'
       },
@@ -279,6 +350,30 @@ export class TerminalTool {
         level: 'basic'
       },
       {
+        name: 'Compose Up',
+        description: 'Build and start all services defined in a docker-compose file, in the background.',
+        command: 'docker compose up -d --build',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'Compose Down',
+        description: 'Stop and remove containers, networks, and volumes created by Compose Up.',
+        command: 'docker compose down',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'Follow Container Logs',
+        description: 'View and stream logs from a specific container.',
+        command: 'docker logs -f --tail {numLines} {containerId}',
+        params: [
+          { key: 'numLines', label: 'Number of Lines', default: '100' },
+          { key: 'containerId', label: 'Container Name or ID', default: 'my-web-app' }
+        ],
+        level: 'basic'
+      },
+      {
         name: 'Stop Container',
         description: 'Stop one or more running containers.',
         command: 'docker stop {containerId}',
@@ -287,7 +382,35 @@ export class TerminalTool {
         ],
         level: 'basic'
       },
+      {
+        name: 'Remove Container',
+        description: 'Delete a stopped container.',
+        command: 'docker rm {containerId}',
+        params: [
+          { key: 'containerId', label: 'Container Name or ID', default: 'my-web-app' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Remove Image',
+        description: 'Delete a local Docker image.',
+        command: 'docker rmi {imageName}',
+        params: [
+          { key: 'imageName', label: 'Image Name or ID', default: 'my-app:latest' }
+        ],
+        level: 'basic'
+      },
       // --- Advanced ---
+      {
+        name: 'Container Shell Execution',
+        description: 'Run an interactive command shell session inside a container.',
+        command: 'docker exec -it {containerId} {shell}',
+        params: [
+          { key: 'containerId', label: 'Container Name/ID', default: 'my-web-app' },
+          { key: 'shell', label: 'Shell Environment (bash / sh)', default: 'bash' }
+        ],
+        level: 'advanced'
+      },
       {
         name: 'Copy Files',
         description: 'Copy files/folders between a container and local filesystem.',
@@ -300,20 +423,10 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
-        name: 'Prune System (Clean Up)',
-        description: 'Remove all unused containers, networks, images, and optionally volumes.',
-        command: 'docker system prune -a --volumes -f',
+        name: 'Display Resource Usage',
+        description: 'Stream container resource usage statistics.',
+        command: 'docker stats',
         params: [],
-        level: 'advanced'
-      },
-      {
-        name: 'Container Shell Execution',
-        description: 'Run an interactive command shell session inside a container.',
-        command: 'docker exec -it {containerId} {shell}',
-        params: [
-          { key: 'containerId', label: 'Container Name/ID', default: 'my-web-app' },
-          { key: 'shell', label: 'Shell Environment (bash / sh)', default: 'bash' }
-        ],
         level: 'advanced'
       },
       {
@@ -326,9 +439,23 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
-        name: 'Display Resource Usage',
-        description: 'Stream container resource usage statistics.',
-        command: 'docker stats',
+        name: 'List Networks',
+        description: 'List all Docker networks.',
+        command: 'docker network ls',
+        params: [],
+        level: 'advanced'
+      },
+      {
+        name: 'List Volumes',
+        description: 'List all Docker volumes.',
+        command: 'docker volume ls',
+        params: [],
+        level: 'advanced'
+      },
+      {
+        name: 'Prune System (Clean Up)',
+        description: 'Remove all unused containers, networks, images, and optionally volumes.',
+        command: 'docker system prune -a --volumes -f',
         params: [],
         level: 'advanced'
       }
@@ -336,12 +463,35 @@ export class TerminalTool {
     npm: [
       // --- Basic ---
       {
+        name: 'Install Dependencies',
+        description: 'Install all dependencies listed in package.json.',
+        command: 'npm install',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'Clean Install (CI)',
+        description: 'Install exact versions from package-lock.json — faster and safer for CI pipelines.',
+        command: 'npm ci',
+        params: [],
+        level: 'basic'
+      },
+      {
         name: 'Install Package',
         description: 'Install a dependency package.',
         command: 'npm install {packageName} {saveType}',
         params: [
           { key: 'packageName', label: 'Package Name', default: 'lodash' },
           { key: 'saveType', label: 'Dependency Style (--save / --save-dev)', default: '--save' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Uninstall Package',
+        description: 'Remove a dependency package from the project.',
+        command: 'npm uninstall {packageName}',
+        params: [
+          { key: 'packageName', label: 'Package Name', default: 'lodash' }
         ],
         level: 'basic'
       },
@@ -355,13 +505,6 @@ export class TerminalTool {
         level: 'basic'
       },
       {
-        name: 'Audit and Force Fix',
-        description: 'Scan and repair security vulnerabilities.',
-        command: 'npm audit fix --force',
-        params: [],
-        level: 'basic'
-      },
-      {
         name: 'Run with npx',
         description: 'Execute a binary package command without installing it globally or locally.',
         command: 'npx {commandName}',
@@ -370,23 +513,43 @@ export class TerminalTool {
         ],
         level: 'basic'
       },
-      // --- Advanced ---
       {
-        name: 'Publish Package',
-        description: 'Publish a package to the npm registry.',
-        command: 'npm publish --tag {tag} --access {access}',
-        params: [
-          { key: 'tag', label: 'Dist Tag', default: 'latest' },
-          { key: 'access', label: 'Access Level (public/restricted)', default: 'public' }
-        ],
-        level: 'advanced'
+        name: 'Check Outdated Packages',
+        description: 'List installed packages that have newer versions available.',
+        command: 'npm outdated',
+        params: [],
+        level: 'basic'
       },
+      {
+        name: 'Update Packages',
+        description: 'Update packages to the latest version allowed by package.json.',
+        command: 'npm update',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'Audit and Force Fix',
+        description: 'Scan and repair security vulnerabilities. Can bump major versions — review changes after running.',
+        command: 'npm audit fix --force',
+        params: [],
+        level: 'basic'
+      },
+      // --- Advanced ---
       {
         name: 'List Dependency Tree',
         description: 'Display installed packages in a tree structure.',
         command: 'npm list --depth={depth}',
         params: [
           { key: 'depth', label: 'Max Tree Depth', default: '0' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Link Local Package',
+        description: 'Symlink a package folder for local development testing.',
+        command: 'npm link {packageName}',
+        params: [
+          { key: 'packageName', label: 'Package Name', default: 'my-common-lib' }
         ],
         level: 'advanced'
       },
@@ -398,11 +561,12 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
-        name: 'Link Local Package',
-        description: 'Symlink a package folder for local development testing.',
-        command: 'npm link {packageName}',
+        name: 'Publish Package',
+        description: 'Publish a package to the npm registry.',
+        command: 'npm publish --tag {tag} --access {access}',
         params: [
-          { key: 'packageName', label: 'Package Name', default: 'my-common-lib' }
+          { key: 'tag', label: 'Dist Tag', default: 'latest' },
+          { key: 'access', label: 'Access Level (public/restricted)', default: 'public' }
         ],
         level: 'advanced'
       }
@@ -420,11 +584,45 @@ export class TerminalTool {
         level: 'basic'
       },
       {
+        name: 'Restore Nuget Packages',
+        description: 'Restore dependencies and project-specific tools.',
+        command: 'dotnet restore',
+        params: [],
+        level: 'basic'
+      },
+      {
+        name: 'Build Project',
+        description: 'Build a project and its dependencies.',
+        command: 'dotnet build {projectPath}',
+        params: [
+          { key: 'projectPath', label: 'Path to .csproj file (optional)', default: '' }
+        ],
+        level: 'basic'
+      },
+      {
         name: 'Run App',
         description: 'Build and run a specific .NET project.',
         command: 'dotnet run --project {projectPath}',
         params: [
           { key: 'projectPath', label: 'Path to .csproj file', default: 'src/MyProject/MyProject.csproj' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Watch & Run',
+        description: 'Run the app and automatically rebuild/restart on file changes — ideal for local development.',
+        command: 'dotnet watch run --project {projectPath}',
+        params: [
+          { key: 'projectPath', label: 'Path to .csproj file', default: 'src/MyProject/MyProject.csproj' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Run Tests',
+        description: 'Execute unit tests in the project or solution.',
+        command: 'dotnet test {projectPath}',
+        params: [
+          { key: 'projectPath', label: 'Path to test project (optional)', default: '' }
         ],
         level: 'basic'
       },
@@ -443,13 +641,6 @@ export class TerminalTool {
         name: 'Clean Build Outputs',
         description: 'Clean the build outputs of a project.',
         command: 'dotnet clean',
-        params: [],
-        level: 'basic'
-      },
-      {
-        name: 'Restore Nuget Packages',
-        description: 'Restore dependencies and project-specific tools.',
-        command: 'dotnet restore',
         params: [],
         level: 'basic'
       },
@@ -538,15 +729,64 @@ export class TerminalTool {
         ],
         level: 'basic'
       },
+      {
+        name: 'Delete Resource',
+        description: 'Delete a Kubernetes resource by type and name.',
+        command: 'kubectl delete {resourceType} {resourceName} -n {namespace}',
+        params: [
+          { key: 'resourceType', label: 'Resource Type', default: 'pod' },
+          { key: 'resourceName', label: 'Resource Name', default: 'my-app-pod-123' },
+          { key: 'namespace', label: 'Namespace', default: 'default' }
+        ],
+        level: 'basic'
+      },
+      {
+        name: 'Switch Context',
+        description: 'Switch the active cluster/context kubectl commands target.',
+        command: 'kubectl config use-context {contextName}',
+        params: [
+          { key: 'contextName', label: 'Context Name', default: 'staging-cluster' }
+        ],
+        level: 'basic'
+      },
       // --- Advanced ---
       {
-        name: 'Port Forward Pod',
-        description: 'Forward local port to pod container port.',
-        command: 'kubectl port-forward {podName} {localPort}:{podPort} -n {namespace}',
+        name: 'Scale Deployment',
+        description: 'Change the number of running replicas for a deployment.',
+        command: 'kubectl scale deployment/{deploymentName} --replicas={replicaCount} -n {namespace}',
         params: [
-          { key: 'podName', label: 'Pod Name', default: 'my-app-pod-123' },
-          { key: 'localPort', label: 'Local Port', default: '9000' },
-          { key: 'podPort', label: 'Pod/Container Port', default: '80' },
+          { key: 'deploymentName', label: 'Deployment Name', default: 'my-web-deploy' },
+          { key: 'replicaCount', label: 'Replica Count', default: '3' },
+          { key: 'namespace', label: 'Namespace', default: 'default' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Restart Deployment',
+        description: 'Trigger a rolling rollout restart of a deployment.',
+        command: 'kubectl rollout restart deployment/{deploymentName} -n {namespace}',
+        params: [
+          { key: 'deploymentName', label: 'Deployment Name', default: 'my-web-deploy' },
+          { key: 'namespace', label: 'Namespace', default: 'default' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Rollout Status',
+        description: 'Watch the progress of a deployment rollout.',
+        command: 'kubectl rollout status deployment/{deploymentName} -n {namespace}',
+        params: [
+          { key: 'deploymentName', label: 'Deployment Name', default: 'my-web-deploy' },
+          { key: 'namespace', label: 'Namespace', default: 'default' }
+        ],
+        level: 'advanced'
+      },
+      {
+        name: 'Rollout Undo',
+        description: 'Roll a deployment back to its previous revision — the go-to command after a bad release.',
+        command: 'kubectl rollout undo deployment/{deploymentName} -n {namespace}',
+        params: [
+          { key: 'deploymentName', label: 'Deployment Name', default: 'my-web-deploy' },
           { key: 'namespace', label: 'Namespace', default: 'default' }
         ],
         level: 'advanced'
@@ -563,6 +803,18 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
+        name: 'Port Forward Pod',
+        description: 'Forward local port to pod container port.',
+        command: 'kubectl port-forward {podName} {localPort}:{podPort} -n {namespace}',
+        params: [
+          { key: 'podName', label: 'Pod Name', default: 'my-app-pod-123' },
+          { key: 'localPort', label: 'Local Port', default: '9000' },
+          { key: 'podPort', label: 'Pod/Container Port', default: '80' },
+          { key: 'namespace', label: 'Namespace', default: 'default' }
+        ],
+        level: 'advanced'
+      },
+      {
         name: 'View Resource Metrics',
         description: 'Display resource metrics (CPU/Memory) of pods or nodes.',
         command: 'kubectl top {resourceType} -n {namespace}',
@@ -573,11 +825,10 @@ export class TerminalTool {
         level: 'advanced'
       },
       {
-        name: 'Restart Deployment',
-        description: 'Trigger a rolling rollout restart of a deployment.',
-        command: 'kubectl rollout restart deployment/{deploymentName} -n {namespace}',
+        name: 'Get Namespace Events',
+        description: 'List recent events in a namespace — the first place to look when a pod is failing to schedule or start.',
+        command: 'kubectl get events -n {namespace} --sort-by=.metadata.creationTimestamp',
         params: [
-          { key: 'deploymentName', label: 'Deployment Name', default: 'my-web-deploy' },
           { key: 'namespace', label: 'Namespace', default: 'default' }
         ],
         level: 'advanced'
@@ -611,7 +862,7 @@ export class TerminalTool {
 
       // 2. Filter by search query
       if (!query) return true;
-      return cmd.name.toLowerCase().includes(query) || 
+      return cmd.name.toLowerCase().includes(query) ||
              cmd.description.toLowerCase().includes(query) ||
              cmd.command.toLowerCase().includes(query);
     });
@@ -624,7 +875,8 @@ export class TerminalTool {
     let result = cmd.command;
     const vals = this.paramValues();
     for (const p of cmd.params) {
-      const fillValue = vals[p.key] !== undefined ? vals[p.key] : p.default;
+      const raw = vals[p.key];
+      const fillValue = raw !== undefined && raw.trim() !== '' ? raw : p.default;
       result = result.replace(new RegExp(`{${p.key}}`, 'g'), fillValue);
     }
     return result;
@@ -644,7 +896,7 @@ export class TerminalTool {
     this.paramValues.update(prev => ({ ...prev, [key]: value }));
   }
 
-  setCategory(cat: 'git' | 'docker' | 'npm' | 'dotnet' | 'k8s') {
+  setCategory(cat: Category) {
     this.activeCategory.set(cat);
     this.searchQuery.set('');
     this.activeLevel.set('all'); // Reset level to all on category change
@@ -665,11 +917,17 @@ export class TerminalTool {
   }
 
   constructor() {
-    // Select the first command by default on load or filter change
+    // Keep selection valid as filters/search change: re-select a default
+    // whenever the current selection falls outside the filtered list.
     effect(() => {
       const list = this.filteredCommands();
-      if (list.length > 0 && !this.selectedCommand()) {
+      const current = this.selectedCommand();
+      const stillVisible = !!current && list.some(c => c.name === current.name);
+
+      if (list.length > 0 && !stillVisible) {
         this.selectCommand(list[0]);
+      } else if (list.length === 0 && current) {
+        this.selectedCommand.set(null);
       }
     }, { allowSignalWrites: true });
   }

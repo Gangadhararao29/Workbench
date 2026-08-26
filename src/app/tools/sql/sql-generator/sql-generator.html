@@ -1,40 +1,56 @@
-<div class="tool-surface-inner">
-  <div class="form-grid">
-    <label class="field-table">
-      Table name
-      <input [(ngModel)]="table" (ngModelChange)="generate()" />
-    </label>
+<div class="flex flex-col min-h-screen gap-4 box-border">
 
-    <label class="field-filter">
-      Filter column
-      <input [(ngModel)]="whereColumn" (ngModelChange)="generate()" />
-    </label>
+  <div class="grid grid-cols-2 grid-rows-3 gap-3">
+    <div class="col-start-1 row-start-1 form">
+      <label>
+        Table name
+        <input [(ngModel)]="table" (ngModelChange)="generate()" />
+      </label>
+    </div>
+    <div class="col-start-1 row-start-2 form">
+      <label>
+        Filter column
+        <input [(ngModel)]="whereColumn" (ngModelChange)="generate()" />
+      </label>
+    </div>
+    <div class="col-start-1 row-start-3 form">
+      <label>
+        Page size
+        <input type="number" min="1" [(ngModel)]="pageSize" (ngModelChange)="generate()" />
+      </label>
+    </div>
 
-    <label class="field-page-size">
-      Page size
-      <input type="number" min="1" [(ngModel)]="pageSize" (ngModelChange)="generate()" />
-    </label>
+    <!-- Right column: single block spanning all 3 rows -->
+    <div class="col-start-2 row-start-1 row-span-3 form">
+      <label>
+        Columns
+        <textarea [(ngModel)]="columns" (ngModelChange)="generate()"></textarea>
+      </label>
+    </div>
 
-    <label class="field-join-table">
-      Join table (optional)
-      <input [(ngModel)]="joinTable" (ngModelChange)="generate()" />
-    </label>
+    <div class="col-start-1 row-start-4 form">
+      <label>
+        Join table (optional)
+        <input [(ngModel)]="joinTable" (ngModelChange)="generate()" />
+      </label>
+    </div>
 
-    <label class="field-join-col">
-      Join column
-      <input [(ngModel)]="joinColumn" (ngModelChange)="generate()" />
-    </label>
+    <div class="col-start-2 row-start-4 form">
+      <label>
+        Join column
+        <input [(ngModel)]="joinColumn" (ngModelChange)="generate()" />
+      </label>
+    </div>
 
-    <label class="field-columns">
-      Columns
-      <textarea [(ngModel)]="columns" (ngModelChange)="generate()"></textarea>
-    </label>
+
   </div>
+
 
   <button mat-raised-button color="primary" (click)="generate()">Generate SQL</button>
 
   <div class="field grow">
     <label>Generated SQL</label>
-    <app-code-editor [value]="result()" language="sql" ariaLabel="Generated SQL output" [readOnly]="true"></app-code-editor>
+    <app-code-editor [value]="result()" language="sql" ariaLabel="Generated SQL output"
+      [readOnly]="true"></app-code-editor>
   </div>
 </div>

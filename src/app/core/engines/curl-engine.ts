@@ -27,13 +27,7 @@ export interface ParsedCurlRequest {
 }
 
 export type TechnologyId =
-  | 'csharp'
-  | 'angular'
-  | 'react'
-  | 'vue'
-  | 'vanilla-js'
-  | 'python'
-  | 'java';
+  'csharp' | 'angular' | 'react' | 'vue' | 'vanilla-js' | 'python' | 'java';
 
 export interface TechTypeOption {
   id: string;
@@ -47,39 +41,32 @@ export interface TechnologyOption {
   types: TechTypeOption[];
 }
 
+// Only the most commonly used HTTP library is kept per technology.
+// If you need to bring back an alternative (RestSharp, Fetch for React/Vue,
+// Axios/XHR for vanilla JS, HTTPX/urllib for Python, OkHttp for Java),
+// see the git history for the previous generator functions.
 export const TECHNOLOGIES: TechnologyOption[] = [
   {
     id: 'csharp',
     name: 'C# (.NET)',
-    types: [
-      { id: 'httpclient', name: 'HttpClient', editorLanguage: 'csharp' },
-      { id: 'restsharp', name: 'RestSharp', editorLanguage: 'csharp' }
-    ]
+    types: [{ id: 'httpclient', name: 'HttpClient', editorLanguage: 'csharp' }],
   },
   {
     id: 'angular',
     name: 'Angular',
     types: [
       { id: 'httpclient', name: 'HttpClient (@angular/common/http)', editorLanguage: 'typescript' },
-      { id: 'fetch', name: 'Fetch API', editorLanguage: 'typescript' },
-      { id: 'axios', name: 'Axios', editorLanguage: 'typescript' }
-    ]
+    ],
   },
   {
     id: 'react',
     name: 'React',
-    types: [
-      { id: 'fetch', name: 'Fetch API (useEffect)', editorLanguage: 'typescript' },
-      { id: 'axios', name: 'Axios (useEffect)', editorLanguage: 'typescript' }
-    ]
+    types: [{ id: 'axios', name: 'Axios (useEffect)', editorLanguage: 'typescript' }],
   },
   {
     id: 'vue',
     name: 'Vue',
-    types: [
-      { id: 'axios', name: 'Axios (Composition API)', editorLanguage: 'html' },
-      { id: 'fetch', name: 'Fetch API (Composition API)', editorLanguage: 'html' }
-    ]
+    types: [{ id: 'axios', name: 'Axios (Composition API)', editorLanguage: 'html' }],
   },
   {
     id: 'vanilla-js',
@@ -87,26 +74,18 @@ export const TECHNOLOGIES: TechnologyOption[] = [
     types: [
       { id: 'fetch', name: 'Fetch API', editorLanguage: 'javascript' },
       { id: 'axios', name: 'Axios', editorLanguage: 'javascript' },
-      { id: 'xhr', name: 'XMLHttpRequest (XHR)', editorLanguage: 'javascript' }
-    ]
+    ],
   },
   {
     id: 'python',
     name: 'Python',
-    types: [
-      { id: 'requests', name: 'Requests', editorLanguage: 'python' },
-      { id: 'httpx', name: 'HTTPX (Async)', editorLanguage: 'python' },
-      { id: 'urllib', name: 'urllib (Standard Library)', editorLanguage: 'python' }
-    ]
+    types: [{ id: 'requests', name: 'Requests', editorLanguage: 'python' }],
   },
   {
     id: 'java',
     name: 'Java',
-    types: [
-      { id: 'httpclient', name: 'HttpClient (java.net.http)', editorLanguage: 'java' },
-      { id: 'okhttp', name: 'OkHttp', editorLanguage: 'java' }
-    ]
-  }
+    types: [{ id: 'httpclient', name: 'HttpClient (java.net.http)', editorLanguage: 'java' }],
+  },
 ];
 
 export interface CurlPreset {
@@ -119,7 +98,7 @@ export const CURL_PRESETS: CurlPreset[] = [
     name: 'GET with Bearer Auth',
     curl: `curl -X GET "https://api.example.com/v1/users?page=1&limit=10" \\
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample" \\
-  -H "Accept: application/json"`
+  -H "Accept: application/json"`,
   },
   {
     name: 'POST JSON Payload',
@@ -131,13 +110,13 @@ export const CURL_PRESETS: CurlPreset[] = [
     "email": "jane.doe@example.com",
     "role": "Administrator",
     "isActive": true
-  }'`
+  }'`,
   },
   {
     name: 'POST Form URL-Encoded',
     curl: `curl -X POST "https://auth.example.com/oauth/token" \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
-  -d "grant_type=client_credentials&client_id=app123&client_secret=secret456"`
+  -d "grant_type=client_credentials&client_id=app123&client_secret=secret456"`,
   },
   {
     name: 'PUT with Custom Headers',
@@ -145,20 +124,20 @@ export const CURL_PRESETS: CurlPreset[] = [
   -H "Content-Type: application/json" \\
   -H "X-Client-Version: 2.4.0" \\
   -H "X-Correlation-ID: 7b39a48f-8461-419b" \\
-  -d '{"mode": "dark", "accentColor": "#6366f1"}'`
+  -d '{"mode": "dark", "accentColor": "#6366f1"}'`,
   },
   {
     name: 'Basic Authentication',
     curl: `curl -u "admin:SuperSecretPassword!" "https://api.example.com/v1/admin/metrics" \\
-  -H "Accept: application/json"`
+  -H "Accept: application/json"`,
   },
   {
     name: 'Multipart Form Upload',
     curl: `curl -X POST "https://api.example.com/v1/documents/upload" \\
   -H "Authorization: Bearer token_123" \\
   -F "title=Monthly Report" \\
-  -F "file=@/docs/financials.pdf;type=application/pdf"`
-  }
+  -F "file=@/docs/financials.pdf;type=application/pdf"`,
+  },
 ];
 
 export function splitArguments(cmd: string): string[] {
@@ -237,7 +216,7 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
 
   const cleaned = trimmed
     .split('\n')
-    .filter(line => !line.trim().startsWith('#'))
+    .filter((line) => !line.trim().startsWith('#'))
     .join('\n');
 
   const args = splitArguments(cleaned);
@@ -246,19 +225,34 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
   }
 
   const optionsWithArgs = new Set([
-    '-X', '--request',
-    '-H', '--header',
-    '-d', '--data', '--data-raw', '--data-binary', '--data-urlencode', '--data-ascii',
-    '-u', '--user',
-    '-A', '--user-agent',
-    '-e', '--referer',
-    '-o', '--output',
-    '-F', '--form',
+    '-X',
+    '--request',
+    '-H',
+    '--header',
+    '-d',
+    '--data',
+    '--data-raw',
+    '--data-binary',
+    '--data-urlencode',
+    '--data-ascii',
+    '-u',
+    '--user',
+    '-A',
+    '--user-agent',
+    '-e',
+    '--referer',
+    '-o',
+    '--output',
+    '-F',
+    '--form',
     '--url',
-    '-m', '--max-time',
+    '-m',
+    '--max-time',
     '--connect-timeout',
-    '-b', '--cookie',
-    '-c', '--cookie-jar'
+    '-b',
+    '--cookie',
+    '-c',
+    '--cookie-jar',
   ]);
 
   let method = '';
@@ -288,7 +282,7 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
     if (colonIndex !== -1) {
       basicAuth = {
         username: authStr.substring(0, colonIndex),
-        password: authStr.substring(colonIndex + 1)
+        password: authStr.substring(colonIndex + 1),
       };
     } else {
       basicAuth = { username: authStr, password: '' };
@@ -310,10 +304,17 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
-    if (i === 0 && (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe' || arg === '$')) {
+    if (
+      i === 0 &&
+      (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe' || arg === '$')
+    ) {
       continue;
     }
-    if (i === 1 && args[0] === '$' && (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe')) {
+    if (
+      i === 1 &&
+      args[0] === '$' &&
+      (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe')
+    ) {
       continue;
     }
 
@@ -393,7 +394,11 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
   if (!url) {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      if (i === 0 && (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe' || arg === '$')) continue;
+      if (
+        i === 0 &&
+        (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe' || arg === '$')
+      )
+        continue;
       if (arg.startsWith('http://') || arg.startsWith('https://')) {
         url = arg;
         break;
@@ -404,7 +409,11 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
   if (!url) {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      if (i === 0 && (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe' || arg === '$')) continue;
+      if (
+        i === 0 &&
+        (arg.toLowerCase() === 'curl' || arg.toLowerCase() === 'curl.exe' || arg === '$')
+      )
+        continue;
       const prevArg = args[i - 1];
       if (prevArg && optionsWithArgs.has(prevArg)) {
         continue;
@@ -441,7 +450,7 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
     }
   }
 
-  if (basicAuth && !headers.some(h => h.name.toLowerCase() === 'authorization')) {
+  if (basicAuth && !headers.some((h) => h.name.toLowerCase() === 'authorization')) {
     try {
       const creds = `${basicAuth.username}:${basicAuth.password || ''}`;
       const encoded = typeof btoa === 'function' ? btoa(unescape(encodeURIComponent(creds))) : '';
@@ -457,7 +466,8 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
   if (formData.length > 0) {
     bodyType = 'multipart';
   } else if (body) {
-    const contentTypeHeader = headers.find(h => h.name.toLowerCase() === 'content-type')?.value.toLowerCase() || '';
+    const contentTypeHeader =
+      headers.find((h) => h.name.toLowerCase() === 'content-type')?.value.toLowerCase() || '';
     if (contentTypeHeader.includes('application/json')) {
       bodyType = 'json';
     } else if (contentTypeHeader.includes('application/x-www-form-urlencoded')) {
@@ -505,7 +515,7 @@ export function parseCurlCommand(rawCommand: string): ParsedCurlRequest {
     basicAuth,
     insecure,
     followRedirects,
-    compressed
+    compressed,
   };
 }
 
@@ -543,31 +553,30 @@ export function formatCurlCommand(req: ParsedCurlRequest): string {
 // ---------------------------------------------------------------------------
 // Target Code Generators
 // ---------------------------------------------------------------------------
+// Note: typeId only affects output for technologies with more than one
+// entry in TECHNOLOGIES (currently just Vanilla JS: 'fetch' vs 'axios').
+// For every other tech there's a single library option, so typeId is
+// effectively ignored — but the param is kept so the UI doesn't need to
+// special-case which techs support multiple libraries.
 
-export function convertCurl(rawCommand: string, tech: TechnologyId, typeId: string): string {
+export function convertCurl(rawCommand: string, tech: TechnologyId, typeId?: string): string {
   const req = parseCurlCommand(rawCommand);
 
   switch (tech) {
     case 'csharp':
-      return typeId === 'restsharp' ? generateRestSharp(req) : generateCsharp(req);
+      return generateCsharp(req);
     case 'angular':
-      if (typeId === 'fetch') return generateAngularFetch(req);
-      if (typeId === 'axios') return generateAngularAxios(req);
       return generateAngular(req);
     case 'react':
-      return typeId === 'axios' ? generateReactAxios(req) : generateReactFetch(req);
+      return generateReactAxios(req);
     case 'vue':
-      return typeId === 'fetch' ? generateVueFetch(req) : generateVueAxios(req);
+      return generateVueAxios(req);
     case 'vanilla-js':
-      if (typeId === 'axios') return generateAxios(req);
-      if (typeId === 'xhr') return generateXhr(req);
-      return generateFetch(req);
+      return typeId === 'axios' ? generateAxios(req) : generateFetch(req);
     case 'python':
-      if (typeId === 'httpx') return generatePythonHttpx(req);
-      if (typeId === 'urllib') return generatePythonUrllib(req);
       return generatePythonRequests(req);
     case 'java':
-      return typeId === 'okhttp' ? generateJavaOkHttp(req) : generateJava(req);
+      return generateJava(req);
     default:
       return generateCsharp(req);
   }
@@ -590,7 +599,7 @@ function formatJsonBody(body: string): { isJson: boolean; formatted: string } {
   }
 }
 
-// 1. C# HttpClient
+// C# HttpClient
 export function generateCsharp(req: ParsedCurlRequest): string {
   const methodPascal = req.method[0].toUpperCase() + req.method.slice(1).toLowerCase();
   const lines: string[] = [
@@ -600,7 +609,7 @@ export function generateCsharp(req: ParsedCurlRequest): string {
     ``,
     `using var httpClient = new HttpClient();`,
     `using var request = new HttpRequestMessage(HttpMethod.${methodPascal}, "${req.url}");`,
-    ``
+    ``,
   ];
 
   for (const h of req.headers) {
@@ -612,22 +621,30 @@ export function generateCsharp(req: ParsedCurlRequest): string {
     lines.push(``, `var content = new MultipartFormDataContent();`);
     for (const f of req.formData) {
       if (f.isFile) {
-        lines.push(`content.Add(new ByteArrayContent(await File.ReadAllBytesAsync("path/to/file")), "${f.key}", "filename");`);
+        lines.push(
+          `content.Add(new ByteArrayContent(await File.ReadAllBytesAsync("path/to/file")), "${f.key}", "filename");`,
+        );
       } else {
         lines.push(`content.Add(new StringContent("${f.value}"), "${f.key}");`);
       }
     }
     lines.push(`request.Content = content;`);
   } else if (req.body) {
-    const contentTypeHeader = req.headers.find(h => h.name.toLowerCase() === 'content-type')?.value || 'application/json';
+    const contentTypeHeader =
+      req.headers.find((h) => h.name.toLowerCase() === 'content-type')?.value || 'application/json';
     const jsonCheck = formatJsonBody(req.body);
     if (jsonCheck.isJson) {
       lines.push(``, `var jsonBody = """`);
       lines.push(jsonCheck.formatted);
       lines.push(`""";`);
-      lines.push(`request.Content = new StringContent(jsonBody, Encoding.UTF8, "${contentTypeHeader}");`);
+      lines.push(
+        `request.Content = new StringContent(jsonBody, Encoding.UTF8, "${contentTypeHeader}");`,
+      );
     } else {
-      lines.push(``, `request.Content = new StringContent(${JSON.stringify(req.body)}, Encoding.UTF8, "${contentTypeHeader}");`);
+      lines.push(
+        ``,
+        `request.Content = new StringContent(${JSON.stringify(req.body)}, Encoding.UTF8, "${contentTypeHeader}");`,
+      );
     }
   }
 
@@ -639,45 +656,7 @@ export function generateCsharp(req: ParsedCurlRequest): string {
   return lines.join('\n');
 }
 
-// 2. C# RestSharp
-export function generateRestSharp(req: ParsedCurlRequest): string {
-  const lines: string[] = [
-    `using RestSharp;`,
-    ``,
-    `var options = new RestClientOptions("${req.url}");`,
-    `var client = new RestClient(options);`,
-    `var request = new RestRequest("", Method.${req.method});`,
-    ``
-  ];
-
-  for (const h of req.headers) {
-    lines.push(`request.AddHeader("${h.name}", "${h.value}");`);
-  }
-
-  if (req.formData.length > 0) {
-    for (const f of req.formData) {
-      if (f.isFile) {
-        lines.push(`request.AddFile("${f.key}", "path/to/file");`);
-      } else {
-        lines.push(`request.AddParameter("${f.key}", "${f.value}");`);
-      }
-    }
-  } else if (req.body) {
-    const jsonCheck = formatJsonBody(req.body);
-    if (jsonCheck.isJson) {
-      lines.push(`request.AddStringBody(${JSON.stringify(req.body)}, DataFormat.Json);`);
-    } else {
-      lines.push(`request.AddStringBody(${JSON.stringify(req.body)}, DataFormat.None);`);
-    }
-  }
-
-  lines.push(``, `var response = await client.ExecuteAsync(request);`);
-  lines.push(`Console.WriteLine(response.Content);`);
-
-  return lines.join('\n');
-}
-
-// 3. JavaScript Fetch
+// JavaScript Fetch (used directly for Vanilla JS)
 export function generateFetch(req: ParsedCurlRequest): string {
   const optionsObj: string[] = [`method: '${req.method}'`];
 
@@ -689,11 +668,11 @@ export function generateFetch(req: ParsedCurlRequest): string {
   if (req.formData.length > 0) {
     const formLines = [
       `const formData = new FormData();`,
-      ...req.formData.map(f =>
+      ...req.formData.map((f) =>
         f.isFile
           ? `// formData.append('${f.key}', fileBlob, 'filename');`
-          : `formData.append('${f.key}', '${f.value}');`
-      )
+          : `formData.append('${f.key}', '${f.value}');`,
+      ),
     ];
     return `${formLines.join('\n')}\n\nconst response = await fetch('${req.url}', {\n  ${optionsObj.join(',\n  ')},\n  body: formData\n});\n\nif (!response.ok) {\n  throw new Error(\`HTTP error! status: \${response.status}\`);\n}\nconst data = await response.json();\nconsole.log(data);`;
   }
@@ -710,20 +689,28 @@ export function generateFetch(req: ParsedCurlRequest): string {
   return `const response = await fetch('${req.url}', {\n  ${optionsObj.join(',\n  ')}\n});\n\nif (!response.ok) {\n  throw new Error(\`HTTP error! status: \${response.status}\`);\n}\nconst data = await response.json();\nconsole.log(data);`;
 }
 
-// 4. Axios
+// Axios (directly selectable for Vanilla JS, and reused internally by the
+// React and Vue generators below)
 export function generateAxios(req: ParsedCurlRequest): string {
   const configObj: { headers?: Record<string, string> } = {};
   if (req.headers.length > 0) {
     configObj.headers = headersToMap(req.headers);
   }
 
-  const configStr = Object.keys(configObj).length > 0 ? `, ${JSON.stringify(configObj, null, 2)}` : '';
+  const configStr =
+    Object.keys(configObj).length > 0 ? `, ${JSON.stringify(configObj, null, 2)}` : '';
   const methodLower = req.method.toLowerCase();
 
   if (req.formData.length > 0) {
     return `import axios from 'axios';\n\nconst formData = new FormData();\n${req.formData
-      .map(f => (f.isFile ? `// formData.append('${f.key}', fileBlob);` : `formData.append('${f.key}', '${f.value}');`))
-      .join('\n')}\n\nconst response = await axios.post('${req.url}', formData${configStr});\nconsole.log(response.data);`;
+      .map((f) =>
+        f.isFile
+          ? `// formData.append('${f.key}', fileBlob);`
+          : `formData.append('${f.key}', '${f.value}');`,
+      )
+      .join(
+        '\n',
+      )}\n\nconst response = await axios.post('${req.url}', formData${configStr});\nconsole.log(response.data);`;
   }
 
   if (req.body) {
@@ -742,7 +729,7 @@ export function generateAxios(req: ParsedCurlRequest): string {
   return `import axios from 'axios';\n\nconst response = await axios({\n  method: '${methodLower}',\n  url: '${req.url}'${configStr ? `,\n  ...${JSON.stringify(configObj)}` : ''}\n});\nconsole.log(response.data);`;
 }
 
-// 5. Angular HttpClient
+// Angular HttpClient
 export function generateAngular(req: ParsedCurlRequest): string {
   const methodLower = req.method.toLowerCase();
   const headerMap = headersToMap(req.headers);
@@ -762,83 +749,19 @@ export function generateAngular(req: ParsedCurlRequest): string {
   return `import { HttpClient, HttpHeaders } from '@angular/common/http';\nimport { inject } from '@angular/core';\n\nconst http = inject(HttpClient);\n${headerCode}\nhttp.${methodLower}<any>('${req.url}'${optionsStr})\n  .subscribe({\n    next: (data) => console.log('Response:', data),\n    error: (err) => console.error('Error:', err)\n  });`;
 }
 
-// 6. Angular Fetch
-export function generateAngularFetch(req: ParsedCurlRequest): string {
-  const fetchCode = generateFetch(req);
-  return `import { Component, OnInit, signal } from '@angular/core';\n\n@Component({\n  selector: 'app-data',\n  standalone: true,\n  template: \`<div>{{ data() | json }}</div>\`\n})\nexport class DataComponent implements OnInit {\n  data = signal<any>(null);\n  loading = signal(false);\n  error = signal<string | null>(null);\n\n  async ngOnInit() {\n    this.loading.set(true);\n    try {\n      ${fetchCode.replace(/\n/g, '\n      ')}\n      this.data.set(data);\n    } catch (err: any) {\n      this.error.set(err.message);\n    } finally {\n      this.loading.set(false);\n    }\n  }\n}`;
-}
-
-// 7. Angular Axios
-export function generateAngularAxios(req: ParsedCurlRequest): string {
-  const axiosCode = generateAxios(req).replace(/import axios from 'axios';\n\n/, '');
-  return `import { Component, OnInit, signal } from '@angular/core';\nimport axios from 'axios';\n\n@Component({\n  selector: 'app-data',\n  standalone: true,\n  template: \`<div>{{ data() | json }}</div>\`\n})\nexport class DataComponent implements OnInit {\n  data = signal<any>(null);\n  loading = signal(false);\n  error = signal<string | null>(null);\n\n  async ngOnInit() {\n    this.loading.set(true);\n    try {\n      ${axiosCode.replace(/\n/g, '\n      ')}\n      this.data.set(response.data);\n    } catch (err: any) {\n      this.error.set(err.message);\n    } finally {\n      this.loading.set(false);\n    }\n  }\n}`;
-}
-
-// 8. React Fetch
-export function generateReactFetch(req: ParsedCurlRequest): string {
-  const fetchCode = generateFetch(req);
-  return `import React, { useEffect, useState } from 'react';\n\nexport function ApiComponent() {\n  const [data, setData] = useState(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);\n\n  useEffect(() => {\n    async function fetchData() {\n      try {\n        ${fetchCode.replace(/\n/g, '\n        ')}\n        setData(data);\n      } catch (err) {\n        setError(err.message);\n      } finally {\n        setLoading(false);\n      }\n    }\n\n    fetchData();\n  }, []);\n\n  if (loading) return <div>Loading...</div>;\n  if (error) return <div>Error: {error}</div>;\n  return <pre>{JSON.stringify(data, null, 2)}</pre>;\n}`;
-}
-
-// 9. React Axios
+// React Axios
 export function generateReactAxios(req: ParsedCurlRequest): string {
   const axiosCall = generateAxios(req).replace(/import axios from 'axios';\n\n/, '');
   return `import React, { useEffect, useState } from 'react';\nimport axios from 'axios';\n\nexport function ApiComponent() {\n  const [data, setData] = useState(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);\n\n  useEffect(() => {\n    async function executeRequest() {\n      try {\n        ${axiosCall.replace(/\n/g, '\n        ')}\n        setData(response.data);\n      } catch (err) {\n        setError(err.message);\n      } finally {\n        setLoading(false);\n      }\n    }\n\n    executeRequest();\n  }, []);\n\n  if (loading) return <div>Loading...</div>;\n  if (error) return <div>Error: {error}</div>;\n  return <pre>{JSON.stringify(data, null, 2)}</pre>;\n}`;
 }
 
-// 10. Vue Axios
+// Vue Axios
 export function generateVueAxios(req: ParsedCurlRequest): string {
   const axiosCall = generateAxios(req).replace(/import axios from 'axios';\n\n/, '');
   return `<script setup>\nimport { ref, onMounted } from 'vue';\nimport axios from 'axios';\n\nconst data = ref(null);\nconst loading = ref(true);\nconst error = ref(null);\n\nonMounted(async () => {\n  try {\n    ${axiosCall.replace(/\n/g, '\n    ')}\n    data.value = response.data;\n  } catch (err) {\n    error.value = err.message;\n  } finally {\n    loading.value = false;\n  }\n});\n</script>\n\n<template>\n  <div v-if="loading">Loading...</div>\n  <div v-else-if="error">Error: {{ error }}</div>\n  <pre v-else>{{ JSON.stringify(data, null, 2) }}</pre>\n</template>`;
 }
 
-// 11. Vue Fetch
-export function generateVueFetch(req: ParsedCurlRequest): string {
-  const fetchCode = generateFetch(req);
-  return `<script setup>\nimport { ref, onMounted } from 'vue';\n\nconst data = ref(null);\nconst loading = ref(true);\nconst error = ref(null);\n\nonMounted(async () => {\n  try {\n    ${fetchCode.replace(/\n/g, '\n    ')}\n    data.value = data;\n  } catch (err) {\n    error.value = err.message;\n  } finally {\n    loading.value = false;\n  }\n});\n</script>\n\n<template>\n  <div v-if="loading">Loading...</div>\n  <div v-else-if="error">Error: {{ error }}</div>\n  <pre v-else>{{ JSON.stringify(data, null, 2) }}</pre>\n</template>`;
-}
-
-// 12. Vanilla JS XHR
-export function generateXhr(req: ParsedCurlRequest): string {
-  const lines: string[] = [
-    `const xhr = new XMLHttpRequest();`,
-    `xhr.open('${req.method}', '${req.url}');`,
-    ``
-  ];
-
-  for (const h of req.headers) {
-    lines.push(`xhr.setRequestHeader('${h.name}', '${h.value}');`);
-  }
-
-  lines.push(
-    ``,
-    `xhr.onload = function() {`,
-    `  if (xhr.status >= 200 && xhr.status < 300) {`,
-    `    try {`,
-    `      console.log(JSON.parse(xhr.responseText));`,
-    `    } catch {`,
-    `      console.log(xhr.responseText);`,
-    `    }`,
-    `  } else {`,
-    `    console.error('Request failed with status:', xhr.status);`,
-    `  }`,
-    `};`,
-    `xhr.onerror = function() {`,
-    `  console.error('Network error occurred');`,
-    `};`,
-    ``
-  );
-
-  if (req.body) {
-    lines.push(`xhr.send(${JSON.stringify(req.body)});`);
-  } else {
-    lines.push(`xhr.send();`);
-  }
-
-  return lines.join('\n');
-}
-
-// 13. Python Requests
+// Python Requests
 export function generatePythonRequests(req: ParsedCurlRequest): string {
   const lines: string[] = [`import requests`, ``];
   const methodLower = req.method.toLowerCase();
@@ -890,76 +813,7 @@ export function generatePythonRequests(req: ParsedCurlRequest): string {
   return lines.join('\n');
 }
 
-// 14. Python HTTPX
-export function generatePythonHttpx(req: ParsedCurlRequest): string {
-  const methodLower = req.method.toLowerCase();
-  const lines: string[] = [
-    `import httpx`,
-    `import asyncio`,
-    ``,
-    `async def main():`,
-    `    async with httpx.AsyncClient() as client:`
-  ];
-
-  if (req.headers.length > 0) {
-    lines.push(`        headers = ${JSON.stringify(headersToMap(req.headers), null, 8).trim()}`);
-  }
-
-  const callArgs: string[] = [`"${req.url}"`];
-  if (req.headers.length > 0) callArgs.push(`headers=headers`);
-
-  if (req.body) {
-    const jsonCheck = formatJsonBody(req.body);
-    if (jsonCheck.isJson) {
-      lines.push(`        payload = ${jsonCheck.formatted.replace(/\n/g, '\n        ')}`);
-      callArgs.push(`json=payload`);
-    } else {
-      lines.push(`        payload = ${JSON.stringify(req.body)}`);
-      callArgs.push(`content=payload`);
-    }
-  }
-
-  lines.push(`        response = await client.${methodLower}(${callArgs.join(', ')})`);
-  lines.push(`        print(response.status_code)`);
-  lines.push(`        print(response.text)`);
-  lines.push(``, `asyncio.run(main())`);
-
-  return lines.join('\n');
-}
-
-// 15. Python urllib
-export function generatePythonUrllib(req: ParsedCurlRequest): string {
-  const lines: string[] = [
-    `import urllib.request`,
-    `import json`,
-    ``
-  ];
-
-  if (req.body) {
-    lines.push(`data = ${JSON.stringify(req.body)}.encode('utf-8')`);
-    lines.push(`req = urllib.request.Request('${req.url}', data=data, method='${req.method}')`);
-  } else {
-    lines.push(`req = urllib.request.Request('${req.url}', method='${req.method}')`);
-  }
-
-  for (const h of req.headers) {
-    lines.push(`req.add_header('${h.name}', '${h.value}')`);
-  }
-
-  lines.push(
-    ``,
-    `try:`,
-    `    with urllib.request.urlopen(req) as response:`,
-    `        res_body = response.read().decode('utf-8')`,
-    `        print(res_body)`,
-    `except Exception as e:`,
-    `    print(f"Error: {e}")`
-  );
-
-  return lines.join('\n');
-}
-
-// 16. Java HttpClient (java.net.http)
+// Java HttpClient (java.net.http)
 export function generateJava(req: ParsedCurlRequest): string {
   const lines: string[] = [
     `import java.net.URI;`,
@@ -971,7 +825,7 @@ export function generateJava(req: ParsedCurlRequest): string {
     `    public static void main(String[] args) throws Exception {`,
     `        HttpClient client = HttpClient.newHttpClient();`,
     `        HttpRequest.Builder builder = HttpRequest.newBuilder()`,
-    `            .uri(URI.create("${req.url}"));`
+    `            .uri(URI.create("${req.url}"));`,
   ];
 
   for (const h of req.headers) {
@@ -979,7 +833,9 @@ export function generateJava(req: ParsedCurlRequest): string {
   }
 
   if (req.body) {
-    lines.push(`        builder.method("${req.method}", HttpRequest.BodyPublishers.ofString(${JSON.stringify(req.body)}));`);
+    lines.push(
+      `        builder.method("${req.method}", HttpRequest.BodyPublishers.ofString(${JSON.stringify(req.body)}));`,
+    );
   } else {
     lines.push(`        builder.method("${req.method}", HttpRequest.BodyPublishers.noBody());`);
   }
@@ -989,53 +845,7 @@ export function generateJava(req: ParsedCurlRequest): string {
     `        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());`,
     `        System.out.println(response.body());`,
     `    }`,
-    `}`
-  );
-
-  return lines.join('\n');
-}
-
-// 17. Java OkHttp
-export function generateJavaOkHttp(req: ParsedCurlRequest): string {
-  const lines: string[] = [
-    `import okhttp3.OkHttpClient;`,
-    `import okhttp3.Request;`,
-    `import okhttp3.RequestBody;`,
-    `import okhttp3.MediaType;`,
-    `import okhttp3.Response;`,
-    ``,
-    `public class App {`,
-    `    public static void main(String[] args) throws Exception {`,
-    `        OkHttpClient client = new OkHttpClient();`,
-    `        Request.Builder builder = new Request.Builder()`,
-    `            .url("${req.url}");`
-  ];
-
-  for (const h of req.headers) {
-    lines.push(`        builder.addHeader("${h.name}", "${h.value}");`);
-  }
-
-  if (req.body) {
-    const contentType = req.headers.find(h => h.name.toLowerCase() === 'content-type')?.value || 'application/json';
-    lines.push(`        MediaType mediaType = MediaType.parse("${contentType}");`);
-    lines.push(`        RequestBody body = RequestBody.create(mediaType, ${JSON.stringify(req.body)});`);
-    lines.push(`        builder.method("${req.method}", body);`);
-  } else {
-    if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
-      lines.push(`        RequestBody body = RequestBody.create(null, new byte[0]);`);
-      lines.push(`        builder.method("${req.method}", body);`);
-    } else {
-      lines.push(`        builder.method("${req.method}", null);`);
-    }
-  }
-
-  lines.push(
-    `        Request request = builder.build();`,
-    `        try (Response response = client.newCall(request).execute()) {`,
-    `            System.out.println(response.body().string());`,
-    `        }`,
-    `    }`,
-    `}`
+    `}`,
   );
 
   return lines.join('\n');

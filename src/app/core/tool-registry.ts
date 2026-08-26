@@ -51,8 +51,8 @@ export const TOOL_GROUPS: ToolGroup[] = [
     id: 'api', label: 'API', icon: 'api',
     tools: [
       { type: 'openapi-inspector', label: 'OpenAPI inspector', description: 'Inspect endpoints and schemas from an OpenAPI document.' },
-      { type: 'jwt-inspector', label: 'JWT inspector', description: 'Decode and inspect JWT headers, claims, and expiry.' },
       { type: 'http-request-builder', label: 'HTTP request builder', description: 'Build and preview HTTP requests.' },
+      { type: 'jwt-inspector', label: 'JWT inspector', description: 'Decode and inspect JWT headers, claims, and expiry.' },
       { type: 'curl-converter', label: 'cURL converter', description: 'Convert cURL commands into application code.' },
     ]
   },

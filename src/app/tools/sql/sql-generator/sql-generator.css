@@ -1,19 +1,4 @@
-.tool-surface-inner {
-  display: flex;
-  max-width: 1000px;
-  min-height: 100%;
-  flex-direction: column;
-  gap: 16px;
-  box-sizing: border-box;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px 14px;
-}
-
-.form-grid label {
+.form label {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -22,8 +7,8 @@
   font-weight: 700;
 }
 
-.form-grid input,
-.form-grid textarea {
+.form input,
+.form textarea {
   box-sizing: border-box;
   width: 100%;
   border: 1px solid var(--mat-sys-outline);
@@ -36,21 +21,9 @@
   padding: 8px 10px;
 }
 
-.field-columns {
-  grid-column: span 3;
-}
-
-.field-columns textarea {
-  height: 100px;
+.form textarea {
+  height: 180px;
   min-height: 40px;
   resize: vertical;
 }
 
-@media (max-width: 700px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  .field-columns {
-    grid-column: span 1;
-  }
-}

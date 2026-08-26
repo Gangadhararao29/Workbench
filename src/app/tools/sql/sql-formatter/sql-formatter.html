@@ -14,12 +14,8 @@
         </button>
       </div>
     </div>
-    <app-code-editor 
-      [value]="input()" 
-      language="sql" 
-      ariaLabel="SQL input" 
-      (valueChange)="input.set($event)"
-    ></app-code-editor>
+    <app-code-editor [value]="input()" language="sql" ariaLabel="SQL input"
+      (valueChange)="input.set($event)"></app-code-editor>
   </div>
 
   <!-- Separate right-aligned action buttons -->
@@ -32,7 +28,7 @@
       <mat-icon>view_headline</mat-icon>
       <span>Compact</span>
     </button>
-    <button mat-raised-button color="primary" (click)="format()">
+    <button mat-stroked-button color="primary" (click)="format()">
       <mat-icon>auto_fix_high</mat-icon>
       <span>Format</span>
     </button>
@@ -43,23 +39,12 @@
     <div class="field-header">
       <label>Result</label>
       <div class="result-actions">
-        <button 
-          mat-icon-button 
-          (click)="copyResult()" 
-          class="btn-icon-copy" 
-          [class.copied]="copied()"
-          [matTooltip]="copied() ? 'Copied!' : 'Copy Result'" 
-          aria-label="Copy result"
-        >
+        <button mat-icon-button (click)="copyResult()" class="btn-icon-copy" [class.copied]="copied()"
+          [matTooltip]="copied() ? 'Copied!' : 'Copy Result'" aria-label="Copy result">
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
         </button>
       </div>
     </div>
-    <app-code-editor 
-      [value]="result()" 
-      language="sql" 
-      ariaLabel="SQL result" 
-      [readOnly]="true"
-    ></app-code-editor>
+    <app-code-editor [value]="result()" language="sql" ariaLabel="SQL result" [readOnly]="true"></app-code-editor>
   </div>
 </div>
