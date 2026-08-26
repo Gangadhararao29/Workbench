@@ -82,6 +82,20 @@ export function toolLabelFor(toolType: string): string {
     .find(tool => tool.type === toolType)?.label ?? toolType;
 }
 
+export function isValidToolType(toolType: string): boolean {
+  return TOOL_GROUPS.some(group => group.tools.some(tool => tool.type === toolType));
+}
+
+export function findToolDefinition(toolType: string): { tool: ToolDefinition; group: ToolGroup } | null {
+  for (const group of TOOL_GROUPS) {
+    const tool = group.tools.find(t => t.type === toolType);
+    if (tool) {
+      return { tool, group };
+    }
+  }
+  return null;
+}
+
 export interface UpcomingFeature {
   label: string;
   description: string;

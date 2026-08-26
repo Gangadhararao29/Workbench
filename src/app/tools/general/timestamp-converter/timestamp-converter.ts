@@ -8,7 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class TimestampConverter {
   @Input({ required: true }) instanceId!: string;
-  readonly toolName = 'Timestamp converter';
   input = '';
   unit: 'seconds' | 'milliseconds' | 'iso' = 'seconds';
   result = signal('');

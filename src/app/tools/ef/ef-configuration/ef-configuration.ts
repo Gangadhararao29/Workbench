@@ -1,10 +1,9 @@
 import { Component, Input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-ef-configuration', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
+  selector: 'app-ef-configuration', standalone: true, imports: [MatButtonModule, CodeEditor],
   templateUrl: './ef-configuration.html', styleUrls: ['./ef-configuration.css']
 })
 export class EfConfiguration {

@@ -12,7 +12,8 @@ export interface ToolInstance {
   closedAt?: number;
 }
 
-const STORAGE_KEY = 'workbench.instances.v1';
+const STORAGE_KEY = 'workbench.instances';
+const LEGACY_STORAGE_KEY = 'workbench.instances.v1';
 const MAX_ARCHIVED = 50;
 
 @Injectable({ providedIn: 'root' })
@@ -37,10 +38,12 @@ export class InstanceService {
   }
 
   private loadFromStorage(): ToolInstance[] {
-    return this.storage.get<ToolInstance[]>(STORAGE_KEY, []);
+    const data = this.storage.get<ToolInstance[]>(STORAGE_KEY, []);
+    if (data.length > 0) return data;
+    return this.storage.get<ToolInstance[]>(LEGACY_STORAGE_KEY, []);
   }
 
-  open(toolType: string, groupId: string) {
+  open(toolType: string, groupId: string): ToolInstance {
     const count = this.instances().filter(i => i.toolType === toolType).length + 1;
     const instance: ToolInstance = {
       id: crypto.randomUUID(),
@@ -51,6 +54,22 @@ export class InstanceService {
     };
     this._instances.update(list => [...list, instance]);
     this._activeId.set(instance.id);
+    return instance;
+  }
+
+  clone(id: string): ToolInstance | null {
+    const target = this._instances().find(i => i.id === id);
+    if (!target) return null;
+    const count = this.instances().filter(i => i.toolType === target.toolType).length + 1;
+    const cloned: ToolInstance = {
+      id: crypto.randomUUID(),
+      toolType: target.toolType,
+      groupId: target.groupId,
+      label: `${toolLabelFor(target.toolType)} ${count}`,
+      config: JSON.parse(JSON.stringify(target.config || {}))
+    };
+    this._instances.update(list => [...list, cloned]);
+    return cloned;
   }
 
   close(id: string) {

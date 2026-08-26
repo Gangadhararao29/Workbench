@@ -2,6 +2,7 @@ import { Component, Input, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
@@ -12,8 +13,10 @@ import {
   SupportedFramework,
   AnyPattern,
   GenerationMode,
-  GenerationResult
+  GenerationResult,
 } from '../../../core/engines/api-client-generator-engine';
+
+type OutputTab = 'client' | 'dtos' | 'tests' | 'usage';
 
 @Component({
   selector: 'app-api-generator',
@@ -22,12 +25,13 @@ import {
     CommonModule,
     FormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatTooltipModule,
-    CodeEditor
+    CodeEditor,
   ],
   templateUrl: './api-generator.html',
-  styleUrls: ['./api-generator.css']
+  styleUrls: ['./api-generator.css'],
 })
 export class ApiGenerator implements OnInit {
   @Input({ required: true }) instanceId!: string;
@@ -52,7 +56,14 @@ export class ApiGenerator implements OnInit {
   includeTsDoc = signal(true);
 
   // Active Output Tab
-  activeTab = signal<'client' | 'dtos' | 'tests' | 'usage'>('client');
+  activeTab = signal<OutputTab>('client');
+
+  readonly outputTabs: { id: OutputTab; label: string; icon: string }[] = [
+    { id: 'client', label: 'Client Code', icon: 'code' },
+    { id: 'dtos', label: 'TypeScript DTOs', icon: 'data_object' },
+    { id: 'tests', label: 'Unit Test Spec', icon: 'fact_check' },
+    { id: 'usage', label: 'Component Usage', icon: 'preview' },
+  ];
 
   // Copy feedback state
   copied = signal(false);
@@ -60,7 +71,7 @@ export class ApiGenerator implements OnInit {
 
   // Available patterns for selected framework
   availablePatterns = computed(() => {
-    const f = this.frameworks.find(fw => fw.id === this.framework());
+    const f = this.frameworks.find((fw) => fw.id === this.framework());
     return f ? f.patterns : [];
   });
 
@@ -77,7 +88,7 @@ export class ApiGenerator implements OnInit {
       includeCancellation: this.includeCancellation(),
       includeAuth: this.includeAuth(),
       includeTsDoc: this.includeTsDoc(),
-      includePagination: this.includePagination()
+      includePagination: this.includePagination(),
     };
 
     return generateApiClient(config);
@@ -101,10 +112,8 @@ export class ApiGenerator implements OnInit {
 
   // Language for Monaco editor
   editorLanguage = computed(() => {
-    if (this.activeTab() === 'usage') {
-      if (this.framework() === 'react') return 'typescript';
-      if (this.framework() === 'vue') return 'html';
-      if (this.framework() === 'svelte') return 'html';
+    if (this.activeTab() === 'usage' && this.framework() === 'vue') {
+      return 'html';
     }
     return 'typescript';
   });
@@ -161,7 +170,6 @@ export class ApiGenerator implements OnInit {
     if (this.activeTab() === 'usage') {
       if (this.framework() === 'react') return 'tsx';
       if (this.framework() === 'vue') return 'vue';
-      if (this.framework() === 'svelte') return 'svelte';
     }
     return 'ts';
   }

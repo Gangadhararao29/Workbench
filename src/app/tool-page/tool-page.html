@@ -1,0 +1,140 @@
+<div class="tool-page-container">
+
+  <!-- Scoped Tabs Bar -->
+  <div class="tool-instance-bar">
+    <div class="tabs-scroll-area">
+      @for (instance of scopedInstances(); track instance.id) {
+        <div
+          class="scoped-tab"
+          [class.active]="selectedInstance()?.id === instance.id"
+          (click)="selectInstance(instance.id)"
+          [attr.aria-selected]="selectedInstance()?.id === instance.id"
+          role="tab"
+        >
+          <span class="tab-label">{{ instance.label }}</span>
+          @if (scopedInstances().length > 1) {
+            <button
+              class="tab-close-btn"
+              (click)="closeInstance(instance.id, $event)"
+              matTooltip="Close Tab"
+              aria-label="Close tab"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="tab-actions">
+      <button
+        mat-icon-button
+        class="tab-action-btn"
+        (click)="addInstance()"
+        matTooltip="New Tab"
+        aria-label="New tab"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        class="tab-action-btn"
+        (click)="cloneInstance()"
+        matTooltip="Duplicate Tab"
+        aria-label="Duplicate tab"
+      >
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Tool Rendering -->
+  <div class="tool-surface">
+    @if (selectedInstance()) {
+      @switch (selectedInstance()!.toolType) {
+        @case ('sql-formatter') {
+          <app-sql-formatter [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('json-formatter') {
+          <app-json-formatter [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('json-to-typescript') {
+          <app-json-to-typescript [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('json-to-csharp') {
+          <app-json-to-csharp [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('json-diff') {
+          <app-json-diff [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('json-path') {
+          <app-json-path [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('csharp-to-typescript') {
+          <app-csharp-to-typescript [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('csharp-to-json') {
+          <app-csharp-to-json [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('csharp-formatter') {
+          <app-csharp-formatter [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('sql-to-csharp') {
+          <app-sql-to-csharp [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('sql-generator') {
+          <app-sql-generator [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('sql-search') {
+          <app-sql-search [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('jwt-inspector') {
+          <app-jwt-inspector [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('curl-converter') {
+          <app-curl-converter [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('http-request-builder') {
+          <app-http-request-builder [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('openapi-inspector') {
+          <app-openapi-inspector [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('ef-configuration') {
+          <app-ef-configuration [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('api-generator') {
+          <app-api-generator [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('feature-generator') {
+          <app-feature-generator [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('documentation-hub') {
+          <app-documentation-hub [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('guid-generator') {
+          <app-guid-generator [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('timestamp-converter') {
+          <app-timestamp-converter [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('regex-tester') {
+          <app-regex-tester [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('script-runner') {
+          <app-script-runner [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('terminal') {
+          <app-terminal-tool [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('log-viewer') {
+          <app-log-viewer [instanceId]="selectedInstance()!.id" />
+        }
+        @case ('sql-query-builder') {
+          <app-sql-query-builder [instanceId]="selectedInstance()!.id" />
+        }
+      }
+    }
+  </div>
+
+</div>

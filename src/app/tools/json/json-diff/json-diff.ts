@@ -1,10 +1,9 @@
 import { Component, Input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-json-diff', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
+  selector: 'app-json-diff', standalone: true, imports: [MatButtonModule, CodeEditor],
   templateUrl: './json-diff.html', styleUrls: ['./json-diff.css']
 })
 export class JsonDiff {

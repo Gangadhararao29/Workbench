@@ -64,17 +64,40 @@ export class WorkspaceStorage {
 
   // ---- Sync convenience (localStorage — for backward compatibility) --------
 
+  private memoryStore = new Map<string, string>();
+
   get<T>(key: string, fallback: T): T {
     try {
-      const raw = localStorage.getItem(key);
-      return raw === null ? fallback : (JSON.parse(raw) as T);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = window.localStorage.getItem(key);
+        return raw === null ? fallback : (JSON.parse(raw) as T);
+      }
+      if (typeof localStorage !== 'undefined' && localStorage) {
+        const raw = localStorage.getItem(key);
+        return raw === null ? fallback : (JSON.parse(raw) as T);
+      }
+      const mem = this.memoryStore.get(key);
+      return mem === undefined ? fallback : (JSON.parse(mem) as T);
     } catch {
-      return fallback;
+      const mem = this.memoryStore.get(key);
+      return mem === undefined ? fallback : (JSON.parse(mem) as T);
     }
   }
 
   set<T>(key: string, value: T): void {
-    localStorage.setItem(key, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    this.memoryStore.set(key, serialized);
+
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, serialized);
+      } else if (typeof localStorage !== 'undefined' && localStorage) {
+        localStorage.setItem(key, serialized);
+      }
+    } catch {
+      // Ignore storage errors in non-browser/restricted environments
+    }
+
     // Also persist to IndexedDB in the background
     this.setAsync(key, value).catch(() => void 0);
   }

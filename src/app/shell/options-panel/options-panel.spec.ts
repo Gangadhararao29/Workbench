@@ -12,6 +12,14 @@ describe('OptionsPanel', () => {
 
     fixture = TestBed.createComponent(OptionsPanel);
     component = fixture.componentInstance;
+    component.instance = {
+      id: 'test-inst-1',
+      toolType: 'sql-formatter',
+      label: 'SQL Formatter 1',
+      groupId: 'sql',
+      config: { uppercaseKeywords: true }
+    };
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 

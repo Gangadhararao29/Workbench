@@ -28,6 +28,16 @@ function configureMonacoWorkers() {
   if (workerConfigured) return;
   (globalThis as any).MonacoEnvironment = {
     getWorker(_: string, label: string) {
+      if (typeof Worker === 'undefined') {
+        return {
+          postMessage: () => {},
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          terminate: () => {},
+          onmessage: null,
+          onerror: null,
+        } as any;
+      }
       if (label === 'json') {
         return new Worker(
           monacoWorkerUrl('language/json/json.worker.js'),

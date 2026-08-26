@@ -4,7 +4,7 @@
   <mat-toolbar class="app-toolbar">
     <div class="toolbar-left">
       <mat-icon>terminal</mat-icon>
-      <button class="toolbar-brand" (click)="goHome()" matTooltip="Home" aria-label="Go to home">
+      <button class="toolbar-brand" (click)="goHome()" matTooltip="Workbench Home" aria-label="Go to Workbench home">
         Workbench
       </button>
     </div>
@@ -14,14 +14,20 @@
         type="text"
         placeholder="Search tools…"
         class="search-input"
-        [value]="searchQuery()"
-        (input)="searchQuery.set($any($event.target).value)"
+        [value]="shellState.searchQuery()"
+        (input)="shellState.searchQuery.set($any($event.target).value)"
       />
 
       <button mat-icon-button (click)="toggleLeft()" matTooltip="Toggle tools panel" aria-label="Toggle tools panel">
         <mat-icon>dock_to_right</mat-icon>
       </button>
-      <button mat-icon-button (click)="toggleRight()" matTooltip="Toggle options panel" aria-label="Toggle options panel">
+      <button
+        mat-icon-button
+        (click)="toggleRight()"
+        [disabled]="!shellState.hasOptions()"
+        matTooltip="Toggle options panel"
+        aria-label="Toggle options panel"
+      >
         <mat-icon>dock_to_left</mat-icon>
       </button>
       <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme" aria-label="Toggle theme">
@@ -30,12 +36,13 @@
     </div>
   </mat-toolbar>
 
-  <!-- Three sections -->
+  <!-- Sidenav container -->
   <mat-sidenav-container class="body-container">
 
+    <!-- Left Drawer (Sidebar) -->
     <mat-sidenav #leftDrawer mode="side" opened class="left-panel">
       <app-tool-sidebar
-        [searchQuery]="searchQuery()"
+        [searchQuery]="shellState.searchQuery()"
         [hasOpenTools]="instanceService.instances().length > 0"
         (openTool)="openTool($event.toolType, $event.groupId)"
         (closeAll)="closeAllTools()"
@@ -43,203 +50,25 @@
       />
     </mat-sidenav>
 
+    <!-- Center Content (Router Outlet) -->
     <mat-sidenav-content class="center-content">
-      <app-instance-tabs
-        [instances]="instanceService.instances()"
-        [activeId]="activeInstance()?.id ?? null"
-        (select)="selectTab($event)"
-        (close)="closeTab($event)"
-      />
-
-      <div class="tool-surface">
-        @switch (activeInstance()?.toolType) {
-          @case ('sql-formatter') {
-            <app-sql-formatter [instanceId]="activeInstance()!.id" />
-          }
-          @case ('json-formatter') {
-            <app-json-formatter [instanceId]="activeInstance()!.id" />
-          }
-          @case ('json-to-typescript') {
-            <app-json-to-typescript [instanceId]="activeInstance()!.id" />
-          }
-          @case ('json-to-csharp') {
-            <app-json-to-csharp [instanceId]="activeInstance()!.id" />
-          }
-          @case ('json-diff') {
-            <app-json-diff [instanceId]="activeInstance()!.id" />
-          }
-          @case ('json-path') {
-            <app-json-path [instanceId]="activeInstance()!.id" />
-          }
-          @case ('csharp-to-typescript') {
-            <app-csharp-to-typescript [instanceId]="activeInstance()!.id" />
-          }
-          @case ('csharp-to-json') {
-            <app-csharp-to-json [instanceId]="activeInstance()!.id" />
-          }
-          @case ('csharp-formatter') {
-            <app-csharp-formatter [instanceId]="activeInstance()!.id" />
-          }
-          @case ('sql-to-csharp') {
-            <app-sql-to-csharp [instanceId]="activeInstance()!.id" />
-          }
-          @case ('sql-generator') {
-            <app-sql-generator [instanceId]="activeInstance()!.id" />
-          }
-          @case ('sql-search') {
-            <app-sql-search [instanceId]="activeInstance()!.id" />
-          }
-          @case ('jwt-inspector') {
-            <app-jwt-inspector [instanceId]="activeInstance()!.id" />
-          }
-          @case ('curl-converter') {
-            <app-curl-converter [instanceId]="activeInstance()!.id" />
-          }
-          @case ('http-request-builder') {
-            <app-http-request-builder [instanceId]="activeInstance()!.id" />
-          }
-          @case ('openapi-inspector') {
-            <app-openapi-inspector [instanceId]="activeInstance()!.id" />
-          }
-          @case ('ef-configuration') {
-            <app-ef-configuration [instanceId]="activeInstance()!.id" />
-          }
-          @case ('api-generator') {
-            <app-api-generator [instanceId]="activeInstance()!.id" />
-          }
-          @case ('feature-generator') {
-            <app-feature-generator [instanceId]="activeInstance()!.id" />
-          }
-          @case ('documentation-hub') {
-            <app-documentation-hub [instanceId]="activeInstance()!.id" />
-          }
-          @case ('guid-generator') {
-            <app-guid-generator [instanceId]="activeInstance()!.id" />
-          }
-          @case ('timestamp-converter') {
-            <app-timestamp-converter [instanceId]="activeInstance()!.id" />
-          }
-          @case ('regex-tester') {
-            <app-regex-tester [instanceId]="activeInstance()!.id" />
-          }
-          @case ('script-runner') {
-            <app-script-runner [instanceId]="activeInstance()!.id" />
-          }
-          @case ('terminal') {
-            <app-terminal-tool [instanceId]="activeInstance()!.id" />
-          }
-          @case ('log-viewer') {
-            <app-log-viewer [instanceId]="activeInstance()!.id" />
-          }
-          @case ('sql-query-builder') {
-            <app-sql-query-builder [instanceId]="activeInstance()!.id" />
-          }
-          @default {
-            <!-- Home dashboard -->
-            <section class="home" aria-labelledby="welcome-title">
-
-              <header class="home-hero">
-                <div class="home-hero-icon">
-                  <mat-icon>terminal</mat-icon>
-                </div>
-                <div>
-                  <h1 id="welcome-title">Developer Workbench</h1>
-                  <p>All your everyday dev tools in one focused workspace. Pick a tool below or use the sidebar.</p>
-                </div>
-              </header>
-
-              <div class="home-tabs">
-                <button
-                  class="home-tab"
-                  [class.active]="activeHomeTab() === 'tools'"
-                  (click)="activeHomeTab.set('tools')"
-                >
-                  <mat-icon>apps</mat-icon>
-                  Available Tools
-                </button>
-                <button
-                  class="home-tab"
-                  [class.active]="activeHomeTab() === 'upcoming'"
-                  (click)="activeHomeTab.set('upcoming')"
-                >
-                  <mat-icon>explore</mat-icon>
-                  Upcoming Features
-                </button>
-              </div>
-
-              @if (activeHomeTab() === 'tools') {
-                <div class="home-groups">
-                  @for (group of toolGroups; track group.id) {
-                    <div class="home-group">
-                      <h2 class="home-group-title">
-                        <mat-icon class="home-group-icon">{{ group.icon }}</mat-icon>
-                        {{ group.label }}
-                      </h2>
-                      <div class="home-tool-grid">
-                        @for (tool of group.tools; track tool.type) {
-                          <button
-                            class="home-tool-card"
-                            (click)="openTool(tool.type, group.id)"
-                            [attr.aria-label]="'Open ' + tool.label"
-                          >
-                            <span class="home-tool-name">{{ tool.label }}</span>
-                            <span class="home-tool-desc">{{ tool.description }}</span>
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <div class="home-groups">
-                  @for (group of upcomingGroups; track group.id) {
-                    <div class="home-group">
-                      <h2 class="home-group-title">
-                        <mat-icon class="home-group-icon">{{ group.icon }}</mat-icon>
-                        {{ group.label }}
-                      </h2>
-                      <div class="home-tool-grid">
-                        @for (feature of group.features; track feature.label) {
-                          <div class="home-feature-card">
-                            <span class="home-tool-name">{{ feature.label }}</span>
-                            <span class="home-tool-desc">{{ feature.description }}</span>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-
-                <div class="upcoming-footer">
-                  <p>Want to contribute or follow the development?</p>
-                  <a href="https://github.com/Gangadhararao29/client" target="_blank" rel="noopener noreferrer" class="github-link-btn">
-                    <svg class="github-icon" viewBox="0 0 16 16" version="1.1" aria-hidden="true">
-                      <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-                    </svg>
-                    <span>View GitHub Repository</span>
-                    <mat-icon class="arrow-icon">open_in_new</mat-icon>
-                  </a>
-                </div>
-              }
-
-            </section>
-          }
-        }
-      </div>
+      <router-outlet />
     </mat-sidenav-content>
 
+    <!-- Right Drawer (Options Panel) -->
     <mat-sidenav
       #rightDrawer
       mode="side"
-      [opened]="rightDrawerOpened()"
-      (openedChange)="rightDrawerOpened.set($event)"
+      [opened]="shellState.rightDrawerOpened()"
+      (openedChange)="shellState.setRightDrawer($event)"
       position="end"
       class="right-panel"
     >
-      @if (activeInstance()) {
-        <app-options-panel [instance]="activeInstance()!" />
+      @if (shellState.selectedInstance()) {
+        <app-options-panel [instance]="shellState.selectedInstance()!" />
       }
     </mat-sidenav>
+
   </mat-sidenav-container>
 
 </div>

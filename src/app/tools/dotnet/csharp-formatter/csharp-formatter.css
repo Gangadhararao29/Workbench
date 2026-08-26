@@ -1,9 +1,1 @@
-.tool-surface-inner {
-  display: flex;
-  max-width: 900px;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-  gap: 16px;
-  box-sizing: border-box;
-}
+/* Styles are handled by global tool-common.css */

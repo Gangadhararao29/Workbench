@@ -1,5 +1,4 @@
 import { Component, Input, computed, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { InstanceService } from '../../../core/instance-service';
 import { pascalCase } from '../../../core/engines/code-naming';
@@ -8,12 +7,11 @@ import { CodeEditor } from '../../../shared/code-editor/code-editor';
 interface SqlColumn { name: string; type: string; nullable: boolean; }
 
 @Component({
-  selector: 'app-sql-to-csharp', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
+  selector: 'app-sql-to-csharp', standalone: true, imports: [MatButtonModule, CodeEditor],
   templateUrl: './sql-to-csharp.html', styleUrls: ['./sql-to-csharp.css']
 })
 export class SqlToCsharp {
   @Input({ required: true }) instanceId!: string;
-  readonly toolName = 'SQL to C#';
   input = signal('CREATE TABLE Users (\n  Id INT NOT NULL,\n  Name NVARCHAR(200) NULL,\n  CreatedAt DATETIME2 NOT NULL\n);');
   result = signal('');
   constructor(private instanceService: InstanceService) {}

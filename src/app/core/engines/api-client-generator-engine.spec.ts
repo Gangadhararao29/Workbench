@@ -7,11 +7,10 @@ import {
 
 describe('API Client Generator Engine', () => {
   it('should list all framework options', () => {
-    expect(FRAMEWORK_OPTIONS.length).toBe(6);
+    expect(FRAMEWORK_OPTIONS.length).toBe(5);
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('angular');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('react');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('vue');
-    expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('svelte');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('axios');
     expect(FRAMEWORK_OPTIONS.map(f => f.id)).toContain('fetch');
   });
@@ -98,11 +97,11 @@ describe('API Client Generator Engine', () => {
     });
 
     it('Option 5: TSDoc Comments checkbox toggles JSDoc documentation comments', () => {
-      const withDocs = generateApiClient({ ...baseConfig, includeTsDoc: true });
+      const withDocs = generateApiClient({ ...baseConfig, includeCancellation: false, includeTsDoc: true });
       expect(withDocs.clientCode).toContain('/**');
       expect(withDocs.clientCode).toContain('*/');
 
-      const withoutDocs = generateApiClient({ ...baseConfig, includeTsDoc: false });
+      const withoutDocs = generateApiClient({ ...baseConfig, includeCancellation: false, includeTsDoc: false });
       expect(withoutDocs.clientCode).not.toContain('/**');
       expect(withoutDocs.clientCode).not.toContain('*/');
     });
@@ -126,16 +125,22 @@ describe('API Client Generator Engine', () => {
       includePagination: true
     };
 
-    const res = generateApiClient(config);
-    expect(res.clientCode).toContain('export function useProductApi()');
-    expect(res.clientCode).toContain('const items = ref<ProductDto[]>([])');
-    expect(res.clientCode).toContain('const fetchAll = async');
-    expect(res.clientCode).toContain('const fetchById = async');
-    expect(res.clientCode).toContain('const create = async');
-    expect(res.clientCode).toContain('const update = async');
-    expect(res.clientCode).toContain('const remove = async');
-    expect(res.clientCode).toContain('onMounted(() => {');
-    expect(res.usageCode).toContain('useProductApi');
+    const result = generateApiClient(config);
+
+    expect(result.clientCode).toContain('export function useProductApi');
+    expect(result.clientCode).toContain('const items = ref<ProductDto[]>([])');
+    expect(result.clientCode).toContain('const fetchAll = async');
+    expect(result.clientCode).toContain('const create = async');
+    expect(result.clientCode).toContain('const update = async');
+    expect(result.clientCode).toContain('const remove = async');
+
+    expect(result.dtosCode).toContain('export interface ProductDto');
+    expect(result.dtosCode).toContain('export interface CreateProductDto');
+    expect(result.dtosCode).toContain('export interface UpdateProductDto');
+    expect(result.dtosCode).toContain('export interface ProductQueryParams');
+
+    expect(result.testCode).toContain("describe('Product Client'");
+    expect(result.usageCode).toContain('<script setup lang="ts">');
   });
 
   it('should generate Vue 3 Composable for single endpoint with path parameter', () => {
@@ -144,10 +149,10 @@ describe('API Client Generator Engine', () => {
       pattern: 'composable',
       mode: 'single',
       method: 'GET',
-      endpoint: '/api/customers/{id}',
-      responseType: 'CustomerDto',
-      requestBodyType: '',
-      resourceName: 'Customer',
+      endpoint: '/api/orders/{orderId}/items/{itemId}',
+      responseType: 'OrderItemDto',
+      requestBodyType: 'void',
+      resourceName: 'OrderItem',
       baseUrlStrategy: 'relative',
       includeErrorHandling: true,
       includeCancellation: true,
@@ -156,12 +161,11 @@ describe('API Client Generator Engine', () => {
       includePagination: false
     };
 
-    const res = generateApiClient(config);
-    expect(res.clientCode).toContain('export function useCustomer(id?: string | number)');
-    expect(res.clientCode).toContain('const data = ref<CustomerDto | null>(null);');
-    expect(res.clientCode).toContain('onMounted(fetchData);');
-    expect(res.clientCode).toContain('/api/customers/${id}');
-    expect(res.usageCode).toContain('<script setup lang="ts">');
+    const result = generateApiClient(config);
+
+    expect(result.clientCode).toContain('export function useOrderItem(orderId?: string | number, itemId?: string | number)');
+    expect(result.clientCode).toContain('const fetchData = async ()');
+    expect(result.clientCode).toContain('/api/orders/${orderId}/items/${itemId}');
   });
 
   it('should generate Vue 3 Mutation Composable for single POST endpoint', () => {
@@ -182,10 +186,10 @@ describe('API Client Generator Engine', () => {
       includePagination: false
     };
 
-    const res = generateApiClient(config);
-    expect(res.clientCode).toContain('export function useAuthMutation()');
-    expect(res.clientCode).toContain('const execute = async (payload: LoginRequestDto)');
-    expect(res.clientCode).toContain('method: \'POST\'');
-    expect(res.usageCode).toContain('useAuthMutation');
+    const result = generateApiClient(config);
+
+    expect(result.clientCode).toContain('export function useAuthMutation()');
+    expect(result.clientCode).toContain('const execute = async (payload: LoginRequestDto)');
+    expect(result.clientCode).toContain("method: 'POST'");
   });
 });

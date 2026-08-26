@@ -23,17 +23,19 @@ describe('CurlConverter Component', () => {
     expect(component.result()).toContain('HttpClient');
   });
 
-  it('should switch technology to React and default to Fetch', () => {
+  it('should switch technology to React', () => {
     component.onTechChange('react');
     expect(component.selectedTech()).toBe('react');
     expect(component.result()).toContain('export function ApiComponent');
-    expect(component.result()).toContain('fetch');
+    expect(component.result()).toContain("import axios from 'axios'");
   });
 
-  it('should switch type to Axios for React', () => {
-    component.onTechChange('react');
+  it('should switch technology to Vanilla JS and support Fetch and Axios', () => {
+    component.onTechChange('vanilla-js');
+    component.onTypeChange('fetch');
+    expect(component.result()).toContain('fetch(');
+
     component.onTypeChange('axios');
-    expect(component.result()).toContain("import axios from 'axios'");
     expect(component.result()).toContain('axios.');
   });
 
@@ -44,20 +46,14 @@ describe('CurlConverter Component', () => {
     expect(component.result()).toContain('inject(HttpClient)');
   });
 
-  it('should convert to Python Requests and HTTPX', () => {
+  it('should convert to Python Requests', () => {
     component.onTechChange('python');
     component.onTypeChange('requests');
     expect(component.result()).toContain('import requests');
-
-    component.onTypeChange('httpx');
-    expect(component.result()).toContain('import httpx');
   });
 
-  it('should convert to Java OkHttp and HttpClient', () => {
+  it('should convert to Java HttpClient', () => {
     component.onTechChange('java');
-    component.onTypeChange('okhttp');
-    expect(component.result()).toContain('okhttp3.OkHttpClient');
-
     component.onTypeChange('httpclient');
     expect(component.result()).toContain('java.net.http.HttpClient');
   });

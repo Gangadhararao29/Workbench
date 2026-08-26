@@ -1,0 +1,151 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.tool-page-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Scoped Instance Tabs Bar ─────────────────────────────────────────── */
+
+.tool-instance-bar {
+  flex: 0 0 42px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  background: var(--mat-sys-surface-container);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  box-sizing: border-box;
+}
+
+.tabs-scroll-area {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  min-width: 0;
+  scrollbar-width: none;
+}
+
+.tabs-scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
+.scoped-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.scoped-tab:hover {
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.scoped-tab.active {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-primary);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+  font-weight: 600;
+}
+
+.tab-label {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-left: 2px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.tab-close-btn:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+}
+
+.tab-close-btn mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+.tab-action-btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.tab-action-btn:hover {
+  color: var(--mat-sys-primary);
+}
+
+.tab-action-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Tool Surface ─────────────────────────────────────────────────────── */
+
+.tool-surface {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+  .tool-surface {
+    padding: 12px;
+  }
+}

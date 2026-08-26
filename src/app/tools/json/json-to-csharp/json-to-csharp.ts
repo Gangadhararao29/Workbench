@@ -1,12 +1,11 @@
 import { Component, Input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { InstanceService } from '../../../core/instance-service';
 import { convertJsonToCsharp } from '../../../core/engines/json-csharp-engine';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-json-to-csharp', standalone: true, imports: [FormsModule, MatButtonModule, CodeEditor],
+  selector: 'app-json-to-csharp', standalone: true, imports: [MatButtonModule, CodeEditor],
   templateUrl: './json-to-csharp.html', styleUrls: ['./json-to-csharp.css']
 })
 export class JsonToCsharp {

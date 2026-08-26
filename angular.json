@@ -46,7 +46,7 @@
               }
             ],
             "styles": [
-              "src/material-theme.scss",
+              "src/material-theme.css",
               "src/styles.css",
               "node_modules/monaco-editor/min/vs/editor/editor.main.css"
             ],
@@ -92,7 +92,12 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "setupFiles": [
+              "src/test-setup.ts"
+            ]
+          }
         }
       }
     }

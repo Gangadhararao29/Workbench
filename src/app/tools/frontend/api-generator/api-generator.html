@@ -1,95 +1,72 @@
-<div class="api-generator-root">
-  <!-- Row 1: Framework Icons (Left) and Mode Toggle (Right) aligned in single line -->
-  <div class="top-control-row">
-    <div class="framework-icons-group">
-      <span class="group-label">Framework</span>
-      <div class="framework-pills">
+<div class="flex flex-col gap-3.5 w-full max-w-[1200px] mx-auto py-1 pb-6 box-border">
+
+  <!-- Row 1: Framework Selection (Left) & Mode Toggle (Right) -->
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <span class="text-[11px] font-bold uppercase tracking-wide text-[var(--mat-sys-on-surface-variant)]">
+        Framework
+      </span>
+      <mat-button-toggle-group [value]="framework()" (change)="onFrameworkChange($event.value)" aria-label="Framework">
         @for (fw of frameworks; track fw.id) {
-          <button
-            type="button"
-            class="fw-pill-btn"
-            [class.active]="framework() === fw.id"
-            (click)="onFrameworkChange(fw.id)"
-            [matTooltip]="fw.label">
-            <mat-icon class="pill-icon">{{ fw.icon }}</mat-icon>
-            <span>{{ fw.label }}</span>
-          </button>
+        <mat-button-toggle [value]="fw.id" [matTooltip]="fw.label">
+          <mat-icon>{{ fw.icon }}</mat-icon>
+          <span>{{ fw.label }}</span>
+        </mat-button-toggle>
         }
-      </div>
+      </mat-button-toggle-group>
     </div>
 
-    <div class="mode-toggle-group">
-      <button
-        type="button"
-        class="mode-btn"
-        [class.active]="mode() === 'crud'"
-        (click)="setMode('crud')">
-        <mat-icon>view_list</mat-icon> Full REST CRUD
-      </button>
-      <button
-        type="button"
-        class="mode-btn"
-        [class.active]="mode() === 'single'"
-        (click)="setMode('single')">
-        <mat-icon>call_made</mat-icon> Single Endpoint
-      </button>
-    </div>
+    <mat-button-toggle-group [value]="mode()" (change)="setMode($event.value)" aria-label="Generation mode">
+      <mat-button-toggle value="crud">
+        <mat-icon>view_list</mat-icon>
+        <span>Full REST CRUD</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="single">
+        <mat-icon>call_made</mat-icon>
+        <span>Single Endpoint</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
   </div>
 
-  <!-- Row 2: Resource Name, Endpoint, HTTP Method (if Single), Pattern Selector aligned in single line -->
-  <div class="inputs-grid" [class.single-mode]="mode() === 'single'">
-    <div class="field-group resource-field">
-      <label class="field-label">Resource Name</label>
-      <input
-        type="text"
-        [ngModel]="resourceName()"
-        (ngModelChange)="resourceName.set($event)"
-        placeholder="Product, User, Order"
-        class="field-input" />
-    </div>
+  <!-- Row 2: Resource Name, Endpoint, HTTP Method (if Single), Pattern -->
+  <div class="controls-grid"
+    [style.grid-template-columns]="mode() === 'single' ? '1fr 1.8fr 110px 1.6fr' : '1fr 2fr 1.6fr'">
+    <label>
+      <span>Resource Name</span>
+      <input type="text" [ngModel]="resourceName()" (ngModelChange)="resourceName.set($event)"
+        placeholder="Product, User, Order" />
+    </label>
 
-    <div class="field-group endpoint-field">
-      <label class="field-label">Endpoint</label>
-      <input
-        type="text"
-        [ngModel]="endpoint()"
-        (ngModelChange)="endpoint.set($event)"
-        placeholder="/api/products or /api/users/{id}"
-        class="field-input mono" />
-    </div>
+    <label>
+      <span>Endpoint</span>
+      <input type="text" class="font-mono" [ngModel]="endpoint()" (ngModelChange)="endpoint.set($event)"
+        placeholder="/api/products or /api/users/{id}" />
+    </label>
 
     @if (mode() === 'single') {
-      <div class="field-group method-field">
-        <label class="field-label">HTTP Method</label>
-        <div class="select-wrapper">
-          <select
-            [ngModel]="method()"
-            (ngModelChange)="method.set($event)"
-            class="field-select method-select"
-            [attr.data-method]="method()">
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="PATCH">PATCH</option>
-            <option value="DELETE">DELETE</option>
-          </select>
-        </div>
-      </div>
+    <label>
+      <span>Method</span>
+      <select [ngModel]="method()" (ngModelChange)="method.set($event)">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="PATCH">PATCH</option>
+        <option value="DELETE">DELETE</option>
+      </select>
+    </label>
     }
 
-    <div class="field-group pattern-field">
-      <label class="field-label">Pattern</label>
-      <div class="select-wrapper">
-        <select [ngModel]="pattern()" (ngModelChange)="pattern.set($event)" class="field-select">
-          @for (pat of availablePatterns(); track pat.id) {
-            <option [value]="pat.id">{{ pat.label }}</option>
-          }
-        </select>
-      </div>
-    </div>
+    <label>
+      <span>Pattern</span>
+      <select [ngModel]="pattern()" (ngModelChange)="pattern.set($event)">
+        @for (pat of availablePatterns(); track pat.id) {
+        <option [value]="pat.id">{{ pat.label }}</option>
+        }
+      </select>
+    </label>
   </div>
 
-  <!-- Row 3: Direct Options Checkboxes -->
+  <!-- Row 3: Options -->
   <div class="options-row">
     <label class="checkbox-label">
       <input type="checkbox" [ngModel]="includeErrorHandling()" (ngModelChange)="includeErrorHandling.set($event)" />
@@ -113,61 +90,37 @@
     </label>
   </div>
 
-  <!-- Generated Output Section with Tabs & Actions -->
-  <div class="output-card">
-    <div class="output-tabs-header">
-      <div class="tabs-group">
-        <button
-          type="button"
-          class="tab-btn"
-          [class.active]="activeTab() === 'client'"
-          (click)="activeTab.set('client')">
-          <mat-icon>code</mat-icon> Client Code
-        </button>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.active]="activeTab() === 'dtos'"
-          (click)="activeTab.set('dtos')">
-          <mat-icon>data_object</mat-icon> TypeScript DTOs
-        </button>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.active]="activeTab() === 'tests'"
-          (click)="activeTab.set('tests')">
-          <mat-icon>fact_check</mat-icon> Unit Test Spec
-        </button>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.active]="activeTab() === 'usage'"
-          (click)="activeTab.set('usage')">
-          <mat-icon>preview</mat-icon> Component Usage
-        </button>
-      </div>
+  <!-- Output Card -->
+  <div class="flex flex-col overflow-hidden rounded-lg min-h-[520px] h-[550px]
+              bg-[var(--mat-sys-surface-container-low)] border border-[var(--mat-sys-outline-variant)]">
+    <div class="flex items-center justify-between gap-3 flex-wrap px-3
+                bg-[var(--mat-sys-surface-container)] border-b border-[var(--mat-sys-outline-variant)] shrink-0">
+      <mat-button-toggle-group [value]="activeTab()" (change)="activeTab.set($event.value)"
+        class="output-tabs-toggle !border-0 !bg-transparent" aria-label="Output tab">
+        @for (tab of outputTabs; track tab.id) {
+        <mat-button-toggle [value]="tab.id">
+          <mat-icon>{{ tab.icon }}</mat-icon>
+          <span>{{ tab.label }}</span>
+        </mat-button-toggle>
+        }
+      </mat-button-toggle-group>
 
-      <div class="tab-actions">
-        <button type="button" class="tab-action-btn" (click)="copyCode()" matTooltip="Copy generated code">
+      <div class="flex items-center gap-2 py-1.5">
+        <button mat-stroked-button (click)="copyCode()" matTooltip="Copy generated code">
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-          <span>{{ copied() ? 'Copied!' : 'Copy' }}</span>
+          {{ copied() ? 'Copied!' : 'Copy' }}
         </button>
-        <button type="button" class="tab-action-btn" (click)="downloadCode()" matTooltip="Download as file">
+        <button mat-stroked-button (click)="downloadCode()" matTooltip="Download as file">
           <mat-icon>download</mat-icon>
-          <span>Download</span>
+          Download
         </button>
       </div>
     </div>
 
     <!-- Monaco Code Editor Surface -->
     <div class="editor-wrapper">
-      <app-code-editor
-        class="generated-editor"
-        [value]="activeCode()"
-        [language]="editorLanguage()"
-        [readOnly]="true"
-        wordWrap="on"
-        ariaLabel="Generated API client code">
+      <app-code-editor class="generated-editor" [value]="activeCode()" [language]="editorLanguage()" [readOnly]="true"
+        wordWrap="on" ariaLabel="Generated API client code">
       </app-code-editor>
     </div>
   </div>

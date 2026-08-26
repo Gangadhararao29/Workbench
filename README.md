@@ -18,7 +18,7 @@ The home page groups tools into the following areas:
 - **Frontend:** API client generator
 - **General:** GUID generator, timestamp converter, regex tester, script runner, documentation hub, terminal, and log viewer
 
-Tools open as tabs in the central workspace. Multiple instances can be open at once, tabs can be renamed or closed, and recently closed instances can be restored. The left sidebar supports search and favorites. Tool state, tab state, favorites, and the selected light or dark theme are persisted in browser storage. The options panel appears for tools that expose configurable formatting or generation settings.
+Tools open as dedicated tool pages (`/tools/:toolType`) in the central workspace. Multiple scoped instances can be open per tool, tabs can be added or duplicated, and recently closed instances are preserved. The left sidebar supports search and favorites. Tool state, instance configurations, favorites, and light/dark theme preference are persisted in browser storage. The options panel appears for tools that expose configurable formatting or generation settings.
 
 The home page also tracks planned areas such as database connectivity, Roslyn and solution analysis, migration and CLI support, repository operations, project-wide code generation, an LLM gateway, and account or team synchronization features.
 
@@ -50,8 +50,10 @@ Open `http://localhost:4200/`. The client reloads automatically when source file
 
 ## Project structure
 
-- `src/app/core/` contains shared services, tool registration, defaults, storage, and reusable engines.
-- `src/app/shell/` contains the application shell, tabs, sidebar, and options panel.
+- `src/app/core/` contains shared services, state management, tool registration, defaults, storage, and reusable engines.
+- `src/app/shell/` contains the application shell, navigation bar, sidebar, and options panel.
+- `src/app/home/` contains the home dashboard.
+- `src/app/tool-page/` contains the dedicated tool container page and scoped instance tab bar.
 - `src/app/tools/` contains individual tool components grouped by domain.
 - `src/app/shared/` contains reusable UI components such as the code editor.
 - `public/` contains static assets and the web app manifest.
@@ -74,21 +76,21 @@ Each tool currently has three integration points: metadata, rendering, and optio
 	{ type: 'my-tool', label: 'My tool', description: 'What the tool does.' }
 	```
 
-	The `type` must be unique. It is used as the instance key, sidebar search value, and dispatch value.
+	The `type` must be unique. It is used as the instance key, route parameter (`/tools/my-tool`), sidebar search value, and dispatch value.
 
-3. Import the component in [`app.ts`](src/app/app.ts), add it to the standalone component `imports` array, and add a matching `@case` to [`app.html`](src/app/app.html):
+3. Import the component in [`tool-page.ts`](src/app/tool-page/tool-page.ts), add it to the standalone component `imports` array, and add a matching `@case` to [`tool-page.html`](src/app/tool-page/tool-page.html):
 
 	```html
 	@case ('my-tool') {
-	  <app-my-tool [instanceId]="activeInstance()!.id" />
+	  <app-my-tool [instanceId]="selectedInstance()!.id" />
 	}
 	```
 
 4. If the tool needs initial settings, add a matching entry to [`tool-defaults.ts`](src/app/core/tool-defaults.ts). The default object is copied for each new instance.
 
-5. If it has user-facing settings, add an `@case ('my-tool')` to [`options-panel.html`](src/app/shell/options-panel/options-panel.html), and update the tool to read those values from its instance configuration. Add the tool type to `TOOLS_WITH_OPTIONS` in [`app.ts`](src/app/app.ts) so the panel opens automatically.
+5. If it has user-facing settings, add an `@case ('my-tool')` to [`options-panel.html`](src/app/shell/options-panel/options-panel.html), and update the tool to read those values from its instance configuration. Add the tool type to `TOOLS_WITH_OPTIONS` in [`shell-state.service.ts`](src/app/core/shell-state.service.ts) so the panel opens automatically.
 
-6. Add or update focused unit tests beside the component. Verify the tool appears on the home page and sidebar, opens in a tab, preserves its state after reload, and handles invalid input where applicable.
+6. Add or update focused unit tests beside the component. Verify the tool appears on the home page and sidebar, opens in its tool page, preserves its state after reload, and handles invalid input where applicable.
 
 After adding a tool, run:
 

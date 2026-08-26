@@ -5,7 +5,7 @@ import {
   convertCurl,
   splitArguments,
   CURL_PRESETS,
-  TARGET_OPTIONS
+  TECHNOLOGIES,
 } from './curl-engine';
 
 describe('Curl Engine', () => {
@@ -128,16 +128,8 @@ describe('Curl Engine', () => {
       expect(csharp).toContain('StringContent');
     });
 
-    it('should generate C# RestSharp code', () => {
-      const restsharp = convertCurl(samplePostJson, 'restsharp');
-      expect(restsharp).toContain('using RestSharp;');
-      expect(restsharp).toContain('new RestRequest("", Method.POST)');
-      expect(restsharp).toContain('AddHeader("Authorization", "Bearer token123")');
-      expect(restsharp).toContain('AddStringBody');
-    });
-
     it('should generate JavaScript Fetch code', () => {
-      const fetchCode = convertCurl(samplePostJson, 'fetch');
+      const fetchCode = convertCurl(samplePostJson, 'vanilla-js', 'fetch');
       expect(fetchCode).toContain("fetch('https://api.example.com/v1/users'");
       expect(fetchCode).toContain("method: 'POST'");
       expect(fetchCode).toContain('Authorization');
@@ -145,9 +137,21 @@ describe('Curl Engine', () => {
     });
 
     it('should generate Axios code', () => {
-      const axiosCode = convertCurl(samplePostJson, 'axios');
+      const axiosCode = convertCurl(samplePostJson, 'vanilla-js', 'axios');
       expect(axiosCode).toContain("import axios from 'axios'");
       expect(axiosCode).toContain("axios.post('https://api.example.com/v1/users'");
+    });
+
+    it('should generate React Axios code', () => {
+      const reactCode = convertCurl(samplePostJson, 'react');
+      expect(reactCode).toContain("export function ApiComponent");
+      expect(reactCode).toContain("axios.post('https://api.example.com/v1/users'");
+    });
+
+    it('should generate Vue Axios code', () => {
+      const vueCode = convertCurl(samplePostJson, 'vue');
+      expect(vueCode).toContain("<script setup>");
+      expect(vueCode).toContain("axios.post('https://api.example.com/v1/users'");
     });
 
     it('should generate Angular HttpClient code', () => {
@@ -157,29 +161,10 @@ describe('Curl Engine', () => {
     });
 
     it('should generate Python Requests code', () => {
-      const pyCode = convertCurl(samplePostJson, 'python-requests');
+      const pyCode = convertCurl(samplePostJson, 'python');
       expect(pyCode).toContain('import requests');
       expect(pyCode).toContain("response = requests.post(");
       expect(pyCode).toContain('json=payload');
-    });
-
-    it('should generate Python HTTPX code', () => {
-      const httpxCode = convertCurl(samplePostJson, 'python-httpx');
-      expect(httpxCode).toContain('import httpx');
-      expect(httpxCode).toContain('client.post');
-    });
-
-    it('should generate Go code', () => {
-      const goCode = convertCurl(samplePostJson, 'go');
-      expect(goCode).toContain('package main');
-      expect(goCode).toContain('http.NewRequest("POST", "https://api.example.com/v1/users"');
-      expect(goCode).toContain('req.Header.Set("Authorization", "Bearer token123")');
-    });
-
-    it('should generate Rust reqwest code', () => {
-      const rustCode = convertCurl(samplePostJson, 'rust');
-      expect(rustCode).toContain('use reqwest::Client;');
-      expect(rustCode).toContain('.post("https://api.example.com/v1/users")');
     });
 
     it('should generate Java code', () => {
@@ -187,22 +172,9 @@ describe('Curl Engine', () => {
       expect(javaCode).toContain('import java.net.http.HttpClient;');
       expect(javaCode).toContain('HttpRequest.newBuilder()');
     });
-
-    it('should generate PHP code', () => {
-      const phpCode = convertCurl(samplePostJson, 'php');
-      expect(phpCode).toContain('<?php');
-      expect(phpCode).toContain('curl_init()');
-      expect(phpCode).toContain('CURLOPT_POSTFIELDS');
-    });
-
-    it('should generate Dart code', () => {
-      const dartCode = convertCurl(samplePostJson, 'dart');
-      expect(dartCode).toContain("package:http/http.dart");
-      expect(dartCode).toContain("http.post");
-    });
   });
 
-  describe('Presets and Target Options', () => {
+  describe('Presets and Technologies', () => {
     it('should have predefined presets that parse and convert cleanly', () => {
       expect(CURL_PRESETS.length).toBeGreaterThan(0);
       for (const preset of CURL_PRESETS) {
@@ -213,11 +185,12 @@ describe('Curl Engine', () => {
       }
     });
 
-    it('should have valid target options metadata', () => {
-      expect(TARGET_OPTIONS.length).toBe(12);
-      for (const opt of TARGET_OPTIONS) {
-        expect(opt.id).toBeTruthy();
-        expect(opt.editorLanguage).toBeTruthy();
+    it('should have valid technologies metadata', () => {
+      expect(TECHNOLOGIES.length).toBe(7);
+      for (const tech of TECHNOLOGIES) {
+        expect(tech.id).toBeTruthy();
+        expect(tech.name).toBeTruthy();
+        expect(tech.types.length).toBeGreaterThan(0);
       }
     });
   });

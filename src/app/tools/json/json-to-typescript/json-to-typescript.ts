@@ -13,7 +13,6 @@ import { CodeEditor } from '../../../shared/code-editor/code-editor';
 })
 export class JsonToTypescript {
   @Input({ required: true }) instanceId!: string;
-  readonly toolName = 'JSON to TypeScript';
   input = signal('{"id":1,"name":"Ada","active":true,"roles":["admin"]}');
   result = signal('');
 

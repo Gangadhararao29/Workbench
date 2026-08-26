@@ -1,6 +1,5 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { inspectJwt, JwtInspection } from '../../../core/engines/jwt-engine';
@@ -8,7 +7,7 @@ import { inspectJwt, JwtInspection } from '../../../core/engines/jwt-engine';
 @Component({
   selector: 'app-jwt-inspector',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, CodeEditor],
+  imports: [CommonModule, MatButtonModule, CodeEditor],
   templateUrl: './jwt-inspector.html',
   styleUrls: ['./jwt-inspector.css']
 })

@@ -1,330 +1,123 @@
-.api-generator-root {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+/* Layout is handled by Tailwind utility classes in the template.
+   Only Material-internal overrides (::ng-deep) and things Tailwind
+   arbitrary values can't reach live here. */
+
+:host {
+  display: block;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 4px 0 24px 0;
-  box-sizing: border-box;
 }
 
-/* Row 1: Framework Icons (Left) & Mode Toggle (Right) */
-.top-control-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.framework-icons-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.group-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.framework-pills {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.fw-pill-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--mat-sys-surface-container-high);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 20px;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.fw-pill-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-.fw-pill-btn:hover {
-  background: var(--mat-sys-surface-container-highest);
-  color: var(--mat-sys-on-surface);
-  border-color: var(--mat-sys-primary);
-}
-
-.fw-pill-btn.active {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  border-color: var(--mat-sys-primary);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-}
-
-/* Mode Toggle Group (Right) */
-.mode-toggle-group {
-  display: flex;
-  background: var(--mat-sys-surface-container-high);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
-  padding: 3px;
-  gap: 4px;
-}
-
-.mode-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.mode-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-.mode-btn:hover {
-  color: var(--mat-sys-on-surface);
-}
-
-.mode-btn.active {
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-primary);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-/* Row 2: Inputs Grid (Single Line alignment) */
-.inputs-grid {
+/* Controls Grid & Form Inputs (like guid-generator) */
+.controls-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr 1.5fr;
   gap: 12px;
-  align-items: flex-end;
-  transition: grid-template-columns 0.18s ease;
+  align-items: start;
 }
 
-.inputs-grid.single-mode {
-  grid-template-columns: 1fr 1.8fr 110px 1.5fr;
-}
-
-.field-group {
+.controls-grid label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  min-width: 0;
-}
-
-.field-label {
-  font-size: 11px;
-  font-weight: 600;
+  gap: 6px;
   color: var(--mat-sys-on-surface-variant);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.select-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.field-select,
-.field-input {
+.controls-grid input,
+.controls-grid select {
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 10px;
-  background: var(--mat-sys-surface-container-high);
-  border: 1px solid var(--mat-sys-outline-variant);
+  padding: 8px 12px;
+  border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
+  font: inherit;
   font-size: 13px;
   outline: none;
   transition: border-color 0.15s ease;
 }
 
-.field-input.mono {
-  font-family: 'Roboto Mono', monospace;
-}
-
-.field-select:focus,
-.field-input:focus {
+.controls-grid input:focus,
+.controls-grid select:focus {
   border-color: var(--mat-sys-primary);
 }
 
-/* Method badge styles */
-.method-select[data-method="GET"] {
-  color: #10b981;
-  font-weight: 600;
-}
-.method-select[data-method="POST"] {
-  color: #3b82f6;
-  font-weight: 600;
-}
-.method-select[data-method="PUT"] {
-  color: #f59e0b;
-  font-weight: 600;
-}
-.method-select[data-method="PATCH"] {
-  color: #8b5cf6;
-  font-weight: 600;
-}
-.method-select[data-method="DELETE"] {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-/* Row 3: Direct Options Checkboxes */
+/* Options / Checkbox Row */
 .options-row {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
-  padding: 8px 14px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 6px;
+  padding: 2px 0;
 }
 
 .checkbox-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--mat-sys-on-surface);
   cursor: pointer;
   user-select: none;
 }
 
-.checkbox-label input[type='checkbox'] {
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
   accent-color: var(--mat-sys-primary);
   width: 15px;
   height: 15px;
-  cursor: pointer;
+  margin: 0;
 }
 
-/* Output Card & Tabs */
-.output-card {
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 520px;
-  height: 550px;
+/* Button toggle groups: align icon + label, centered perfectly with comfortable padding */
+::ng-deep .mat-button-toggle-group {
+  min-height: 38px;
 }
 
-.output-tabs-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--mat-sys-surface-container);
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
-  padding: 0 12px;
-  gap: 12px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
+::ng-deep .mat-button-toggle-button {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  min-height: 38px !important;
 }
 
-.tabs-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+::ng-deep .mat-button-toggle-label-content {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  line-height: 1 !important;
+  padding: 8px 14px !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.tab-btn {
+::ng-deep .mat-button-toggle-label-content mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  line-height: 16px !important;
+}
+
+::ng-deep .mat-button-toggle-label-content span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  background: transparent;
+  line-height: 1;
+}
+
+/* Output tab toggle group sits directly on the card header, not a floating pill */
+::ng-deep .output-tabs-toggle .mat-button-toggle-group {
   border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.15s ease;
+  background: transparent;
 }
 
-.tab-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-.tab-btn:hover {
-  color: var(--mat-sys-on-surface);
-  background: var(--mat-sys-surface-container-high);
-}
-
-.tab-btn.active {
-  color: var(--mat-sys-primary);
-  border-bottom-color: var(--mat-sys-primary);
-  font-weight: 600;
-}
-
-.tab-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tab-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  background: var(--mat-sys-surface-container-high);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 5px;
-  color: var(--mat-sys-on-surface);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.tab-action-btn mat-icon {
-  font-size: 15px;
-  width: 15px;
-  height: 15px;
-}
-
-.tab-action-btn:hover {
-  background: var(--mat-sys-surface-container-highest);
-  border-color: var(--mat-sys-primary);
-  color: var(--mat-sys-primary);
-}
-
+/* Editor surface must fill all remaining vertical space in the output card */
 .editor-wrapper {
   flex: 1 1 auto;
   display: flex;
@@ -355,23 +148,9 @@ app-code-editor.generated-editor {
   border-radius: 0 !important;
 }
 
-/* Responsive adjustments */
+/* Responsive: stack controls on small screens */
 @media (max-width: 768px) {
-  .top-control-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .mode-toggle-group {
-    width: 100%;
-  }
-  .mode-btn {
-    flex: 1;
-  }
-  .inputs-grid,
-  .inputs-grid.single-mode {
-    grid-template-columns: 1fr;
-  }
-  .options-row {
-    gap: 12px;
+  :host ::ng-deep .mat-button-toggle-group {
+    flex-wrap: wrap;
   }
 }

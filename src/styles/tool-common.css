@@ -68,6 +68,51 @@ app-code-editor.result-editor {
   resize: vertical;
 }
 
+.text-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: 14px/1.5 'Roboto Mono', monospace;
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actions button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.status-message {
+  margin: 0;
+  color: var(--mat-sys-primary);
+  font-size: 13px;
+}
+
+.error-message {
+  margin: 0;
+  color: var(--mat-sys-error);
+  font-size: 13px;
+}
+
 @media (pointer: coarse) {
   .code-input {
     min-height: 180px;

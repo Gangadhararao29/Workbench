@@ -1,5 +1,25 @@
-.tool-surface-inner { display: flex; max-width: 900px; min-height: 100%; flex-direction: column; gap: 16px; }
-.controls { display: flex; flex-wrap: wrap; gap: 16px; }
-.controls label { display: flex; flex-direction: column; gap: 6px; color: var(--mat-sys-on-surface-variant); font-size: 13px; font-weight: 700; }
-.controls input, .controls select { min-width: 150px; padding: 9px; border: 1px solid var(--mat-sys-outline); border-radius: 6px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); font: inherit; }
-.code-result { flex: 1; min-height: 280px; margin: 0; overflow: auto; padding: 16px; border: 1px solid var(--mat-sys-outline); border-radius: 6px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); font: 14px/1.5 'Roboto Mono', monospace; white-space: pre-wrap; resize: vertical; }
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.controls input,
+.controls select {
+  min-width: 150px;
+  padding: 9px;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 6px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+}
