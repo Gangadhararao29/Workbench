@@ -3,7 +3,8 @@
   <div class="spec-editor-card">
     <div class="spec-header">
       <div class="spec-title-group">
-        <h2 class="section-title">OpenAPI Specification (JSON)</h2>
+        <h2 class="section-title">OpenAPI Specification</h2>
+        <span class="format-badge" [class.format-yaml]="detectedFormat() === 'YAML'">{{ detectedFormat() }}</span>
         <button type="button" class="btn-preset" (click)="loadSample()">
           <mat-icon class="preset-icon">auto_awesome</mat-icon>
           <span>Load Sample Spec</span>
@@ -25,8 +26,8 @@
     <div class="editor-wrapper">
       <app-code-editor
         [value]="input()"
-        language="json"
-        ariaLabel="OpenAPI JSON"
+        [language]="editorLanguage()"
+        ariaLabel="OpenAPI Spec"
         (valueChange)="input.set($event)">
       </app-code-editor>
     </div>

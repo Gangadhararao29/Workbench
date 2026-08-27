@@ -1,10 +1,151 @@
 <div class="tool-surface-inner">
-    <div class="field"><label>Regular expression</label><input [(ngModel)]="pattern" class="text-input" /></div>
-    <div class="field"><label>Flags</label><input [(ngModel)]="flags" class="text-input" placeholder="gi" /></div>
-    <div class="field"><label>Test text</label>
-        <textarea rows="4" [(ngModel)]="sample" class="code-input"></textarea>
+  <!-- Pattern Configuration Section -->
+  <div class="regex-config-card">
+    <div class="pattern-row">
+      <div class="field pattern-field">
+        <label for="regex-pattern">Regular Expression</label>
+        <div class="regex-input-wrapper">
+          <span class="regex-delimiter">/</span>
+          <input
+            id="regex-pattern"
+            [ngModel]="pattern()"
+            (ngModelChange)="pattern.set($event)"
+            class="text-input regex-code-input"
+            placeholder="e.g. (?<prefix>user|admin)-(?<id>\d+)" />
+          <span class="regex-delimiter">/</span>
+        </div>
+      </div>
+
+      <div class="field flags-field">
+        <label for="regex-flags">Flags</label>
+        <input
+          id="regex-flags"
+          [ngModel]="flags()"
+          (ngModelChange)="flags.set($event)"
+          class="text-input flags-input"
+          placeholder="g, i, m, s, u" />
+      </div>
     </div>
-    <div class="field"><label>Replacement</label><input [(ngModel)]="replacement" class="text-input" /></div><button
-        mat-raised-button color="primary" (click)="test()">Test regex</button>
-    <pre class="code-result">{{ result() }}</pre>
+
+    <div class="field replacement-field">
+      <label for="regex-replacement">Replacement Pattern (optional)</label>
+      <input
+        id="regex-replacement"
+        [ngModel]="replacement()"
+        (ngModelChange)="replacement.set($event)"
+        class="text-input"
+        placeholder="e.g. account-$<id> or $1" />
+    </div>
+
+    @if (regexError()) {
+      <div class="regex-error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ regexError() }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Test Cases Header -->
+  <div class="test-cases-header">
+    <div class="header-title-group">
+      <h3>Test Cases ({{ testCases().length }})</h3>
+      <span class="header-hint">Live evaluations & inline match highlights</span>
+    </div>
+    <button mat-flat-button color="primary" type="button" class="btn-add-test" (click)="addTestCase()">
+      <mat-icon>add</mat-icon> Add Test Case
+    </button>
+  </div>
+
+  <!-- Test Cases Cards -->
+  <div class="test-cases-list">
+    @for (tc of evaluations(); track tc.id; let idx = $index) {
+      <div class="test-case-card" [class.has-matches]="tc.matchCount > 0">
+        <div class="test-case-top">
+          <div class="case-badge-group">
+            <span class="case-number">#{{ idx + 1 }}</span>
+            <span
+              class="match-badge"
+              [class.badge-success]="tc.matchCount > 0"
+              [class.badge-none]="tc.matchCount === 0">
+              {{ tc.matchCount }} {{ tc.matchCount === 1 ? 'match' : 'matches' }}
+            </span>
+          </div>
+
+          @if (testCases().length > 1) {
+            <button
+              type="button"
+              class="btn-delete-case"
+              (click)="removeTestCase(tc.id)"
+              matTooltip="Remove this test case">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          }
+        </div>
+
+        <div class="field">
+          <label>Test Input</label>
+          <textarea
+            rows="2"
+            [ngModel]="tc.text"
+            (ngModelChange)="updateTestCase(tc.id, $event)"
+            class="code-input test-textarea"
+            placeholder="Type or paste sample text to test..."></textarea>
+        </div>
+
+        <!-- Inline Highlighted Output -->
+        <div class="field">
+          <label>Match Highlight</label>
+          <div class="highlight-preview" [innerHTML]="tc.highlightedHtml"></div>
+        </div>
+
+        <!-- Replacement Output -->
+        @if (replacement() && tc.matchCount > 0) {
+          <div class="field">
+            <label>Replacement Result</label>
+            <div class="replacement-preview">{{ tc.replacedText }}</div>
+          </div>
+        }
+
+        <!-- Detailed Match & Group Breakdown -->
+        @if (tc.matches.length > 0) {
+          <div class="matches-breakdown">
+            <label class="breakdown-label">Match Details & Groups</label>
+            <div class="match-details-grid">
+              @for (m of tc.matches; track m.index) {
+                <div class="match-detail-pill">
+                  <div class="match-main-info">
+                    <span class="match-num">Match {{ m.index }}:</span>
+                    <code class="match-val">"{{ m.fullMatch }}"</code>
+                    <span class="match-pos">[{{ m.start }}..{{ m.end }}]</span>
+                  </div>
+
+                  @if (m.numberedGroups.length > 0) {
+                    <div class="group-row">
+                      <span class="group-type-label">Numbered:</span>
+                      @for (grp of m.numberedGroups; track $index) {
+                        <span class="group-tag">
+                          ${{ $index + 1 }}: <code>"{{ grp }}"</code>
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  @if (getNamedGroupEntries(m.namedGroups).length > 0) {
+                    <div class="group-row named-group-row">
+                      <span class="group-type-label">Named:</span>
+                      @for (named of getNamedGroupEntries(m.namedGroups); track named.key) {
+                        <span class="group-tag named-tag">
+                          <strong>&lt;{{ named.key }}&gt;:</strong> <code>"{{ named.value }}"</code>
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
 </div>

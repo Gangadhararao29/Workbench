@@ -61,12 +61,18 @@ export const TECHNOLOGIES: TechnologyOption[] = [
   {
     id: 'react',
     name: 'React',
-    types: [{ id: 'axios', name: 'Axios (useEffect)', editorLanguage: 'typescript' }],
+    types: [
+      { id: 'axios', name: 'Axios (useEffect)', editorLanguage: 'typescript' },
+      { id: 'tanstack-query', name: 'TanStack Query', editorLanguage: 'typescript' },
+    ],
   },
   {
     id: 'vue',
     name: 'Vue',
-    types: [{ id: 'axios', name: 'Axios (Composition API)', editorLanguage: 'html' }],
+    types: [
+      { id: 'axios', name: 'Axios (Composition API)', editorLanguage: 'html' },
+      { id: 'pinia', name: 'Pinia (store action)', editorLanguage: 'typescript' },
+    ],
   },
   {
     id: 'vanilla-js',
@@ -568,9 +574,9 @@ export function convertCurl(rawCommand: string, tech: TechnologyId, typeId?: str
     case 'angular':
       return generateAngular(req);
     case 'react':
-      return generateReactAxios(req);
+      return typeId === 'tanstack-query' ? generateReactTanstackQuery(req) : generateReactAxios(req);
     case 'vue':
-      return generateVueAxios(req);
+      return typeId === 'pinia' ? generateVuePinia(req) : generateVueAxios(req);
     case 'vanilla-js':
       return typeId === 'axios' ? generateAxios(req) : generateFetch(req);
     case 'python':
@@ -755,10 +761,78 @@ export function generateReactAxios(req: ParsedCurlRequest): string {
   return `import React, { useEffect, useState } from 'react';\nimport axios from 'axios';\n\nexport function ApiComponent() {\n  const [data, setData] = useState(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);\n\n  useEffect(() => {\n    async function executeRequest() {\n      try {\n        ${axiosCall.replace(/\n/g, '\n        ')}\n        setData(response.data);\n      } catch (err) {\n        setError(err.message);\n      } finally {\n        setLoading(false);\n      }\n    }\n\n    executeRequest();\n  }, []);\n\n  if (loading) return <div>Loading...</div>;\n  if (error) return <div>Error: {error}</div>;\n  return <pre>{JSON.stringify(data, null, 2)}</pre>;\n}`;
 }
 
+// React TanStack Query
+export function generateReactTanstackQuery(req: ParsedCurlRequest): string {
+  const pathSegments = req.pathname.split('/').filter(Boolean);
+  const lastSegment = pathSegments[pathSegments.length - 1] || 'resource';
+  const cleanName = lastSegment.replace(/[^a-zA-Z0-9]/g, '');
+  const resourcePascal = cleanName ? cleanName.charAt(0).toUpperCase() + cleanName.slice(1) : 'Resource';
+  const queryKeyName = cleanName ? cleanName.toLowerCase() : 'resource';
+  const methodUpper = req.method.toUpperCase();
+
+  const configObj: { headers?: Record<string, string> } = {};
+  if (req.headers.length > 0) {
+    configObj.headers = headersToMap(req.headers);
+  }
+  const configStr = Object.keys(configObj).length > 0 ? `, ${JSON.stringify(configObj, null, 2)}` : '';
+  const methodLower = methodUpper.toLowerCase();
+
+  if (methodUpper === 'GET') {
+    return `import { useQuery } from '@tanstack/react-query';\nimport axios from 'axios';\n\nexport const useGet${resourcePascal} = () =>\n  useQuery({\n    queryKey: ['${queryKeyName}'],\n    queryFn: () => axios.get('${req.url}'${configStr}).then(res => res.data),\n  });\n`;
+  }
+
+  const isBodyMethod = ['POST', 'PUT', 'PATCH'].includes(methodUpper);
+  let axiosCall = `axios.${methodLower}('${req.url}'${configStr})`;
+  if (isBodyMethod) {
+    if (req.body) {
+      const jsonCheck = formatJsonBody(req.body);
+      const bodyVal = jsonCheck.isJson ? jsonCheck.formatted : JSON.stringify(req.body);
+      axiosCall = `axios.${methodLower}('${req.url}', variables ?? ${bodyVal}${configStr})`;
+    } else {
+      axiosCall = `axios.${methodLower}('${req.url}', variables${configStr})`;
+    }
+  }
+
+  return `import { useMutation, useQueryClient } from '@tanstack/react-query';\nimport axios from 'axios';\n\nexport const use${resourcePascal}Mutation = () => {\n  const queryClient = useQueryClient();\n  return useMutation({\n    mutationFn: (variables?: any) => ${axiosCall}.then(res => res.data),\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: ['${queryKeyName}'] });\n    },\n  });\n};\n`;
+}
+
 // Vue Axios
 export function generateVueAxios(req: ParsedCurlRequest): string {
   const axiosCall = generateAxios(req).replace(/import axios from 'axios';\n\n/, '');
   return `<script setup>\nimport { ref, onMounted } from 'vue';\nimport axios from 'axios';\n\nconst data = ref(null);\nconst loading = ref(true);\nconst error = ref(null);\n\nonMounted(async () => {\n  try {\n    ${axiosCall.replace(/\n/g, '\n    ')}\n    data.value = response.data;\n  } catch (err) {\n    error.value = err.message;\n  } finally {\n    loading.value = false;\n  }\n});\n</script>\n\n<template>\n  <div v-if="loading">Loading...</div>\n  <div v-else-if="error">Error: {{ error }}</div>\n  <pre v-else>{{ JSON.stringify(data, null, 2) }}</pre>\n</template>`;
+}
+
+// Vue Pinia
+export function generateVuePinia(req: ParsedCurlRequest): string {
+  const pathSegments = req.pathname.split('/').filter(Boolean);
+  const lastSegment = pathSegments[pathSegments.length - 1] || 'items';
+  const cleanName = lastSegment.replace(/[^a-zA-Z0-9]/g, '');
+  const resourcePascal = cleanName ? cleanName.charAt(0).toUpperCase() + cleanName.slice(1) : 'Item';
+  const storeId = cleanName ? cleanName.toLowerCase() : 'item';
+  const methodUpper = req.method.toUpperCase();
+  const methodLower = methodUpper.toLowerCase();
+
+  const configObj: { headers?: Record<string, string> } = {};
+  if (req.headers.length > 0) {
+    configObj.headers = headersToMap(req.headers);
+  }
+  const configStr = Object.keys(configObj).length > 0 ? `, ${JSON.stringify(configObj, null, 2)}` : '';
+
+  let axiosCall = `await axios.${methodLower}('${req.url}'${configStr})`;
+  if (['POST', 'PUT', 'PATCH'].includes(methodUpper)) {
+    if (req.body) {
+      const jsonCheck = formatJsonBody(req.body);
+      const bodyVal = jsonCheck.isJson ? jsonCheck.formatted : JSON.stringify(req.body);
+      axiosCall = `await axios.${methodLower}('${req.url}', payload ?? ${bodyVal}${configStr})`;
+    } else {
+      axiosCall = `await axios.${methodLower}('${req.url}', payload${configStr})`;
+    }
+  }
+
+  const actionName = methodUpper === 'GET' ? `fetch${resourcePascal}` : `execute${resourcePascal}`;
+  const paramSig = ['POST', 'PUT', 'PATCH'].includes(methodUpper) ? `payload?: any` : ``;
+
+  return `import { defineStore } from 'pinia';\nimport { ref } from 'vue';\nimport axios from 'axios';\n\nexport const use${resourcePascal}Store = defineStore('${storeId}', () => {\n  const data = ref<any>(null);\n  const loading = ref<boolean>(false);\n  const error = ref<string | null>(null);\n\n  async function ${actionName}(${paramSig}) {\n    loading.value = true;\n    error.value = null;\n    try {\n      const response = ${axiosCall};\n      data.value = response.data;\n      return response.data;\n    } catch (err: any) {\n      error.value = err.message || 'Request failed';\n      throw err;\n    } finally {\n      loading.value = false;\n    }\n  }\n\n  return {\n    data,\n    loading,\n    error,\n    ${actionName},\n  };\n});\n`;
 }
 
 // Python Requests

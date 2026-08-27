@@ -154,6 +154,28 @@ describe('Curl Engine', () => {
       expect(vueCode).toContain("axios.post('https://api.example.com/v1/users'");
     });
 
+    it('should generate React TanStack Query code', () => {
+      const reactQueryGet = convertCurl('curl https://api.example.com/v1/users', 'react', 'tanstack-query');
+      expect(reactQueryGet).toContain("@tanstack/react-query");
+      expect(reactQueryGet).toContain("useGetUsers");
+      expect(reactQueryGet).toContain("useQuery");
+
+      const reactQueryPost = convertCurl(samplePostJson, 'react', 'tanstack-query');
+      expect(reactQueryPost).toContain("@tanstack/react-query");
+      expect(reactQueryPost).toContain("useUsersMutation");
+      expect(reactQueryPost).toContain("useMutation");
+    });
+
+    it('should generate Vue Pinia code', () => {
+      const piniaGet = convertCurl('curl https://api.example.com/v1/users', 'vue', 'pinia');
+      expect(piniaGet).toContain("defineStore('users'");
+      expect(piniaGet).toContain("fetchUsers");
+
+      const piniaPost = convertCurl(samplePostJson, 'vue', 'pinia');
+      expect(piniaPost).toContain("defineStore('users'");
+      expect(piniaPost).toContain("executeUsers");
+    });
+
     it('should generate Angular HttpClient code', () => {
       const angularCode = convertCurl(samplePostJson, 'angular');
       expect(angularCode).toContain('@angular/common/http');

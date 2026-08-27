@@ -1,17 +1,151 @@
 <div class="tool-surface-inner">
-	<div class="search-row">
-		<input [(ngModel)]="query" (input)="search()" placeholder="Search indexes, column usage, table links, reference data..." />
+	<div class="search-toolbar">
+		<div class="search-input-wrapper">
+			<mat-icon class="search-icon">search</mat-icon>
+			<input
+				[(ngModel)]="query"
+				(input)="search()"
+				placeholder="Search indexes, column usage, foreign keys, reference data, or SQL keywords..." />
+			@if (query) {
+				<button type="button" class="btn-clear-search" (click)="query = ''; search()" aria-label="Clear search">
+					<mat-icon>close</mat-icon>
+				</button>
+			}
+		</div>
+
+		<div class="toolbar-actions">
+			<button
+				type="button"
+				class="filter-fav-btn"
+				[class.active]="showFavoritesOnly()"
+				(click)="toggleFavoritesFilter()"
+				[matTooltip]="showFavoritesOnly() ? 'Show all snippets' : 'Show only starred favorites'">
+				<mat-icon>{{ showFavoritesOnly() ? 'star' : 'star_border' }}</mat-icon>
+				<span>Favorites ({{ favorites().size }})</span>
+			</button>
+
+			<button
+				type="button"
+				mat-flat-button
+				color="primary"
+				class="btn-add-snippet"
+				(click)="openAddForm()">
+				<mat-icon>add</mat-icon>
+				<span>Add Snippet</span>
+			</button>
+		</div>
 	</div>
+
+	@if (showAddForm()) {
+		<div class="snippet-form-card">
+			<div class="form-header">
+				<h3>Add Custom SQL Snippet</h3>
+				<button type="button" class="btn-icon" (click)="cancelAddForm()" aria-label="Cancel">
+					<mat-icon>close</mat-icon>
+				</button>
+			</div>
+
+			<div class="form-grid">
+				<div class="form-field">
+					<label for="snip-title">Title *</label>
+					<input id="snip-title" [(ngModel)]="formTitle" placeholder="e.g. Find Long Running Queries" />
+				</div>
+				<div class="form-field">
+					<label for="snip-category">Category</label>
+					<input id="snip-category" [(ngModel)]="formCategory" placeholder="e.g. Diagnostics, Performance" />
+				</div>
+				<div class="form-field">
+					<label for="snip-database">Database</label>
+					<input id="snip-database" [(ngModel)]="formDatabase" placeholder="e.g. SQL Server, PostgreSQL" />
+				</div>
+				<div class="form-field">
+					<label for="snip-tags">Tags</label>
+					<input id="snip-tags" [(ngModel)]="formTags" placeholder="e.g. cpu memory wait deadlock" />
+				</div>
+				<div class="form-field full-width">
+					<label for="snip-desc">Description</label>
+					<input id="snip-desc" [(ngModel)]="formDescription" placeholder="Brief explanation of what this query does..." />
+				</div>
+				<div class="form-field full-width">
+					<label for="snip-sql">SQL Code *</label>
+					<textarea id="snip-sql" rows="6" [(ngModel)]="formSql" placeholder="SELECT ... FROM ..."></textarea>
+				</div>
+			</div>
+
+			@if (formError) {
+				<div class="form-error-msg">
+					<mat-icon>error_outline</mat-icon> {{ formError }}
+				</div>
+			}
+
+			<div class="form-actions">
+				<button mat-button type="button" (click)="cancelAddForm()">Cancel</button>
+				<button mat-raised-button color="primary" type="button" (click)="submitSnippet()">Save Snippet</button>
+			</div>
+		</div>
+	}
+
 	<div class="pattern-list">
 		@for (pattern of results(); track pattern.title) {
-			<article class="pattern">
-				<div class="pattern-heading"><h2>{{ pattern.title }}</h2><span>{{ pattern.category }}</span></div>
-				<p>{{ pattern.description }}</p>
-				<div class="pattern-meta"><small>{{ pattern.database }}</small><small>{{ pattern.tags }}</small></div>
-				<pre>{{ pattern.sql }}</pre>
+			<article class="pattern-card" [class.is-custom]="pattern.isCustom">
+				<div class="pattern-heading">
+					<div class="title-with-badge">
+						<h2>{{ pattern.title }}</h2>
+						@if (pattern.isCustom) {
+							<span class="custom-badge">Custom</span>
+						}
+					</div>
+					<div class="card-top-actions">
+						<button
+							type="button"
+							class="star-btn"
+							[class.starred]="isFavorite(pattern.title)"
+							(click)="toggleFavorite(pattern.title, $event)"
+							[matTooltip]="isFavorite(pattern.title) ? 'Remove favorite' : 'Add to favorites'">
+							<mat-icon>{{ isFavorite(pattern.title) ? 'star' : 'star_border' }}</mat-icon>
+						</button>
+						@if (pattern.isCustom) {
+							<button
+								type="button"
+								class="delete-btn"
+								(click)="deleteSnippet(pattern.title, $event)"
+								matTooltip="Delete custom snippet">
+								<mat-icon>delete_outline</mat-icon>
+							</button>
+						}
+					</div>
+				</div>
+
+				<p class="pattern-desc">{{ pattern.description }}</p>
+
+				<div class="pattern-meta">
+					<span class="meta-tag meta-category">{{ pattern.category }}</span>
+					<span class="meta-tag meta-db">{{ pattern.database }}</span>
+					@if (pattern.tags) {
+						<span class="meta-tag meta-tags">{{ pattern.tags }}</span>
+					}
+				</div>
+
+				<div class="code-box-wrapper">
+					<pre class="sql-code">{{ pattern.sql }}</pre>
+					<button
+						type="button"
+						class="btn-copy-sql"
+						(click)="copySql(pattern, $event)"
+						matTooltip="Copy SQL to clipboard">
+						<mat-icon>{{ copiedTitle() === pattern.title ? 'check' : 'content_copy' }}</mat-icon>
+						<span>{{ copiedTitle() === pattern.title ? 'Copied!' : 'Copy' }}</span>
+					</button>
+				</div>
 			</article>
 		} @empty {
-			<p>No matching SQL patterns.</p>
+			<div class="empty-state-box">
+				<mat-icon class="empty-icon">search_off</mat-icon>
+				<p>No matching SQL patterns found.</p>
+				@if (showFavoritesOnly()) {
+					<button mat-stroked-button (click)="toggleFavoritesFilter()">Show all snippets</button>
+				}
+			</div>
 		}
 	</div>
 </div>

@@ -1,7 +1,7 @@
 export type SupportedFramework = 'angular' | 'react' | 'vue' | 'axios' | 'fetch';
 
 export type AngularPattern = 'signals-resource' | 'full-service' | 'service-method';
-export type ReactPattern = 'tanstack-query' | 'custom-hook' | 'rtk-query';
+export type ReactPattern = 'tanstack-query' | 'swr' | 'custom-hook' | 'rtk-query';
 export type VuePattern = 'composable' | 'vue-query' | 'pinia-store';
 export type AxiosPattern = 'axios-client';
 export type FetchPattern = 'modern-fetch';
@@ -73,8 +73,13 @@ export const FRAMEWORK_OPTIONS: FrameworkOption[] = [
     patterns: [
       {
         id: 'tanstack-query',
-        label: 'TanStack Query (React Query v5)',
-        description: 'useQuery / useMutation with typed Query Key factory',
+        label: 'React Query v5 (queryOptions)',
+        description: 'queryOptions factory pattern with useQuery / useMutation',
+      },
+      {
+        id: 'swr',
+        label: 'SWR (useSWR)',
+        description: 'useSWR and useSWRMutation with typed key and fetcher',
       },
       {
         id: 'custom-hook',
@@ -105,8 +110,8 @@ export const FRAMEWORK_OPTIONS: FrameworkOption[] = [
       },
       {
         id: 'pinia-store',
-        label: 'Pinia Store Action',
-        description: 'defineStore setup store with typed actions & state',
+        label: 'Pinia Store (defineStore)',
+        description: 'Full defineStore setup store with typed state, actions, and getters',
       },
     ],
   },
@@ -718,8 +723,8 @@ ${doc(`Mutation Hook for ${cfg.method} ${cfg.endpoint}`)}export function use${re
 }`;
       }
 
-      // Single GET query
-      return `import { useQuery } from '@tanstack/react-query';
+      // Single GET query with queryOptions
+      return `import { queryOptions, useQuery } from '@tanstack/react-query';
 import { ${baseItemType}${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
 const BASE_URL = '${baseEndpointUrl}';
@@ -751,17 +756,22 @@ async function fetch${resourcePascal}(${[...pathParams.map((p) => `${p}: string 
   return res.json();
 }
 
-${doc(`Hook to fetch ${resourcePascal}${cfg.includeCancellation ? '. TanStack Query aborts the fetch automatically via the injected signal when the query is cancelled or unmounted.' : ''}`)}export function use${resourcePascal}(${pathParams.map((p) => `${p}: string | number`).join(', ')}${pathParams.length ? ', ' : ''}enabled = true) {
-  return useQuery({
+${doc(`Query Options factory for ${resourcePascal}`)}export const ${resourceCamel}QueryOptions = (${pathParams.map((p) => `${p}: string | number`).join(', ')}) =>
+  queryOptions({
     queryKey: ${pathParams.length ? `${resourceCamel}Keys.detail(${pathParams.join(', ')})` : `['${resourceCamel}']`},
     queryFn: (${cfg.includeCancellation ? '{ signal }' : ''}) => fetch${resourcePascal}(${[...pathParams, ...(cfg.includePagination ? ['undefined'] : []), ...(cfg.includeCancellation ? ['signal'] : [])].join(', ')}),
+  });
+
+${doc(`Hook to fetch ${resourcePascal}${cfg.includeCancellation ? '. TanStack Query aborts the fetch automatically via the injected signal when the query is cancelled or unmounted.' : ''}`)}export function use${resourcePascal}(${pathParams.map((p) => `${p}: string | number`).join(', ')}${pathParams.length ? ', ' : ''}enabled = true) {
+  return useQuery({
+    ...${resourceCamel}QueryOptions(${pathParams.join(', ')}),
     enabled: ${pathParams.length ? pathParams.map((p) => `Boolean(${p})`).join(' && ') + ' && enabled' : 'enabled'},
   });
 }`;
     }
 
-    // CRUD TanStack Query
-    return `import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+    // CRUD TanStack Query with queryOptions
+    return `import { queryOptions, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
 
 const BASE_URL = '${baseEndpointUrl}';
@@ -825,18 +835,26 @@ async function delete${resourcePascal}(id: string | number): Promise<void> {
   ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to delete ${resourceCamel}');` : ''}
 }
 
-${doc(`Hook to fetch ${resourcePluralPascal} list${cfg.includeCancellation ? '. TanStack Query aborts the previous fetch automatically via the injected signal when params change or the component unmounts.' : ''}`)}export function use${resourcePluralPascal}(params?: ${resourcePascal}QueryParams) {
-  return useQuery({
+${doc(`Query Options for ${resourcePluralPascal} list`)}export const ${resourcePluralCamel}ListQueryOptions = (params?: ${resourcePascal}QueryParams) =>
+  queryOptions({
     queryKey: ${resourceCamel}Keys.list(params),
     queryFn: (${cfg.includeCancellation ? '{ signal }' : ''}) => fetch${resourcePluralPascal}(params${cfg.includeCancellation ? ', signal' : ''}),
     staleTime: 1000 * 60 * 5,
   });
+
+${doc(`Query Options for single ${resourceCamel} detail`)}export const ${resourceCamel}DetailQueryOptions = (id: string | number) =>
+  queryOptions({
+    queryKey: ${resourceCamel}Keys.detail(id),
+    queryFn: () => fetch${resourcePascal}ById(id),
+  });
+
+${doc(`Hook to fetch ${resourcePluralPascal} list`)}export function use${resourcePluralPascal}(params?: ${resourcePascal}QueryParams) {
+  return useQuery(${resourcePluralCamel}ListQueryOptions(params));
 }
 
 ${doc(`Hook to fetch single ${resourceCamel} by ID`)}export function use${resourcePascal}(id: string | number, enabled = true) {
   return useQuery({
-    queryKey: ${resourceCamel}Keys.detail(id),
-    queryFn: () => fetch${resourcePascal}ById(id),
+    ...${resourceCamel}DetailQueryOptions(id),
     enabled: Boolean(id) && enabled,
   });
 }
@@ -870,6 +888,165 @@ ${doc(`Hook to delete ${resourcePascal}`)}export function useDelete${resourcePas
       queryClient.invalidateQueries({ queryKey: ${resourceCamel}Keys.lists() });
     },
   });
+}`;
+  }
+
+  if (cfg.pattern === 'swr') {
+    if (cfg.mode === 'single') {
+      const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(cfg.method);
+
+      if (isMutation) {
+        const hasBody = ['POST', 'PUT', 'PATCH'].includes(cfg.method);
+        const mutationArgType = pathParams.length
+          ? `{ ${pathParams.map((p) => `${p}: string | number`).join('; ')}${hasBody ? `; payload: ${cfg.requestBodyType}` : ''} }`
+          : hasBody
+            ? cfg.requestBodyType
+            : 'void';
+
+        return `import useSWRMutation from 'swr/mutation';
+import { ${baseItemType}${hasBody ? `, ${cfg.requestBodyType}` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+async function send${resourcePascal}Request(url: string, { arg }: { arg: ${mutationArgType} }): Promise<${cfg.responseType}> {
+  ${pathParams.length ? `const targetUrl = \`\${BASE_URL}${cleanEndpoint.replace(/\${([^}]+)}/g, 'arg.$1')}\`;` : `const targetUrl = url;`}
+  const res = await fetch(targetUrl, {
+    method: '${cfg.method}',
+    headers: {
+      'Content-Type': 'application/json',
+      ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+    },
+    ${hasBody ? `body: JSON.stringify(${pathParams.length ? 'arg.payload' : 'arg'}),` : ''}
+  });
+
+  ${
+    cfg.includeErrorHandling
+      ? `if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Request failed with status ' + res.status);
+  }`
+      : ''
+  }
+
+  ${cfg.method === 'DELETE' || cfg.responseType === 'void' ? 'return {} as any;' : 'return res.json();'}
+}
+
+${doc(`SWR Mutation Hook for ${cfg.method} ${cfg.endpoint}`)}export function use${resourcePascal}Mutation() {
+  return useSWRMutation(BASE_URL, send${resourcePascal}Request);
+}`;
+      }
+
+      // Single GET SWR
+      return `import useSWR from 'swr';
+import { ${baseItemType}${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+const fetcher = async (url: string): Promise<${cfg.responseType}> => {
+  const res = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+    }
+  });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error(\`Failed to fetch ${resourceCamel}: \${res.statusText}\`);` : ''}
+  return res.json();
+};
+
+${doc(`Hook to fetch ${resourcePascal} using SWR`)}export function use${resourcePascal}(${pathParams.map((p) => `${p}?: string | number`).join(', ')}) {
+  const endpoint = ${pathParams.length ? `${pathParams.map((p) => `Boolean(${p})`).join(' && ')} ? \`\${BASE_URL}${cleanEndpoint.replace(/\${([^}]+)}/g, '${$1}')}\` : null` : `BASE_URL`};
+  const { data, error, isLoading, isValidating, mutate } = useSWR<${cfg.responseType}>(endpoint, fetcher);
+
+  return {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  };
+}`;
+    }
+
+    // CRUD SWR
+    return `import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+import { ${baseItemType}, Create${resourcePascal}Dto, Update${resourcePascal}Dto${cfg.includePagination ? `, ${resourcePascal}QueryParams` : ''} } from './${resourceCamel}.models';
+
+const BASE_URL = '${baseEndpointUrl}';
+
+const fetcher = async <T>(url: string): Promise<T> => {
+  const res = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ${cfg.includeAuth ? `'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`,` : ''}
+    }
+  });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('API request failed');` : ''}
+  return res.json();
+};
+
+// SWR Fetch Hooks
+${doc(`Hook to fetch ${resourcePluralPascal} list via SWR`)}export function use${resourcePluralPascal}(params?: ${resourcePascal}QueryParams) {
+  const search = params ? '?' + new URLSearchParams(params as any).toString() : '';
+  const { data, error, isLoading, isValidating, mutate } = useSWR<${cfg.responseType}>(\`\${BASE_URL}\${search}\`, fetcher);
+
+  return {
+    ${resourcePluralCamel}: data,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  };
+}
+
+${doc(`Hook to fetch single ${resourceCamel} by ID via SWR`)}export function use${resourcePascal}(id?: string | number) {
+  const { data, error, isLoading, isValidating, mutate } = useSWR<${baseItemType}>(id ? \`\${BASE_URL}/\${id}\` : null, fetcher);
+
+  return {
+    ${resourceCamel}: data,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  };
+}
+
+// SWR Mutations
+async function createRequest(url: string, { arg }: { arg: Create${resourcePascal}Dto }): Promise<${baseItemType}> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+    body: JSON.stringify(arg)
+  });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to create ${resourceCamel}');` : ''}
+  return res.json();
+}
+
+async function updateRequest(url: string, { arg }: { arg: { id: string | number; payload: Update${resourcePascal}Dto } }): Promise<${baseItemType}> {
+  const res = await fetch(\`\${url}/\${arg.id}\`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json'${cfg.includeAuth ? `, 'Authorization': \`Bearer \${localStorage.getItem('token') || ''}\`` : ''} },
+    body: JSON.stringify(arg.payload)
+  });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to update ${resourceCamel}');` : ''}
+  return res.json();
+}
+
+async function deleteRequest(url: string, { arg }: { arg: string | number }): Promise<void> {
+  const res = await fetch(\`\${url}/\${arg}\`, { method: 'DELETE' });
+  ${cfg.includeErrorHandling ? `if (!res.ok) throw new Error('Failed to delete ${resourceCamel}');` : ''}
+}
+
+${doc(`Mutation hook to create ${resourceCamel}`)}export function useCreate${resourcePascal}() {
+  return useSWRMutation(BASE_URL, createRequest);
+}
+
+${doc(`Mutation hook to update ${resourcePascal}`)}export function useUpdate${resourcePascal}() {
+  return useSWRMutation(BASE_URL, updateRequest);
+}
+
+${doc(`Mutation hook to delete ${resourcePascal}`)}export function useDelete${resourcePascal}() {
+  return useSWRMutation(BASE_URL, deleteRequest);
 }`;
   }
 

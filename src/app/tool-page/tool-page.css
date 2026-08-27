@@ -136,12 +136,34 @@
 /* ── Tool Surface ─────────────────────────────────────────────────────── */
 
 .tool-surface {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
-  height: 100%;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   box-sizing: border-box;
+}
+
+.instance-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 100%;
+  width: 100%;
+}
+
+.instance-container > * {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 100%;
+  width: 100%;
+}
+
+.instance-container[hidden] {
+  display: none !important;
 }
 
 @media (max-width: 760px) {

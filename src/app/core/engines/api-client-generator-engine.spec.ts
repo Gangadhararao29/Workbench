@@ -192,4 +192,57 @@ describe('API Client Generator Engine', () => {
     expect(result.clientCode).toContain('const execute = async (payload: LoginRequestDto)');
     expect(result.clientCode).toContain("method: 'POST'");
   });
+
+  it('should generate React Query v5 with queryOptions factory pattern', () => {
+    const config: ApiGeneratorConfig = {
+      framework: 'react',
+      pattern: 'tanstack-query',
+      mode: 'crud',
+      method: 'GET',
+      endpoint: '/api/products',
+      responseType: 'ProductDto[]',
+      requestBodyType: 'CreateProductDto',
+      resourceName: 'Product',
+      baseUrlStrategy: 'relative',
+      includeErrorHandling: true,
+      includeCancellation: true,
+      includeAuth: true,
+      includeTsDoc: true,
+      includePagination: true
+    };
+
+    const result = generateApiClient(config);
+
+    expect(result.clientCode).toContain("import { queryOptions, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'");
+    expect(result.clientCode).toContain('export const productsListQueryOptions');
+    expect(result.clientCode).toContain('export const productDetailQueryOptions');
+    expect(result.clientCode).toContain('export function useProducts(params?: ProductQueryParams)');
+  });
+
+  it('should generate SWR hooks for React', () => {
+    const config: ApiGeneratorConfig = {
+      framework: 'react',
+      pattern: 'swr',
+      mode: 'crud',
+      method: 'GET',
+      endpoint: '/api/products',
+      responseType: 'ProductDto[]',
+      requestBodyType: 'CreateProductDto',
+      resourceName: 'Product',
+      baseUrlStrategy: 'relative',
+      includeErrorHandling: true,
+      includeCancellation: false,
+      includeAuth: true,
+      includeTsDoc: true,
+      includePagination: true
+    };
+
+    const result = generateApiClient(config);
+
+    expect(result.clientCode).toContain("import useSWR from 'swr'");
+    expect(result.clientCode).toContain("import useSWRMutation from 'swr/mutation'");
+    expect(result.clientCode).toContain('export function useProducts(');
+    expect(result.clientCode).toContain('export function useProduct(');
+    expect(result.clientCode).toContain('export function useCreateProduct()');
+  });
 });

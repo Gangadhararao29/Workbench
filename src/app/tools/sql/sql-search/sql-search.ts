@@ -1,7 +1,20 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-interface Pattern { title: string; description: string; database: string; category: string; tags: string; sql: string; }
+export interface Pattern {
+  title: string;
+  description: string;
+  database: string;
+  category: string;
+  tags: string;
+  sql: string;
+  isCustom?: boolean;
+}
+
 const PATTERNS: Pattern[] = [
   { title: 'Find a table or column', description: 'Search tables, views, and columns by name across the current database.', database: 'SQL Server', category: 'Schema', tags: 'table column search object metadata sys tables columns', sql: 'DECLARE @Search nvarchar(128) = N\'Customer\';\n\nSELECT\n    schema_name(t.schema_id) AS schema_name,\n    t.name AS table_name,\n    c.name AS column_name,\n    ty.name AS data_type,\n    c.max_length,\n    c.is_nullable\nFROM sys.tables AS t\nJOIN sys.columns AS c ON c.object_id = t.object_id\nJOIN sys.types AS ty ON ty.user_type_id = c.user_type_id\nWHERE t.name LIKE N\'%\' + @Search + N\'%\'\n   OR c.name LIKE N\'%\' + @Search + N\'%\'\nORDER BY schema_name, table_name, c.column_id;' },
   { title: 'Find table and column references', description: 'Find stored procedures, views, functions, and triggers that mention a table or column.', database: 'SQL Server', category: 'Dependencies', tags: 'reference references usage used by column table procedure view function trigger linkage', sql: 'DECLARE @Search nvarchar(256) = N\'CustomerId\';\n\nSELECT\n    schema_name(o.schema_id) AS schema_name,\n    o.name AS object_name,\n    o.type_desc\nFROM sys.sql_modules AS m\nJOIN sys.objects AS o ON o.object_id = m.object_id\nWHERE m.definition LIKE N\'%\' + @Search + N\'%\'\nORDER BY schema_name, object_name;' },
@@ -21,25 +34,197 @@ const PATTERNS: Pattern[] = [
 ];
 
 @Component({
-  selector: 'app-sql-search', standalone: true, imports: [FormsModule],
-  templateUrl: './sql-search.html', styleUrls: ['./sql-search.css']
+  selector: 'app-sql-search',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatTooltipModule],
+  templateUrl: './sql-search.html',
+  styleUrls: ['./sql-search.css']
 })
-export class SqlSearch {
+export class SqlSearch implements OnInit {
   @Input({ required: true }) instanceId!: string;
+
   query = '';
-  results = signal(PATTERNS);
-  search() {
-    const terms = this.query.toLowerCase().split(/\s+/).filter(Boolean);
-    if (!terms.length) {
-      this.results.set(PATTERNS);
+  favorites = signal<Set<string>>(new Set());
+  showFavoritesOnly = signal(false);
+  userSnippets = signal<Pattern[]>([]);
+  showAddForm = signal(false);
+
+  // Form fields
+  formTitle = '';
+  formCategory = 'Custom';
+  formDatabase = 'SQL Server';
+  formDescription = '';
+  formTags = '';
+  formSql = '';
+  formError = '';
+
+  copiedTitle = signal<string | null>(null);
+
+  allPatterns = computed(() => [...this.userSnippets(), ...PATTERNS]);
+  results = signal<Pattern[]>(PATTERNS);
+
+  ngOnInit() {
+    this.loadFavorites();
+    this.loadSnippets();
+    this.search();
+  }
+
+  loadFavorites() {
+    try {
+      const stored = localStorage.getItem('sql_search_favorites');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          this.favorites.set(new Set(parsed));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  saveFavorites() {
+    try {
+      localStorage.setItem('sql_search_favorites', JSON.stringify(Array.from(this.favorites())));
+    } catch {
+      // ignore
+    }
+  }
+
+  toggleFavorite(title: string, event?: Event) {
+    if (event) event.stopPropagation();
+    const current = new Set(this.favorites());
+    if (current.has(title)) {
+      current.delete(title);
+    } else {
+      current.add(title);
+    }
+    this.favorites.set(current);
+    this.saveFavorites();
+    this.search();
+  }
+
+  isFavorite(title: string): boolean {
+    return this.favorites().has(title);
+  }
+
+  toggleFavoritesFilter() {
+    this.showFavoritesOnly.set(!this.showFavoritesOnly());
+    this.search();
+  }
+
+  loadSnippets() {
+    try {
+      const stored = localStorage.getItem('sql_search_custom_snippets');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          this.userSnippets.set(parsed.map(p => ({ ...p, isCustom: true })));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  saveSnippets() {
+    try {
+      localStorage.setItem('sql_search_custom_snippets', JSON.stringify(this.userSnippets()));
+    } catch {
+      // ignore
+    }
+  }
+
+  openAddForm() {
+    this.formTitle = '';
+    this.formCategory = 'Custom';
+    this.formDatabase = 'SQL Server';
+    this.formDescription = '';
+    this.formTags = '';
+    this.formSql = '';
+    this.formError = '';
+    this.showAddForm.set(true);
+  }
+
+  cancelAddForm() {
+    this.showAddForm.set(false);
+  }
+
+  submitSnippet() {
+    const title = this.formTitle.trim();
+    const sql = this.formSql.trim();
+    if (!title) {
+      this.formError = 'Please enter a snippet title.';
+      return;
+    }
+    if (!sql) {
+      this.formError = 'Please enter SQL query code.';
       return;
     }
 
-    const ranked = PATTERNS.map(pattern => {
-      const searchable = `${pattern.title} ${pattern.description} ${pattern.category} ${pattern.tags} ${pattern.database} ${pattern.sql}`.toLowerCase();
-      const score = terms.reduce((total, term) => total + (searchable.includes(term) ? (pattern.title.toLowerCase().includes(term) ? 3 : 1) : 0), 0);
-      return { pattern, score };
-    }).filter(item => item.score === terms.length || item.score >= Math.max(1, terms.length - 1));
+    const newSnippet: Pattern = {
+      title,
+      category: this.formCategory.trim() || 'Custom',
+      database: this.formDatabase.trim() || 'SQL Server',
+      description: this.formDescription.trim() || 'Custom user snippet',
+      tags: this.formTags.trim() || 'custom snippet',
+      sql,
+      isCustom: true
+    };
+
+    const updated = [newSnippet, ...this.userSnippets()];
+    this.userSnippets.set(updated);
+    this.saveSnippets();
+    this.showAddForm.set(false);
+    this.search();
+  }
+
+  deleteSnippet(title: string, event?: Event) {
+    if (event) event.stopPropagation();
+    const updated = this.userSnippets().filter(s => s.title !== title);
+    this.userSnippets.set(updated);
+    this.saveSnippets();
+    this.search();
+  }
+
+  async copySql(pattern: Pattern, event?: Event) {
+    if (event) event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(pattern.sql);
+      this.copiedTitle.set(pattern.title);
+      setTimeout(() => this.copiedTitle.set(null), 2000);
+    } catch {
+      // ignore
+    }
+  }
+
+  search() {
+    const list = this.allPatterns();
+    const terms = this.query.toLowerCase().split(/\s+/).filter(Boolean);
+    const filterFavs = this.showFavoritesOnly();
+
+    let pool = list;
+    if (filterFavs) {
+      pool = pool.filter(p => this.favorites().has(p.title));
+    }
+
+    if (!terms.length) {
+      this.results.set(pool);
+      return;
+    }
+
+    const ranked = pool
+      .map(pattern => {
+        const searchable = `${pattern.title} ${pattern.description} ${pattern.category} ${pattern.tags} ${pattern.database} ${pattern.sql}`.toLowerCase();
+        const score = terms.reduce(
+          (total, term) =>
+            total +
+            (searchable.includes(term) ? (pattern.title.toLowerCase().includes(term) ? 3 : 1) : 0),
+          0
+        );
+        return { pattern, score };
+      })
+      .filter(item => item.score === terms.length || item.score >= Math.max(1, terms.length - 1));
 
     this.results.set(ranked.sort((left, right) => right.score - left.score).map(item => item.pattern));
   }

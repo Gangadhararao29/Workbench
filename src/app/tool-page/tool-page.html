@@ -50,90 +50,92 @@
 
   <!-- Active Tool Rendering -->
   <div class="tool-surface">
-    @if (selectedInstance()) {
-      @switch (selectedInstance()!.toolType) {
-        @case ('sql-formatter') {
-          <app-sql-formatter [instanceId]="selectedInstance()!.id" />
+    @for (inst of scopedInstances(); track inst.id) {
+      <div class="instance-container" [class.active-instance]="inst.id === selectedInstance()?.id" [hidden]="inst.id !== selectedInstance()?.id">
+        @switch (inst.toolType) {
+          @case ('sql-formatter') {
+            <app-sql-formatter [instanceId]="inst.id" />
+          }
+          @case ('json-formatter') {
+            <app-json-formatter [instanceId]="inst.id" />
+          }
+          @case ('json-to-typescript') {
+            <app-json-to-typescript [instanceId]="inst.id" />
+          }
+          @case ('json-to-csharp') {
+            <app-json-to-csharp [instanceId]="inst.id" />
+          }
+          @case ('json-diff') {
+            <app-json-diff [instanceId]="inst.id" />
+          }
+          @case ('json-path') {
+            <app-json-path [instanceId]="inst.id" />
+          }
+          @case ('csharp-to-typescript') {
+            <app-csharp-to-typescript [instanceId]="inst.id" />
+          }
+          @case ('csharp-to-json') {
+            <app-csharp-to-json [instanceId]="inst.id" />
+          }
+          @case ('csharp-formatter') {
+            <app-csharp-formatter [instanceId]="inst.id" />
+          }
+          @case ('sql-to-csharp') {
+            <app-sql-to-csharp [instanceId]="inst.id" />
+          }
+          @case ('sql-generator') {
+            <app-sql-generator [instanceId]="inst.id" />
+          }
+          @case ('sql-search') {
+            <app-sql-search [instanceId]="inst.id" />
+          }
+          @case ('jwt-inspector') {
+            <app-jwt-inspector [instanceId]="inst.id" />
+          }
+          @case ('curl-converter') {
+            <app-curl-converter [instanceId]="inst.id" />
+          }
+          @case ('http-request-builder') {
+            <app-http-request-builder [instanceId]="inst.id" />
+          }
+          @case ('openapi-inspector') {
+            <app-openapi-inspector [instanceId]="inst.id" />
+          }
+          @case ('ef-configuration') {
+            <app-ef-configuration [instanceId]="inst.id" />
+          }
+          @case ('api-generator') {
+            <app-api-generator [instanceId]="inst.id" />
+          }
+          @case ('feature-generator') {
+            <app-feature-generator [instanceId]="inst.id" />
+          }
+          @case ('documentation-hub') {
+            <app-documentation-hub [instanceId]="inst.id" />
+          }
+          @case ('guid-generator') {
+            <app-guid-generator [instanceId]="inst.id" />
+          }
+          @case ('timestamp-converter') {
+            <app-timestamp-converter [instanceId]="inst.id" />
+          }
+          @case ('regex-tester') {
+            <app-regex-tester [instanceId]="inst.id" />
+          }
+          @case ('script-runner') {
+            <app-script-runner [instanceId]="inst.id" />
+          }
+          @case ('terminal') {
+            <app-terminal-tool [instanceId]="inst.id" />
+          }
+          @case ('log-viewer') {
+            <app-log-viewer [instanceId]="inst.id" />
+          }
+          @case ('sql-query-builder') {
+            <app-sql-query-builder [instanceId]="inst.id" />
+          }
         }
-        @case ('json-formatter') {
-          <app-json-formatter [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('json-to-typescript') {
-          <app-json-to-typescript [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('json-to-csharp') {
-          <app-json-to-csharp [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('json-diff') {
-          <app-json-diff [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('json-path') {
-          <app-json-path [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('csharp-to-typescript') {
-          <app-csharp-to-typescript [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('csharp-to-json') {
-          <app-csharp-to-json [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('csharp-formatter') {
-          <app-csharp-formatter [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('sql-to-csharp') {
-          <app-sql-to-csharp [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('sql-generator') {
-          <app-sql-generator [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('sql-search') {
-          <app-sql-search [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('jwt-inspector') {
-          <app-jwt-inspector [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('curl-converter') {
-          <app-curl-converter [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('http-request-builder') {
-          <app-http-request-builder [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('openapi-inspector') {
-          <app-openapi-inspector [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('ef-configuration') {
-          <app-ef-configuration [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('api-generator') {
-          <app-api-generator [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('feature-generator') {
-          <app-feature-generator [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('documentation-hub') {
-          <app-documentation-hub [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('guid-generator') {
-          <app-guid-generator [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('timestamp-converter') {
-          <app-timestamp-converter [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('regex-tester') {
-          <app-regex-tester [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('script-runner') {
-          <app-script-runner [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('terminal') {
-          <app-terminal-tool [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('log-viewer') {
-          <app-log-viewer [instanceId]="selectedInstance()!.id" />
-        }
-        @case ('sql-query-builder') {
-          <app-sql-query-builder [instanceId]="selectedInstance()!.id" />
-        }
-      }
+      </div>
     }
   </div>
 

@@ -13,10 +13,12 @@ const DEFAULT_CONFIGS: Record<string, Record<string, any>> = {
     includeController: true,
     includeConfiguration: true,
     includeFrontend: true,
-    includeAngularService: true
+    frontendFramework: 'angular'
   }
 };
 
 export function defaultConfigFor(toolType: string): Record<string, any> {
-  return { ...(DEFAULT_CONFIGS[toolType] ?? {}) };
+  const conf = DEFAULT_CONFIGS[toolType];
+  if (!conf) return {};
+  return JSON.parse(JSON.stringify(conf));
 }

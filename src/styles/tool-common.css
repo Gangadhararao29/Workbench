@@ -4,6 +4,7 @@
   width: 100%;
   max-width: 1000px;
   min-height: 100%;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: 16px;
   box-sizing: border-box;
@@ -27,6 +28,7 @@
   flex-direction: column;
   gap: 8px;
   flex: 1 1 auto;
+  min-height: 0;
 }
 
 .field.grow app-code-editor,
@@ -36,6 +38,7 @@ app-code-editor.result-editor {
   width: 100%;
   flex: 1 1 auto;
   min-height: 180px;
+  height: 100%;
   box-sizing: border-box;
   resize: none;
   overflow: hidden;

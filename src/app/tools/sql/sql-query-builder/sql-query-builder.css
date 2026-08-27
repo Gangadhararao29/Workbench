@@ -1,11 +1,6 @@
 .tool-surface-inner {
-  display: flex;
   max-width: 1300px;
-  width: 100%;
-  min-height: 100%;
-  flex-direction: column;
   gap: 18px;
-  box-sizing: border-box;
 }
 
 /* Top Control Bar Header */

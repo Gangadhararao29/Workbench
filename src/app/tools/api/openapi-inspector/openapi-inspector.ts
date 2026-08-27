@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { load as loadYaml } from 'js-yaml';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   inspectOpenApi,
@@ -44,6 +45,15 @@ export class OpenapiInspector implements OnInit {
   inspection = signal<OpenApiInspection | null>(null);
   error = signal('');
 
+  detectedFormat = computed<'JSON' | 'YAML'>(() => {
+    const raw = this.input().trim();
+    if (!raw) return 'JSON';
+    if (raw.startsWith('{') || raw.startsWith('[')) return 'JSON';
+    return 'YAML';
+  });
+
+  editorLanguage = computed(() => (this.detectedFormat() === 'YAML' ? 'yaml' : 'json'));
+
   // UI state
   activeTab = signal<'endpoints' | 'schemas' | 'overview'>('endpoints');
   groupBy = signal<'tag' | 'path' | 'method' | 'flat'>('tag');
@@ -77,7 +87,26 @@ export class OpenapiInspector implements OnInit {
         return;
       }
 
-      const res = inspectOpenApi(src, this.selectedServerUrl());
+      let jsonString = src;
+      const isYaml =
+        !src.startsWith('{') &&
+        !src.startsWith('[') &&
+        (src.startsWith('openapi:') ||
+          src.startsWith('swagger:') ||
+          /^[a-zA-Z0-9_"-]+:\s*/m.test(src));
+
+      if (isYaml) {
+        try {
+          const parsedYaml = loadYaml(src);
+          if (parsedYaml && typeof parsedYaml === 'object') {
+            jsonString = JSON.stringify(parsedYaml);
+          }
+        } catch (yamlErr) {
+          throw new Error(`Invalid YAML format: ${(yamlErr as Error).message}`);
+        }
+      }
+
+      const res = inspectOpenApi(jsonString, this.selectedServerUrl());
       this.inspection.set(res);
       this.error.set('');
 
@@ -85,7 +114,7 @@ export class OpenapiInspector implements OnInit {
         this.selectedServerUrl.set(res.servers[0].url);
       }
     } catch (err) {
-      this.error.set(`Invalid OpenAPI JSON: ${(err as Error).message}`);
+      this.error.set(`Invalid OpenAPI Specification: ${(err as Error).message}`);
       this.inspection.set(null);
     }
   }
@@ -98,11 +127,18 @@ export class OpenapiInspector implements OnInit {
 
   formatJson() {
     try {
-      const parsed = JSON.parse(this.input());
-      this.input.set(JSON.stringify(parsed, null, 2));
+      const src = this.input().trim();
+      if (!src) return;
+      if (this.detectedFormat() === 'YAML') {
+        const parsed = loadYaml(src);
+        this.input.set(JSON.stringify(parsed, null, 2));
+      } else {
+        const parsed = JSON.parse(src);
+        this.input.set(JSON.stringify(parsed, null, 2));
+      }
       this.inspect();
     } catch (err) {
-      this.error.set(`Cannot format invalid JSON: ${(err as Error).message}`);
+      this.error.set(`Cannot format invalid input: ${(err as Error).message}`);
     }
   }
 

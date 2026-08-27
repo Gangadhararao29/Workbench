@@ -8,6 +8,9 @@
       "resources": {
         "files": [
           "/favicon.ico",
+          "/apple-touch-icon.png",
+          "/icon-192.png",
+          "/icon-512.png",
           "/icon-192.svg",
           "/icon-512.svg",
           "/index.html",
@@ -23,6 +26,14 @@
       "updateMode": "prefetch",
       "resources": {
         "files": ["/assets/monaco/**"]
+      }
+    },
+    {
+      "name": "tree-sitter",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/assets/tree-sitter/**"]
       }
     }
   ]

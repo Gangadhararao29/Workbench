@@ -1,17 +1,56 @@
 <div class="tool-surface-inner">
+  <div class="diff-options-bar">
+    <div class="mode-toggle-group">
+      <span class="mode-label">Compare Arrays:</span>
+      <div class="segmented-control">
+        <button
+          type="button"
+          class="seg-btn"
+          [class.active]="arrayMode() === 'key'"
+          (click)="setArrayMode('key')">
+          By Key Field
+        </button>
+        <button
+          type="button"
+          class="seg-btn"
+          [class.active]="arrayMode() === 'index'"
+          (click)="setArrayMode('index')">
+          By Index
+        </button>
+      </div>
+    </div>
+
+    @if (arrayMode() === 'key') {
+      <div class="key-input-group">
+        <label for="array-key-field">Key field name:</label>
+        <input
+          id="array-key-field"
+          type="text"
+          class="key-input"
+          [ngModel]="arrayKeyField()"
+          (ngModelChange)="arrayKeyField.set($event); compare()"
+          placeholder="e.g. id, key, name" />
+      </div>
+    }
+
+    <button mat-raised-button color="primary" class="compare-btn" (click)="compare()">
+      <mat-icon>difference</mat-icon> Compare JSON
+    </button>
+  </div>
+
   <div class="diff-grid">
     <div class="field">
       <label>JSON A</label>
-      <app-code-editor [value]="left()" language="json" ariaLabel="JSON A" (valueChange)="left.set($event)"></app-code-editor>
+      <app-code-editor [value]="left()" language="json" ariaLabel="JSON A" (valueChange)="left.set($event); compare()"></app-code-editor>
     </div>
     <div class="field">
       <label>JSON B</label>
-      <app-code-editor [value]="right()" language="json" ariaLabel="JSON B" (valueChange)="right.set($event)"></app-code-editor>
+      <app-code-editor [value]="right()" language="json" ariaLabel="JSON B" (valueChange)="right.set($event); compare()"></app-code-editor>
     </div>
   </div>
-  <button mat-raised-button color="primary" (click)="compare()">Compare JSON</button>
+
   <div class="field grow">
     <label>Differences</label>
-    <app-code-editor [value]="result()" language="json" ariaLabel="Diff result" [readOnly]="true"></app-code-editor>
+    <app-code-editor [value]="result()" language="plaintext" ariaLabel="Diff result" [readOnly]="true"></app-code-editor>
   </div>
 </div>

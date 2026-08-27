@@ -223,20 +223,24 @@
       />
     </div>
     <div class="toggle-row">
-      <span>TypeScript model</span>
+      <span>Frontend client & types</span>
       <mat-slide-toggle
         [checked]="instance.config['includeFrontend'] ?? true"
         (change)="update('includeFrontend', $event.checked)"
       />
     </div>
-    <div class="toggle-row">
-      <span>Angular service</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeAngularService'] ?? true"
-        [disabled]="!(instance.config['includeFrontend'] ?? true)"
-        (change)="update('includeAngularService', $event.checked)"
-      />
-    </div>
+    @if (instance.config['includeFrontend'] ?? true) {
+      <div class="field">
+        <label>Frontend Framework</label>
+        <mat-select
+          [value]="instance.config['frontendFramework'] ?? 'angular'"
+          (selectionChange)="update('frontendFramework', $event.value)">
+          <mat-option value="angular">Angular (HttpClient Service)</mat-option>
+          <mat-option value="react">React (TanStack Query Hooks)</mat-option>
+          <mat-option value="vue">Vue (Pinia Store)</mat-option>
+        </mat-select>
+      </div>
+    }
   }
   @default {
     <div class="empty-state">No options for this tool yet</div>

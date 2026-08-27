@@ -1,10 +1,6 @@
 .tool-surface-inner {
-  display: flex;
   max-width: 1200px;
-  min-height: 100%;
-  flex-direction: column;
   gap: 14px;
-  box-sizing: border-box;
   padding: 4px;
 }
 
