@@ -10,15 +10,15 @@ The client is currently implemented with Angular, but the product is intended as
 
 The home page groups tools into the following areas:
 
-- **JSON:** formatter, diff, JSONPath tester, JSON to TypeScript, and JSON to C#
-- **.NET / C#:** C# to TypeScript, C# to JSON, C# formatter, and feature generator
-- **EF Core:** entity configuration generator
-- **SQL:** formatter, SQL to C#, CRUD generator, search, and query builder
-- **API:** OpenAPI inspector, JWT inspector, HTTP request builder, and cURL converter
-- **Frontend:** API client generator
-- **General:** GUID generator, timestamp converter, regex tester, script runner, documentation hub, terminal, and log viewer
+- **JSON:** Formatter, Diff, JSONPath tester, JSON to TypeScript, and JSON to C#
+- **.NET / C#:** C# to TypeScript, C# to JSON, C# Formatter, and Feature generator
+- **EF Core:** Entity configuration (Fluent API & annotations), Migration helper (`dotnet ef` CLI & PMC command generator, custom C# migration scripts), LINQ & query assistant, and DbContext generator (DbSets, global filters, audit tracking, DI setup)
+- **SQL:** Formatter, SQL to C#, SQL generator (DDL parser, SSMS grid data import, CRUD, UPSERT/MERGE, and batch queries), Search, and Query builder
+- **API:** OpenAPI inspector, HTTP request builder, JWT inspector (claims, headers, expiry validation), and cURL converter
+- **Frontend:** API client generator (Angular, React, Vue, Fetch/Axios)
+- **General:** GUID generator, Timestamp converter (multi-format parsing, live clock/tickers, unit auto-detection), Regex tester (interactive regex testing with cheat sheet and common presets), Script runner, Documentation hub, Terminal command snippets, and Log viewer
 
-Tools open as dedicated tool pages (`/tools/:toolType`) in the central workspace. Multiple scoped instances can be open per tool, tabs can be added or duplicated, and recently closed instances are preserved. The left sidebar supports search and favorites. Tool state, instance configurations, favorites, and light/dark theme preference are persisted in browser storage. The options panel appears for tools that expose configurable formatting or generation settings.
+Tools open as dedicated tool pages (`/tools/:toolType`) in the central workspace. Multiple scoped instances can be open per tool, tabs can be added, cloned, or renamed, and recently closed instances are preserved in history. The left sidebar supports search and favorites. Tool state, instance configurations, favorites, and light/dark theme preference are persisted in browser storage. An options panel is available for configurable formatting, generation settings, and regex quick-reference.
 
 The home page also tracks planned areas such as database connectivity, Roslyn and solution analysis, migration and CLI support, repository operations, project-wide code generation, an LLM gateway, and account or team synchronization features.
 
