@@ -19,8 +19,15 @@ export class OptionsPanel implements OnChanges {
   @Input({ required: true }) instance!: ToolInstance;
   editingName = false;
   nameDraft = '';
+  regexFilter = '';
 
   constructor(private instanceService: InstanceService) {}
+
+  filterRow(token: string, desc: string): boolean {
+    if (!this.regexFilter.trim()) return true;
+    const q = this.regexFilter.toLowerCase().trim();
+    return token.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['instance'] && !this.editingName) {

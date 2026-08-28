@@ -3,6 +3,10 @@
   font-size: 24px;
 }
 
+.tool-surface-inner {
+  max-width: 100vw;
+}
+
 .tool-surface-inner h2 {
   margin: 0 0 10px;
   font-size: 17px;

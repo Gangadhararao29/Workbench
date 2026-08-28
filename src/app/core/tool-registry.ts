@@ -34,7 +34,10 @@ export const TOOL_GROUPS: ToolGroup[] = [
   {
     id: 'ef', label: 'EF Core', icon: 'schema',
     tools: [
-      { type: 'ef-configuration', label: 'Entity configuration', description: 'Generate Entity Framework Core configuration.' },
+      { type: 'ef-configuration', label: 'Entity configuration', description: 'Generate Entity Framework Core Fluent API & annotations configuration.' },
+      { type: 'ef-migrations', label: 'Migration helper', description: 'Generate dotnet ef CLI commands and custom migration scripts.' },
+      { type: 'ef-linq', label: 'LINQ & query assistant', description: 'Draft LINQ queries, EF Core performance patterns, and SQL translations.' },
+      { type: 'ef-dbcontext', label: 'DbContext generator', description: 'Generate production-ready DbContext with DbSets, audit filters, and DI.' },
     ]
   },
   {
@@ -42,7 +45,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     tools: [
       { type: 'sql-formatter', label: 'Formatter', description: 'Format SQL queries for easier reading.' },
       { type: 'sql-to-csharp', label: 'SQL → C#', description: 'Generate C# models from SQL definitions.' },
-      { type: 'sql-generator', label: 'CRUD generator', description: 'Generate CRUD SQL and application code.' },
+      { type: 'sql-generator', label: 'Sql generator', description: 'Parse DDL & SSMS grid data to generate CRUD SQL, batch queries & variables.' },
       { type: 'sql-search', label: 'Search', description: 'Search and inspect SQL snippets.' },
       { type: 'sql-query-builder', label: 'Query builder', description: 'Build SQL queries interactively.' },
     ]

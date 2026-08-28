@@ -1,6 +1,19 @@
 <div class="tool-surface-inner">
   <!-- Pattern Configuration Section -->
   <div class="regex-config-card">
+    <div class="pattern-header">
+      <span class="config-title">Pattern Configuration</span>
+      <button
+        type="button"
+        mat-button
+        class="btn-toggle-cheat"
+        (click)="shellState.toggleRightDrawer()"
+        matTooltip="Toggle Regex Cheat Sheet in sidebar">
+        <mat-icon>menu_book</mat-icon>
+        Cheat Sheet
+      </button>
+    </div>
+
     <div class="pattern-row">
       <div class="field pattern-field">
         <label for="regex-pattern">Regular Expression</label>

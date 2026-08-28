@@ -1,0 +1,219 @@
+<div class="tool-surface-inner ef-migrations-container">
+  <div class="migrations-header">
+    <div class="action-nav">
+      <button mat-button class="action-tab" [class.active]="activeAction() === 'add'" (click)="setAction('add')">
+        <mat-icon>add_circle_outline</mat-icon> Add Migration
+      </button>
+      <button mat-button class="action-tab" [class.active]="activeAction() === 'update'" (click)="setAction('update')">
+        <mat-icon>published_with_changes</mat-icon> Database Update
+      </button>
+      <button mat-button class="action-tab" [class.active]="activeAction() === 'script'" (click)="setAction('script')">
+        <mat-icon>description</mat-icon> Script (SQL)
+      </button>
+      <button mat-button class="action-tab" [class.active]="activeAction() === 'remove'" (click)="setAction('remove')">
+        <mat-icon>remove_circle_outline</mat-icon> Remove
+      </button>
+      <button mat-button class="action-tab" [class.active]="activeAction() === 'scaffold'" (click)="setAction('scaffold')">
+        <mat-icon>architecture</mat-icon> Scaffold (DB First)
+      </button>
+      <button mat-button class="action-tab" [class.active]="activeAction() === 'bundle'" (click)="setAction('bundle')">
+        <mat-icon>archive</mat-icon> Bundle
+      </button>
+      <button mat-button class="action-tab custom-cs-tab" [class.active]="activeAction() === 'custom-cs'" (click)="setAction('custom-cs')">
+        <mat-icon>code</mat-icon> Custom C# Migration
+      </button>
+    </div>
+
+    @if (activeAction() !== 'custom-cs') {
+      <div class="mode-toggle-group">
+        <span class="mode-label">CLI Tool:</span>
+        <button
+          mat-button
+          class="mode-btn"
+          [class.active]="cliMode() === 'dotnet'"
+          (click)="setMode('dotnet')"
+        >
+          dotnet ef
+        </button>
+        <button
+          mat-button
+          class="mode-btn"
+          [class.active]="cliMode() === 'pmc'"
+          (click)="setMode('pmc')"
+        >
+          PMC (PowerShell)
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="main-split">
+    <!-- Left Configuration Form -->
+    <div class="config-panel">
+      <div class="panel-section-title">Parameters & Options</div>
+
+      @if (activeAction() === 'add') {
+        <div class="form-row">
+          <label>Migration Name</label>
+          <input [(ngModel)]="migrationName" (ngModelChange)="generate()" placeholder="e.g. AddCustomerAuditFields" />
+        </div>
+        <div class="form-row">
+          <label>Output Directory (-o)</label>
+          <input [(ngModel)]="outputDir" (ngModelChange)="generate()" placeholder="e.g. Data/Migrations" />
+        </div>
+      }
+
+      @if (activeAction() === 'update') {
+        <div class="form-row">
+          <label>Target Migration (Optional - leave blank for latest)</label>
+          <input [(ngModel)]="targetMigration" (ngModelChange)="generate()" placeholder="e.g. 20260828_InitialMigration or 0 for empty" />
+        </div>
+        <div class="form-row">
+          <label>Connection String</label>
+          <input [(ngModel)]="connectionString" (ngModelChange)="generate()" placeholder="Server=...;Database=..." />
+        </div>
+      }
+
+      @if (activeAction() === 'script') {
+        <div class="form-row">
+          <label>From Migration (Optional)</label>
+          <input [(ngModel)]="fromMigration" (ngModelChange)="generate()" placeholder="e.g. 0 or PreviousMigration" />
+        </div>
+        <div class="form-row">
+          <label>To Migration (Optional)</label>
+          <input [(ngModel)]="toMigration" (ngModelChange)="generate()" placeholder="e.g. TargetMigration" />
+        </div>
+        <div class="form-row">
+          <label>Output File (-o)</label>
+          <input [(ngModel)]="scriptOutputFile" (ngModelChange)="generate()" placeholder="migrations.sql" />
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="idempotent" (ngModelChange)="generate()">Generate Idempotent Script (--idempotent)</mat-slide-toggle>
+        </div>
+      }
+
+      @if (activeAction() === 'remove') {
+        <div class="info-callout">
+          <mat-icon>info</mat-icon>
+          <span>Removes the last migration files if it has not been applied to the database.</span>
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="force" (ngModelChange)="generate()">Force Remove (--force)</mat-slide-toggle>
+        </div>
+      }
+
+      @if (activeAction() === 'scaffold') {
+        <div class="form-row">
+          <label>Connection String</label>
+          <input [(ngModel)]="connectionString" (ngModelChange)="generate()" placeholder="Server=...;Database=..." />
+        </div>
+        <div class="form-row">
+          <label>Provider</label>
+          <input [(ngModel)]="provider" (ngModelChange)="generate()" placeholder="Microsoft.EntityFrameworkCore.SqlServer" />
+        </div>
+        <div class="form-row">
+          <label>Output Directory</label>
+          <input [(ngModel)]="outputDir" (ngModelChange)="generate()" placeholder="Models" />
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="useDataAnnotations" (ngModelChange)="generate()">Use Data Annotations (--data-annotations)</mat-slide-toggle>
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="force" (ngModelChange)="generate()">Overwrite existing files (--force)</mat-slide-toggle>
+        </div>
+      }
+
+      @if (activeAction() === 'bundle') {
+        <div class="form-row">
+          <label>Output Executable (-o)</label>
+          <input [(ngModel)]="bundleOutputFile" (ngModelChange)="generate()" placeholder="efbundle.exe" />
+        </div>
+        <div class="form-row">
+          <label>Runtime (-r)</label>
+          <input [(ngModel)]="runtime" (ngModelChange)="generate()" placeholder="linux-x64, win-x64, osx-arm64" />
+        </div>
+      }
+
+      @if (activeAction() === 'custom-cs') {
+        <div class="form-row">
+          <label>Operation Type</label>
+          <mat-select [(value)]="customSnippetType" (selectionChange)="generate()">
+            <mat-option value="sql">Raw SQL Script (Up & Down)</mat-option>
+            <mat-option value="index">Filtered / Custom Index</mat-option>
+            <mat-option value="add-column">Add / Drop Column</mat-option>
+            <mat-option value="view">Database View / SP Creation</mat-option>
+          </mat-select>
+        </div>
+
+        @if (customSnippetType === 'sql') {
+          <div class="form-row">
+            <label>Up SQL Statement</label>
+            <textarea [(ngModel)]="customSqlUp" (ngModelChange)="generate()" rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Down SQL Statement (Revert)</label>
+            <textarea [(ngModel)]="customSqlDown" (ngModelChange)="generate()" rows="3"></textarea>
+          </div>
+        }
+
+        @if (customSnippetType === 'index' || customSnippetType === 'add-column') {
+          <div class="form-row">
+            <label>Table Name</label>
+            <input [(ngModel)]="customTable" (ngModelChange)="generate()" />
+          </div>
+          <div class="form-row">
+            <label>Column Name</label>
+            <input [(ngModel)]="customColumn" (ngModelChange)="generate()" />
+          </div>
+          @if (customSnippetType === 'add-column') {
+            <div class="form-row">
+              <label>Data Type</label>
+              <input [(ngModel)]="customType" (ngModelChange)="generate()" placeholder="int, string, bool, DateTime" />
+            </div>
+          }
+        }
+      }
+
+      @if (activeAction() !== 'custom-cs') {
+        <div class="section-divider"></div>
+        <div class="panel-section-title">Project Setup</div>
+
+        <div class="form-row">
+          <label>Target Project (-p)</label>
+          <input [(ngModel)]="project" (ngModelChange)="generate()" placeholder="src/Infrastructure or MyProject.Data.csproj" />
+        </div>
+
+        <div class="form-row">
+          <label>Startup Project (-s)</label>
+          <input [(ngModel)]="startupProject" (ngModelChange)="generate()" placeholder="src/WebApi or MyProject.Api.csproj" />
+        </div>
+
+        <div class="form-row">
+          <label>DbContext Name (-c)</label>
+          <input [(ngModel)]="contextName" (ngModelChange)="generate()" placeholder="AppDbContext" />
+        </div>
+
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="noBuild" (ngModelChange)="generate()">Skip Project Build (--no-build)</mat-slide-toggle>
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="verbose" (ngModelChange)="generate()">Verbose Output (-v)</mat-slide-toggle>
+        </div>
+      }
+    </div>
+
+    <!-- Right Generated Output -->
+    <div class="output-panel field grow">
+      <div class="pane-header">
+        <label>{{ activeAction() === 'custom-cs' ? 'C# Custom Migration Code' : 'Generated CLI Command' }}</label>
+        <span class="pane-subtitle">{{ activeAction() === 'custom-cs' ? 'Drop into your EF Core migration file' : 'Run in terminal at repository root' }}</span>
+      </div>
+      <app-code-editor
+        [value]="result()"
+        [language]="activeAction() === 'custom-cs' ? 'csharp' : 'powershell'"
+        ariaLabel="Generated migration command"
+        [readOnly]="true"
+      ></app-code-editor>
+    </div>
+  </div>
+</div>

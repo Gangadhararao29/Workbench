@@ -14,6 +14,11 @@ const DEFAULT_CONFIGS: Record<string, Record<string, any>> = {
     includeConfiguration: true,
     includeFrontend: true,
     frontendFramework: 'angular'
+  },
+  'timestamp-converter': {
+    defaultUnit: 'auto',
+    hourFormat: '12h',
+    autoTicker: true
   }
 };
 

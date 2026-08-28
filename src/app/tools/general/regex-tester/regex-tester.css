@@ -14,6 +14,41 @@
   gap: 14px;
 }
 
+.pattern-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--mat-sys-outline-variant, #2a313d);
+  padding-bottom: 10px;
+}
+
+.config-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
+}
+
+.btn-toggle-cheat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mat-sys-primary, #60a5fa);
+  padding: 0 10px;
+  height: 32px;
+  line-height: 32px;
+  border-radius: 6px;
+}
+
+.btn-toggle-cheat mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
 .pattern-row {
   display: grid;
   grid-template-columns: 1fr 140px;

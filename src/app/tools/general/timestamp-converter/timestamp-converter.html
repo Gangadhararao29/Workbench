@@ -1,1 +1,556 @@
-<div class="tool-surface-inner"><div class="controls"><label>Value<input [(ngModel)]="input" placeholder="1724323200" /></label><label>Input format<select [(ngModel)]="unit"><option value="seconds">Unix seconds</option><option value="milliseconds">Unix milliseconds</option><option value="iso">ISO 8601</option></select></label></div><button mat-raised-button color="primary" (click)="convert()">Convert timestamp</button><pre class="code-result">{{ result() }}</pre></div>
+<div class="tool-surface-inner">
+  <!-- 1. Real-time Live Ticker Bar -->
+  <div class="live-ticker-card">
+    <div class="ticker-left">
+      <div class="ticker-top-row">
+        <div class="ticker-pulse-indicator" [class.paused]="!tickerRunning()">
+          <span class="pulse-dot"></span>
+          <span class="ticker-status-label">{{ tickerRunning() ? 'LIVE' : 'PAUSED' }}</span>
+        </div>
+
+        <div class="ticker-epoch-group">
+          <span class="ticker-epoch-val">{{ liveData().unixMilliseconds }}</span>
+          <span class="ticker-epoch-unit">ms</span>
+        </div>
+      </div>
+
+      <div class="ticker-time-line">
+        <span class="ticker-time-primary">{{ liveData().localString }}</span>
+        <span class="ticker-time-sep">&middot;</span>
+        <span class="ticker-time-secondary">UTC {{ liveData().sqlUtc }}</span>
+      </div>
+    </div>
+
+    <div class="ticker-actions">
+      <button type="button" mat-stroked-button class="ticker-action-btn" (click)="toggleTicker()"
+        [matTooltip]="tickerRunning() ? 'Pause live ticking' : 'Resume live ticking'">
+        <mat-icon>{{ tickerRunning() ? 'pause' : 'play_arrow' }}</mat-icon>
+        <span>{{ tickerRunning() ? 'Pause' : 'Resume' }}</span>
+      </button>
+
+      <button type="button" mat-stroked-button class="ticker-action-btn"
+        (click)="copyText(liveData().unixMilliseconds, 'live-epoch')"
+        matTooltip="Copy current Unix timestamp in milliseconds">
+        <mat-icon>{{ isCopied('live-epoch') ? 'check' : 'content_copy' }}</mat-icon>
+        <span>{{ isCopied('live-epoch') ? 'Copied' : 'Copy ms' }}</span>
+      </button>
+
+      <button type="button" mat-flat-button color="primary" class="ticker-action-btn" (click)="useCurrentTime()"
+        matTooltip="Load current live timestamp into converter">
+        <mat-icon>sync</mat-icon>
+        <span>Use Now</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Main Navigation Tabs -->
+  <div class="timestamp-nav-bar">
+    <button type="button" class="nav-tab-btn" [class.active]="activeTab() === 'convert'" (click)="setTab('convert')">
+      <mat-icon>schedule</mat-icon> Converter & Inspector
+    </button>
+    <button type="button" class="nav-tab-btn" [class.active]="activeTab() === 'timezones'"
+      (click)="setTab('timezones')">
+      <mat-icon>public</mat-icon> World Timezones
+    </button>
+    <button type="button" class="nav-tab-btn" [class.active]="activeTab() === 'math'" (click)="setTab('math')">
+      <mat-icon>calculate</mat-icon> Date Math & Diff
+    </button>
+    <button type="button" class="nav-tab-btn" [class.active]="activeTab() === 'snippets'" (click)="setTab('snippets')">
+      <mat-icon>code</mat-icon> Developer Snippets
+    </button>
+  </div>
+
+  <!-- TAB 1: CONVERTER & INSPECTOR -->
+  @if (activeTab() === 'convert') {
+  <div class="tab-content">
+    <!-- Input Controls Card -->
+    <div class="converter-input-card">
+      <div class="input-row">
+        <div class="field input-field">
+          <label for="timestamp-input">
+            Timestamp or Date String
+            <span class="label-hint">(Accepts Unix epoch, ISO 8601, RFC 2822, YYYY-MM-DD, or relative e.g. "now", "+2h",
+              "-1d")</span>
+          </label>
+          <div class="input-wrapper">
+            <input id="timestamp-input" type="text" class="main-text-input" [ngModel]="input()"
+              (ngModelChange)="input.set($event)" placeholder="e.g. 1724825600, 2026-08-28T11:44:18Z, or +2h" />
+            @if (parsedResult().isValid) {
+            <span class="detected-badge">
+              <mat-icon>check_circle</mat-icon>
+              {{ parsedResult().detectedUnit | uppercase }}
+            </span>
+            }
+          </div>
+        </div>
+
+        <div class="field unit-field">
+          <label for="timestamp-unit">Input Format</label>
+          <select id="timestamp-unit" class="select-input" [ngModel]="unit()" (ngModelChange)="unit.set($event)">
+            <option value="auto">Auto-detect (Smart)</option>
+            <option value="seconds">Unix seconds (10-digit)</option>
+            <option value="milliseconds">Unix milliseconds (13-digit)</option>
+            <option value="iso">ISO 8601 string</option>
+            <option value="relative">Relative offset (e.g. +2h, -1d)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="presets-row">
+        <span class="presets-label">Quick Presets:</span>
+        <button type="button" class="preset-pill" (click)="setPreset('now')">Now</button>
+        <button type="button" class="preset-pill" (click)="setPreset('start_today')">Start of Today</button>
+        <button type="button" class="preset-pill" (click)="setPreset('end_today')">End of Today</button>
+        <button type="button" class="preset-pill" (click)="setPreset('start_month')">Start of Month</button>
+        <button type="button" class="preset-pill" (click)="setPreset('start_year')">Start of Year</button>
+        <button type="button" class="preset-pill" (click)="setPreset('plus_1h')">+1 Hour</button>
+        <button type="button" class="preset-pill" (click)="setPreset('plus_1d')">+1 Day</button>
+        <button type="button" class="preset-pill" (click)="setPreset('plus_7d')">+7 Days</button>
+        <button type="button" class="preset-pill" (click)="setPreset('minus_1d')">-1 Day</button>
+      </div>
+
+      @if (!parsedResult().isValid) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ parsedResult().errorMessage }}</span>
+      </div>
+      }
+    </div>
+
+    <!-- Interactive Date Adjuster Accordion -->
+    @if (activeOutputs(); as out) {
+    <div class="interactive-adjuster-card">
+      <div class="adjuster-header">
+        <div class="adjuster-title">
+          <mat-icon>tune</mat-icon>
+          <span>Interactive Date & Time Adjuster</span>
+        </div>
+        <div class="adjuster-mode-toggle">
+          <button type="button" class="adjuster-mode-btn" [class.active]="adjusterMode() === 'local'"
+            (click)="setAdjusterMode('local')">
+            Local Time
+          </button>
+          <button type="button" class="adjuster-mode-btn" [class.active]="adjusterMode() === 'utc'"
+            (click)="setAdjusterMode('utc')">
+            UTC (Zulu)
+          </button>
+        </div>
+      </div>
+      <div class="adjuster-fields-grid">
+        <div class="adjust-field">
+          <label>Year ({{ adjusterMode() | uppercase }})</label>
+          <input type="number" [ngModel]="adjYear()" (ngModelChange)="adjYear.set($event); applyAdjuster()" />
+        </div>
+        <div class="adjust-field">
+          <label>Month (1-12)</label>
+          <input type="number" min="1" max="12" [ngModel]="adjMonth()"
+            (ngModelChange)="adjMonth.set($event); applyAdjuster()" />
+        </div>
+        <div class="adjust-field">
+          <label>Day (1-31)</label>
+          <input type="number" min="1" max="31" [ngModel]="adjDay()"
+            (ngModelChange)="adjDay.set($event); applyAdjuster()" />
+        </div>
+        <div class="adjust-field">
+          <label>Hour (0-23)</label>
+          <input type="number" min="0" max="23" [ngModel]="adjHour()"
+            (ngModelChange)="adjHour.set($event); applyAdjuster()" />
+        </div>
+        <div class="adjust-field">
+          <label>Minute (0-59)</label>
+          <input type="number" min="0" max="59" [ngModel]="adjMinute()"
+            (ngModelChange)="adjMinute.set($event); applyAdjuster()" />
+        </div>
+        <div class="adjust-field">
+          <label>Second (0-59)</label>
+          <input type="number" min="0" max="59" [ngModel]="adjSecond()"
+            (ngModelChange)="adjSecond.set($event); applyAdjuster()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Formatted Outputs Grid -->
+    <div class="outputs-section">
+      <div class="section-header">
+        <h3>Converted Formats & Developer Outputs</h3>
+        <span class="relative-indicator">{{ out.relativeTime }}</span>
+      </div>
+
+      <div class="outputs-table-card">
+        <table class="outputs-table">
+          <thead>
+            <tr>
+              <th style="width: 220px;">Format / Specification</th>
+              <th>Formatted Value</th>
+              <th style="width: 100px; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Unix Milliseconds -->
+            <tr>
+              <td class="format-name-col">
+                <strong>Unix Milliseconds</strong>
+                <span class="sub-label">JavaScript Date.now()</span>
+              </td>
+              <td class="format-val-col">
+                <code class="val-code highlight">{{ out.unixMilliseconds }}</code>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.unixMilliseconds, 'unixMs')"
+                  matTooltip="Copy milliseconds">
+                  <mat-icon>{{ isCopied('unixMs') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- ISO 8601 (UTC / Zulu) -->
+            <tr>
+              <td class="format-name-col">
+                <strong>ISO 8601 (UTC / Zulu)</strong>
+                <span class="sub-label">RFC 3339 Standard</span>
+              </td>
+              <td class="format-val-col">
+                <code class="val-code val-iso">{{ out.isoUtc }}</code>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.isoUtc, 'isoUtc')"
+                  matTooltip="Copy ISO UTC">
+                  <mat-icon>{{ isCopied('isoUtc') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- ISO 8601 (Local with Offset) -->
+            <tr>
+              <td class="format-name-col">
+                <strong>ISO 8601 (Local Offset)</strong>
+                <span class="sub-label">With timezone offset</span>
+              </td>
+              <td class="format-val-col">
+                <code class="val-code">{{ out.isoLocal }}</code>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.isoLocal, 'isoLocal')"
+                  matTooltip="Copy Local ISO">
+                  <mat-icon>{{ isCopied('isoLocal') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- RFC 2822 -->
+            <tr>
+              <td class="format-name-col">
+                <strong>RFC 2822</strong>
+                <span class="sub-label">Email Date Header</span>
+              </td>
+              <td class="format-val-col">
+                <code class="val-code">{{ out.rfc2822 }}</code>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.rfc2822, 'rfc2822')"
+                  matTooltip="Copy RFC 2822">
+                  <mat-icon>{{ isCopied('rfc2822') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- Local Datetime -->
+            <tr>
+              <td class="format-name-col">
+                <strong>Local System Time</strong>
+                <span class="sub-label">{{ out.timezoneName }}</span>
+              </td>
+              <td class="format-val-col">
+                <span class="val-text">{{ out.localString }}</span>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.localString, 'localStr')"
+                  matTooltip="Copy Local String">
+                  <mat-icon>{{ isCopied('localStr') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- SQL UTC -->
+            <tr>
+              <td class="format-name-col">
+                <strong>SQL DateTime (UTC)</strong>
+                <span class="sub-label">YYYY-MM-DD HH:MM:SS</span>
+              </td>
+              <td class="format-val-col">
+                <code class="val-code">{{ out.sqlUtc }}</code>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.sqlUtc, 'sqlUtc')"
+                  matTooltip="Copy SQL UTC">
+                  <mat-icon>{{ isCopied('sqlUtc') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- UTC / GMT String -->
+            <tr>
+              <td class="format-name-col">
+                <strong>UTC / GMT HTTP String</strong>
+                <span class="sub-label">RFC 7231 Format</span>
+              </td>
+              <td class="format-val-col">
+                <code class="val-code">{{ out.utcString }}</code>
+              </td>
+              <td class="format-act-col">
+                <button type="button" class="btn-copy-row" (click)="copyText(out.utcString, 'utcStr')"
+                  matTooltip="Copy UTC String">
+                  <mat-icon>{{ isCopied('utcStr') ? 'check' : 'content_copy' }}</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Calendar & Year Meta Grid -->
+      <div class="calendar-meta-grid">
+        <div class="meta-card">
+          <span class="meta-title">Day of Week</span>
+          <span class="meta-value">{{ out.dayOfWeek }}</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-title">Day of Year</span>
+          <span class="meta-value">{{ out.dayOfYear }} <small>/ {{ out.totalDaysInYear }}</small></span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-title">ISO Week</span>
+          <span class="meta-value">Week {{ out.weekNumberIso }}</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-title">Leap Year</span>
+          <span class="meta-value" [class.highlight-leap]="out.isLeapYear">{{ out.isLeapYear ? 'Yes (366 days)' : 'No
+            (365 days)' }}</span>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- TAB 2: WORLD TIMEZONES -->
+  @if (activeTab() === 'timezones') {
+  <div class="tab-content">
+    <div class="timezones-toolbar">
+      <div class="field search-field grow">
+        <label for="tz-search">Filter World Timezones</label>
+        <div class="search-input-wrapper">
+          <mat-icon>search</mat-icon>
+          <input id="tz-search" type="text" class="search-input" [ngModel]="timezoneQuery()"
+            (ngModelChange)="timezoneQuery.set($event)"
+            placeholder="Search by city, country, or timezone ID (e.g. London, Tokyo, IST, PST)..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="timezones-grid">
+      @for (tz of filteredTimezones(); track tz.id) {
+      <div class="tz-card">
+        <div class="tz-card-top">
+          <div class="tz-info">
+            <span class="tz-city">{{ tz.city }}</span>
+            <span class="tz-label">{{ tz.label }}</span>
+          </div>
+          <span class="tz-offset-badge">{{ tz.offsetFormatted }}</span>
+        </div>
+
+        <div class="tz-datetime-val">
+          {{ tz.formattedDateTime }}
+        </div>
+
+        <div class="tz-card-footer">
+          <code class="tz-iso">{{ tz.isoString }}</code>
+          <button type="button" class="btn-copy-mini"
+            (click)="copyText(tz.formattedDateTime + ' (' + tz.offsetFormatted + ')', 'tz-' + tz.id)"
+            matTooltip="Copy timezone time">
+            <mat-icon>{{ isCopied('tz-' + tz.id) ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- TAB 3: DATE MATH & DIFF -->
+  @if (activeTab() === 'math') {
+  <div class="tab-content">
+    <!-- Section 1: Date Arithmetic -->
+    <div class="math-card">
+      <div class="card-header">
+        <mat-icon>add_circle_outline</mat-icon>
+        <h3>Date Arithmetic</h3>
+      </div>
+      <p class="card-desc">Add or subtract time units from the current active timestamp.</p>
+
+      <div class="math-controls-row">
+        <div class="math-op-selector">
+          <button type="button" class="op-btn" [class.active]="mathOp() === 'add'" (click)="mathOp.set('add')">
+            <mat-icon>add</mat-icon> Add (+)
+          </button>
+          <button type="button" class="op-btn" [class.active]="mathOp() === 'subtract'"
+            (click)="mathOp.set('subtract')">
+            <mat-icon>remove</mat-icon> Subtract (-)
+          </button>
+        </div>
+
+        <div class="math-inputs-grid">
+          <div class="math-field">
+            <label>Years</label>
+            <input type="number" min="0" [ngModel]="mathYears()" (ngModelChange)="mathYears.set($event)" />
+          </div>
+          <div class="math-field">
+            <label>Months</label>
+            <input type="number" min="0" [ngModel]="mathMonths()" (ngModelChange)="mathMonths.set($event)" />
+          </div>
+          <div class="math-field">
+            <label>Days</label>
+            <input type="number" min="0" [ngModel]="mathDays()" (ngModelChange)="mathDays.set($event)" />
+          </div>
+          <div class="math-field">
+            <label>Hours</label>
+            <input type="number" min="0" [ngModel]="mathHours()" (ngModelChange)="mathHours.set($event)" />
+          </div>
+          <div class="math-field">
+            <label>Minutes</label>
+            <input type="number" min="0" [ngModel]="mathMinutes()" (ngModelChange)="mathMinutes.set($event)" />
+          </div>
+          <div class="math-field">
+            <label>Seconds</label>
+            <input type="number" min="0" [ngModel]="mathSeconds()" (ngModelChange)="mathSeconds.set($event)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="math-result-box">
+        <div class="math-result-left">
+          <span class="math-result-label">Resulting Date & Timestamp:</span>
+          <div class="math-result-values">
+            <span class="math-date-val">{{ mathOutputs().localString }}</span>
+            <div class="math-code-tags">
+              <code class="tag-epoch">Unix: {{ mathOutputs().unixSeconds }}</code>
+              <code class="tag-iso">ISO: {{ mathOutputs().isoUtc }}</code>
+            </div>
+          </div>
+        </div>
+        <button type="button" mat-stroked-button class="btn-use-math"
+          (click)="input.set(mathOutputs().unixSeconds); setTab('convert')"
+          matTooltip="Load this result into main converter">
+          <mat-icon>input</mat-icon> Load in Converter
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 2: Date Difference Calculator -->
+    <div class="math-card">
+      <div class="card-header">
+        <mat-icon>compare_arrows</mat-icon>
+        <h3>Date & Duration Difference</h3>
+      </div>
+      <p class="card-desc">Calculate elapsed time and duration between two dates or timestamps.</p>
+
+      <div class="diff-inputs-grid">
+        <div class="field">
+          <label for="diff-date-a">Date / Timestamp A</label>
+          <input id="diff-date-a" type="text" class="text-input" [ngModel]="diffDateA()"
+            (ngModelChange)="diffDateA.set($event)" placeholder="e.g. now, 1724825600, 2026-08-28" />
+        </div>
+
+        <div class="field">
+          <label for="diff-date-b">Date / Timestamp B</label>
+          <input id="diff-date-b" type="text" class="text-input" [ngModel]="diffDateB()"
+            (ngModelChange)="diffDateB.set($event)" placeholder="e.g. +7d, 2026-09-04, or yesterday" />
+        </div>
+      </div>
+
+      @if (diffCalculatedResult().isValid && diffCalculatedResult().result; as diff) {
+      <div class="diff-result-banner">
+        <div class="diff-main-stat">
+          <span class="diff-label">Total Elapsed Duration:</span>
+          <span class="diff-highlight-text">{{ diff.humanized }}</span>
+          <span class="diff-sub-badge">{{ diff.isPast ? 'Date B is earlier than Date A' : 'Date B is later than Date A'
+            }}</span>
+        </div>
+
+        <div class="diff-breakdown-grid">
+          <div class="diff-pill">
+            <span class="diff-pill-val">{{ diff.totalDays }}</span>
+            <span class="diff-pill-lbl">Days</span>
+          </div>
+          <div class="diff-pill">
+            <span class="diff-pill-val">{{ diff.totalHours }}</span>
+            <span class="diff-pill-lbl">Hours</span>
+          </div>
+          <div class="diff-pill">
+            <span class="diff-pill-val">{{ diff.totalMinutes }}</span>
+            <span class="diff-pill-lbl">Minutes</span>
+          </div>
+          <div class="diff-pill">
+            <span class="diff-pill-val">{{ diff.totalSeconds }}</span>
+            <span class="diff-pill-lbl">Seconds</span>
+          </div>
+          <div class="diff-pill">
+            <span class="diff-pill-val">{{ diff.totalMilliseconds }}</span>
+            <span class="diff-pill-lbl">Milliseconds</span>
+          </div>
+        </div>
+      </div>
+      } @else if (diffCalculatedResult().error) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ diffCalculatedResult().error }}</span>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- TAB 4: DEVELOPER SNIPPETS -->
+  @if (activeTab() === 'snippets') {
+  <div class="tab-content">
+    <div class="snippets-intro">
+      <h3>Programming Language Quick-Reference</h3>
+      <p>Copy-pasteable code snippets for obtaining current timestamps and parsing the selected timestamp in your
+        language of choice.</p>
+    </div>
+
+    <div class="snippets-grid">
+      @for (snip of developerSnippets(); track snip.language) {
+      <div class="snippet-card">
+        <div class="snippet-header">
+          <span class="snip-lang">{{ snip.language }}</span>
+        </div>
+
+        <div class="snippet-block">
+          <div class="snippet-label-row">
+            <span class="snip-sub-title">1. Get Current Epoch Timestamp</span>
+            <button type="button" class="btn-copy-mini"
+              (click)="copyText(snip.getTimestamp, 'snip-get-' + snip.language)" matTooltip="Copy code">
+              <mat-icon>{{ isCopied('snip-get-' + snip.language) ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+          <pre class="snippet-code"><code>{{ snip.getTimestamp }}</code></pre>
+        </div>
+
+        <div class="snippet-block">
+          <div class="snippet-label-row">
+            <span class="snip-sub-title">2. Parse & Format Active Timestamp</span>
+            <button type="button" class="btn-copy-mini"
+              (click)="copyText(snip.parseTimestamp, 'snip-parse-' + snip.language)" matTooltip="Copy code">
+              <mat-icon>{{ isCopied('snip-parse-' + snip.language) ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+          <pre class="snippet-code"><code>{{ snip.parseTimestamp }}</code></pre>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

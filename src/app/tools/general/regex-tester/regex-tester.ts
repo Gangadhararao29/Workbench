@@ -1,9 +1,10 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, Input, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ShellStateService } from '../../../core/shell-state.service';
 
 export interface MatchDetail {
   index: number;
@@ -74,20 +75,19 @@ function buildHighlightedHtml(text: string, pat: string, flags: string): string 
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatTooltipModule],
   templateUrl: './regex-tester.html',
-  styleUrls: ['./regex-tester.css']
+  styleUrls: ['./regex-tester.css'],
 })
 export class RegexTester {
   @Input({ required: true }) instanceId!: string;
+
+  public shellState = inject(ShellStateService);
 
   pattern = signal('(?<prefix>user|admin)-(?<id>\\d+)');
   flags = signal('g');
   replacement = signal('account-$<id> ($<prefix>)');
 
   testCases = signal<Array<{ id: string; text: string }>>([
-    { id: '1', text: 'user-42 authenticated successfully' },
-    { id: '2', text: 'admin-7 granted elevated permissions' },
-    { id: '3', text: 'guest-999 access denied' },
-    { id: '4', text: 'user-108 and user-204 logged in' }
+    { id: '1', text: 'user-108 and user-204 logged in' },
   ]);
 
   regexError = computed(() => {
@@ -109,13 +109,13 @@ export class RegexTester {
     const cases = this.testCases();
 
     if (!pat) {
-      return cases.map(c => ({
+      return cases.map((c) => ({
         id: c.id,
         text: c.text,
         highlightedHtml: escapeHtml(c.text),
         replacedText: c.text,
         matches: [],
-        matchCount: 0
+        matchCount: 0,
       }));
     }
 
@@ -123,13 +123,13 @@ export class RegexTester {
     try {
       regex = new RegExp(pat, flg);
     } catch {
-      return cases.map(c => ({
+      return cases.map((c) => ({
         id: c.id,
         text: c.text,
         highlightedHtml: escapeHtml(c.text),
         replacedText: c.text,
         matches: [],
-        matchCount: 0
+        matchCount: 0,
       }));
     }
 
@@ -141,7 +141,7 @@ export class RegexTester {
       globalRegex = regex;
     }
 
-    return cases.map(c => {
+    return cases.map((c) => {
       const text = c.text;
       const rawMatches: RegExpExecArray[] = [];
 
@@ -172,7 +172,7 @@ export class RegexTester {
           start: m.index ?? 0,
           end: (m.index ?? 0) + m[0].length,
           numberedGroups: numbered,
-          namedGroups: named
+          namedGroups: named,
         };
       });
 
@@ -190,7 +190,7 @@ export class RegexTester {
         highlightedHtml,
         replacedText,
         matches,
-        matchCount: matches.length
+        matchCount: matches.length,
       };
     });
   });
@@ -204,13 +204,13 @@ export class RegexTester {
   removeTestCase(id: string) {
     const current = this.testCases();
     if (current.length > 1) {
-      this.testCases.set(current.filter(c => c.id !== id));
+      this.testCases.set(current.filter((c) => c.id !== id));
     }
   }
 
   updateTestCase(id: string, text: string) {
     const current = this.testCases();
-    this.testCases.set(current.map(c => (c.id === id ? { ...c, text } : c)));
+    this.testCases.set(current.map((c) => (c.id === id ? { ...c, text } : c)));
   }
 
   getNamedGroupEntries(namedGroups: Record<string, string>): Array<{ key: string; value: string }> {

@@ -1,1 +1,98 @@
-/* Styles are handled by global tool-common.css */
+.ef-config-container {
+  max-width: 100vw;
+}
+
+.top-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--surface-bg-subtle, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+}
+
+.preset-group,
+.tab-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preset-btn {
+  font-size: 12px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 10px !important;
+}
+
+.mode-btn {
+  font-size: 12px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 12px !important;
+  border-radius: 4px !important;
+  background: transparent;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.mode-btn.active {
+  background: var(--mat-primary-color, #1976d2) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.editor-split {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.pane-header label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary, #ffffff);
+}
+
+.pane-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+}
+
+app-code-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .editor-split {
+    flex-direction: column;
+  }
+}

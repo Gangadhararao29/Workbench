@@ -1,0 +1,86 @@
+<div class="tool-surface-inner ef-dbcontext-container">
+  <div class="main-split">
+    <!-- Left Config Panel -->
+    <div class="config-panel">
+      <div class="panel-section-title">DbContext Parameters</div>
+
+      <div class="form-row">
+        <label>DbContext Class Name</label>
+        <input [(ngModel)]="contextName" (ngModelChange)="generate()" placeholder="AppDbContext" />
+      </div>
+
+      <div class="form-row">
+        <label>Namespace</label>
+        <input [(ngModel)]="namespace" (ngModelChange)="generate()" placeholder="MyApp.Infrastructure.Data" />
+      </div>
+
+      <div class="form-row">
+        <label>Database Provider</label>
+        <mat-select [(value)]="provider" (selectionChange)="generate()">
+          <mat-option value="SqlServer">Microsoft SQL Server</mat-option>
+          <mat-option value="PostgreSql">PostgreSQL (Npgsql)</mat-option>
+          <mat-option value="MySql">MySQL / MariaDB (Pomelo)</mat-option>
+          <mat-option value="Sqlite">SQLite</mat-option>
+        </mat-select>
+      </div>
+
+      <div class="form-row">
+        <label>Entities (Names or C# Class Code)</label>
+        <textarea [(ngModel)]="entitiesText" (ngModelChange)="generate()" rows="5" placeholder="Customer&#10;Order&#10;Product"></textarea>
+      </div>
+
+      <div class="section-divider"></div>
+      <div class="panel-section-title">Architecture Features</div>
+
+      <div class="checkbox-row">
+        <mat-slide-toggle [(ngModel)]="useAssemblyConfigurations" (ngModelChange)="generate()">
+          ApplyConfigurationsFromAssembly
+        </mat-slide-toggle>
+      </div>
+
+      <div class="checkbox-row">
+        <mat-slide-toggle [(ngModel)]="includeAuditInterceptor" (ngModelChange)="generate()">
+          Audit Trail Stamping (CreatedAt/UpdatedAt)
+        </mat-slide-toggle>
+      </div>
+
+      <div class="checkbox-row">
+        <mat-slide-toggle [(ngModel)]="includeSoftDeleteFilter" (ngModelChange)="generate()">
+          Global Soft Delete Filter (ISoftDeletable)
+        </mat-slide-toggle>
+      </div>
+
+      <div class="checkbox-row">
+        <mat-slide-toggle [(ngModel)]="includeDiExtension" (ngModelChange)="generate()">
+          IServiceCollection Extension Method
+        </mat-slide-toggle>
+      </div>
+
+      <div class="checkbox-row">
+        <mat-slide-toggle [(ngModel)]="useDbContextPool" (ngModelChange)="generate()">
+          Use AddDbContextPool (High Performance)
+        </mat-slide-toggle>
+      </div>
+
+      <div class="checkbox-row">
+        <mat-slide-toggle [(ngModel)]="includeDesignTimeFactory" (ngModelChange)="generate()">
+          IDesignTimeDbContextFactory (CLI Support)
+        </mat-slide-toggle>
+      </div>
+    </div>
+
+    <!-- Right Generated DbContext -->
+    <div class="output-panel field grow">
+      <div class="pane-header">
+        <label>Generated EF Core DbContext</label>
+        <span class="pane-subtitle">Production-ready DbContext with DbSets, audit tracking & DI extension</span>
+      </div>
+      <app-code-editor
+        [value]="result()"
+        language="csharp"
+        ariaLabel="Generated DbContext code"
+        [readOnly]="true"
+      ></app-code-editor>
+    </div>
+  </div>
+</div>

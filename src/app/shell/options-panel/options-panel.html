@@ -242,6 +242,336 @@
       </div>
     }
   }
+  @case ('regex-tester') {
+    <div class="cheat-sheet-container">
+      <div class="cheat-search-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input
+          type="text"
+          [(ngModel)]="regexFilter"
+          placeholder="Search regex syntax..."
+          class="cheat-search-input" />
+        @if (regexFilter) {
+          <button type="button" class="btn-clear-search" (click)="regexFilter = ''" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Character Classes -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>category</mat-icon> Character Classes
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('.', 'Any character except newline')) {
+            <div class="cheat-row"><code class="token">.</code><span class="desc">Any character except newline</span></div>
+          }
+          @if (filterRow('\\d', 'Digit [0-9]')) {
+            <div class="cheat-row"><code class="token">\d</code><span class="desc">Digit <code>[0-9]</code></span></div>
+          }
+          @if (filterRow('\\D', 'Non-digit [^0-9]')) {
+            <div class="cheat-row"><code class="token">\D</code><span class="desc">Non-digit <code>[^0-9]</code></span></div>
+          }
+          @if (filterRow('\\w', 'Word character [a-zA-Z0-9_]')) {
+            <div class="cheat-row"><code class="token">\w</code><span class="desc">Word char <code>[a-zA-Z0-9_]</code></span></div>
+          }
+          @if (filterRow('\\W', 'Non-word character')) {
+            <div class="cheat-row"><code class="token">\W</code><span class="desc">Non-word character</span></div>
+          }
+          @if (filterRow('\\s', 'Whitespace (space, tab, newline)')) {
+            <div class="cheat-row"><code class="token">\s</code><span class="desc">Whitespace (space, tab, \n)</span></div>
+          }
+          @if (filterRow('\\S', 'Non-whitespace character')) {
+            <div class="cheat-row"><code class="token">\S</code><span class="desc">Non-whitespace character</span></div>
+          }
+          @if (filterRow('[abc]', 'Any character in set')) {
+            <div class="cheat-row"><code class="token">[abc]</code><span class="desc">Any character in set</span></div>
+          }
+          @if (filterRow('[^abc]', 'Any character NOT in set')) {
+            <div class="cheat-row"><code class="token">[^abc]</code><span class="desc">Any character NOT in set</span></div>
+          }
+          @if (filterRow('[a-z]', 'Character range from a to z')) {
+            <div class="cheat-row"><code class="token">[a-z]</code><span class="desc">Character range from a to z</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Quantifiers -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>repeat</mat-icon> Quantifiers
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('*', '0 or more times (greedy)')) {
+            <div class="cheat-row"><code class="token">*</code><span class="desc">0 or more times (greedy)</span></div>
+          }
+          @if (filterRow('+', '1 or more times (greedy)')) {
+            <div class="cheat-row"><code class="token">+</code><span class="desc">1 or more times (greedy)</span></div>
+          }
+          @if (filterRow('?', '0 or 1 time (optional)')) {
+            <div class="cheat-row"><code class="token">?</code><span class="desc">0 or 1 time (optional)</span></div>
+          }
+          @if (filterRow('{n}', 'Exactly n times')) {
+            <div class="cheat-row"><code class="token">&#123;n&#125;</code><span class="desc">Exactly <em>n</em> times</span></div>
+          }
+          @if (filterRow('{n,}', 'n or more times')) {
+            <div class="cheat-row"><code class="token">&#123;n,&#125;</code><span class="desc"><em>n</em> or more times</span></div>
+          }
+          @if (filterRow('{n,m}', 'Between n and m times')) {
+            <div class="cheat-row"><code class="token">&#123;n,m&#125;</code><span class="desc">Between <em>n</em> and <em>m</em> times</span></div>
+          }
+          @if (filterRow('*? +?', 'Lazy / non-greedy matching')) {
+            <div class="cheat-row"><code class="token">*? / +?</code><span class="desc">Lazy (match shortest)</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Anchors & Boundaries -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>vertical_align_center</mat-icon> Anchors & Boundaries
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('^', 'Start of line or string')) {
+            <div class="cheat-row"><code class="token">^</code><span class="desc">Start of line / string</span></div>
+          }
+          @if (filterRow('$', 'End of line or string')) {
+            <div class="cheat-row"><code class="token">$</code><span class="desc">End of line / string</span></div>
+          }
+          @if (filterRow('\\b', 'Word boundary')) {
+            <div class="cheat-row"><code class="token">\b</code><span class="desc">Word boundary</span></div>
+          }
+          @if (filterRow('\\B', 'Non-word boundary')) {
+            <div class="cheat-row"><code class="token">\B</code><span class="desc">Non-word boundary</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Groups & Captures -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>data_object</mat-icon> Groups & Captures
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('(abc)', 'Numbered capture group $1')) {
+            <div class="cheat-row"><code class="token">(abc)</code><span class="desc">Capture group (<code>$1</code>)</span></div>
+          }
+          @if (filterRow('(?<name>abc)', 'Named capture group $<name>')) {
+            <div class="cheat-row"><code class="token">(?&lt;name&gt;abc)</code><span class="desc">Named group (<code>$&lt;name&gt;</code>)</span></div>
+          }
+          @if (filterRow('(?:abc)', 'Non-capturing group')) {
+            <div class="cheat-row"><code class="token">(?:abc)</code><span class="desc">Non-capturing group</span></div>
+          }
+          @if (filterRow('a|b', 'Alternation (matches a OR b)')) {
+            <div class="cheat-row"><code class="token">a|b</code><span class="desc">Match <code>a</code> OR <code>b</code></span></div>
+          }
+          @if (filterRow('\\1', 'Backreference to group 1')) {
+            <div class="cheat-row"><code class="token">\1</code><span class="desc">Backreference to group 1</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Lookaround Assertions -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>visibility</mat-icon> Lookaround Assertions
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('(?=abc)', 'Positive lookahead')) {
+            <div class="cheat-row"><code class="token">(?=abc)</code><span class="desc">Positive lookahead</span></div>
+          }
+          @if (filterRow('(?!abc)', 'Negative lookahead')) {
+            <div class="cheat-row"><code class="token">(?!abc)</code><span class="desc">Negative lookahead</span></div>
+          }
+          @if (filterRow('(?<=abc)', 'Positive lookbehind')) {
+            <div class="cheat-row"><code class="token">(?&lt;=abc)</code><span class="desc">Positive lookbehind</span></div>
+          }
+          @if (filterRow('(?<!abc)', 'Negative lookbehind')) {
+            <div class="cheat-row"><code class="token">(?&lt;!abc)</code><span class="desc">Negative lookbehind</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Flags -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>flag</mat-icon> Flags
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('g', 'Global: find all matches')) {
+            <div class="cheat-row"><code class="token">g</code><span class="desc">Global: match all occurrences</span></div>
+          }
+          @if (filterRow('i', 'Case-insensitive matching')) {
+            <div class="cheat-row"><code class="token">i</code><span class="desc">Case-insensitive matching</span></div>
+          }
+          @if (filterRow('m', 'Multiline: ^ and $ match per line')) {
+            <div class="cheat-row"><code class="token">m</code><span class="desc">Multiline (^ &amp; $ match per line)</span></div>
+          }
+          @if (filterRow('s', 'Dotall: . matches newlines')) {
+            <div class="cheat-row"><code class="token">s</code><span class="desc">Dotall (. matches newline)</span></div>
+          }
+          @if (filterRow('u', 'Unicode mode')) {
+            <div class="cheat-row"><code class="token">u</code><span class="desc">Unicode code point support</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Replacement Syntax -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>find_replace</mat-icon> Replacement Patterns
+        </div>
+        <div class="cheat-table">
+          @if (filterRow('$1, $2', 'Numbered group replacement')) {
+            <div class="cheat-row"><code class="token">$1, $2</code><span class="desc">Numbered group value</span></div>
+          }
+          @if (filterRow('$<name>', 'Named group replacement')) {
+            <div class="cheat-row"><code class="token">$&lt;name&gt;</code><span class="desc">Named group value</span></div>
+          }
+          @if (filterRow('$&', 'Entire matched substring')) {
+            <div class="cheat-row"><code class="token">$&amp;</code><span class="desc">Entire matched substring</span></div>
+          }
+          @if (filterRow('$$', 'Literal dollar sign')) {
+            <div class="cheat-row"><code class="token">$$</code><span class="desc">Literal <code>$</code> character</span></div>
+          }
+          @if (filterRow('$` / $\'', 'Portion before or after match')) {
+            <div class="cheat-row"><code class="token">$` / $'</code><span class="desc">Portion before / after match</span></div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @case ('ef-configuration') {
+    <div class="field">
+      <label>Table Naming</label>
+      <mat-select [value]="instance.config['tableNaming'] || 'plural'" (selectionChange)="update('tableNaming', $event.value)">
+        <mat-option value="plural">Pluralized (e.g. Users)</mat-option>
+        <mat-option value="singular">Singular (e.g. User)</mat-option>
+        <mat-option value="exact">Exact (as defined)</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Default Schema</label>
+      <input [value]="instance.config['schema'] || ''" (input)="update('schema', $any($event.target).value)" placeholder="e.g. dbo, auth, or empty" />
+    </div>
+    <div class="field">
+      <label>Default String Length</label>
+      <mat-select [value]="instance.config['defaultStringLength'] ?? 200" (selectionChange)="update('defaultStringLength', $event.value)">
+        <mat-option [value]="50">50 characters</mat-option>
+        <mat-option [value]="100">100 characters</mat-option>
+        <mat-option [value]="200">200 characters</mat-option>
+        <mat-option [value]="256">256 characters</mat-option>
+        <mat-option [value]="500">500 characters</mat-option>
+        <mat-option [value]="4000">4000 characters</mat-option>
+        <mat-option [value]="0">Uncapped / Max</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Foreign Key Delete Behavior</label>
+      <mat-select [value]="instance.config['deleteBehavior'] || 'Restrict'" (selectionChange)="update('deleteBehavior', $event.value)">
+        <mat-option value="Restrict">Restrict</mat-option>
+        <mat-option value="Cascade">Cascade</mat-option>
+        <mat-option value="SetNull">Set Null</mat-option>
+        <mat-option value="NoAction">No Action</mat-option>
+        <mat-option value="ClientSetNull">Client Set Null</mat-option>
+      </mat-select>
+    </div>
+    <div class="toggle-row">
+      <span>Global Soft Delete Filter</span>
+      <mat-slide-toggle
+        [checked]="instance.config['enableSoftDelete'] ?? true"
+        (change)="update('enableSoftDelete', $event.checked)"
+      ></mat-slide-toggle>
+    </div>
+    <div class="toggle-row">
+      <span>Decimal Precision (18, 2)</span>
+      <mat-slide-toggle
+        [checked]="instance.config['enablePrecision'] ?? true"
+        (change)="update('enablePrecision', $event.checked)"
+      ></mat-slide-toggle>
+    </div>
+    <div class="toggle-row">
+      <span>Enum to String Conversion</span>
+      <mat-slide-toggle
+        [checked]="instance.config['enableEnumConversion'] ?? true"
+        (change)="update('enableEnumConversion', $event.checked)"
+      ></mat-slide-toggle>
+    </div>
+  }
+
+  @case ('ef-migrations') {
+    <div class="field">
+      <label>Target Project Path (-p)</label>
+      <input [value]="instance.config['project'] || 'src/Infrastructure'" (input)="update('project', $any($event.target).value)" placeholder="src/Infrastructure" />
+    </div>
+    <div class="field">
+      <label>Startup Project Path (-s)</label>
+      <input [value]="instance.config['startupProject'] || 'src/WebApi'" (input)="update('startupProject', $any($event.target).value)" placeholder="src/WebApi" />
+    </div>
+    <div class="field">
+      <label>Default DbContext Name (-c)</label>
+      <input [value]="instance.config['contextName'] || 'AppDbContext'" (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
+    </div>
+    <div class="field">
+      <label>Database Provider (for Scaffold)</label>
+      <mat-select [value]="instance.config['provider'] || 'Microsoft.EntityFrameworkCore.SqlServer'" (selectionChange)="update('provider', $event.value)">
+        <mat-option value="Microsoft.EntityFrameworkCore.SqlServer">SQL Server</mat-option>
+        <mat-option value="Npgsql.EntityFrameworkCore.PostgreSQL">PostgreSQL (Npgsql)</mat-option>
+        <mat-option value="Pomelo.EntityFrameworkCore.MySql">MySQL (Pomelo)</mat-option>
+        <mat-option value="Microsoft.EntityFrameworkCore.Sqlite">SQLite</mat-option>
+      </mat-select>
+    </div>
+  }
+
+  @case ('ef-dbcontext') {
+    <div class="field">
+      <label>Default DbContext Name</label>
+      <input [value]="instance.config['contextName'] || 'AppDbContext'" (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
+    </div>
+    <div class="field">
+      <label>Namespace</label>
+      <input [value]="instance.config['namespace'] || 'MyApp.Infrastructure.Data'" (input)="update('namespace', $any($event.target).value)" placeholder="MyApp.Infrastructure.Data" />
+    </div>
+    <div class="field">
+      <label>Database Provider</label>
+      <mat-select [value]="instance.config['provider'] || 'SqlServer'" (selectionChange)="update('provider', $event.value)">
+        <mat-option value="SqlServer">Microsoft SQL Server</mat-option>
+        <mat-option value="PostgreSql">PostgreSQL</mat-option>
+        <mat-option value="MySql">MySQL</mat-option>
+        <mat-option value="Sqlite">SQLite</mat-option>
+      </mat-select>
+    </div>
+  }
+
+  @case ('timestamp-converter') {
+    <div class="field">
+      <label>Default Input Format</label>
+      <mat-select [value]="instance.config['defaultUnit'] || 'auto'" (selectionChange)="update('defaultUnit', $event.value)">
+        <mat-option value="auto">Auto-detect (Recommended)</mat-option>
+        <mat-option value="seconds">Unix seconds (10-digits)</mat-option>
+        <mat-option value="milliseconds">Unix milliseconds (13-digits)</mat-option>
+        <mat-option value="iso">ISO 8601 string</mat-option>
+        <mat-option value="relative">Relative offset (e.g. +2h, -1d)</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Time Display Format</label>
+      <mat-select [value]="instance.config['hourFormat'] || '12h'" (selectionChange)="update('hourFormat', $event.value)">
+        <mat-option value="12h">12-Hour (AM/PM)</mat-option>
+        <mat-option value="24h">24-Hour (Military / ISO)</mat-option>
+      </mat-select>
+    </div>
+    <div class="toggle-row">
+      <span>Auto-run live clock ticker</span>
+      <mat-slide-toggle
+        [checked]="instance.config['autoTicker'] !== false"
+        (change)="update('autoTicker', $event.checked)">
+      </mat-slide-toggle>
+    </div>
+  }
+
   @default {
     <div class="empty-state">No options for this tool yet</div>
   }

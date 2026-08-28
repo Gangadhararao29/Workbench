@@ -1,324 +1,273 @@
 <div class="tool-surface-inner">
   <!-- Tab Navigation Bar -->
   <div class="jwt-tab-nav">
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'inspect'"
-      (click)="setTab('inspect')">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'inspect'" (click)="setTab('inspect')">
       <mat-icon>search</mat-icon> Inspector
     </button>
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'build'"
-      (click)="setTab('build')">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'build'" (click)="setTab('build')">
       <mat-icon>build</mat-icon> Builder
     </button>
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'verify'"
-      (click)="setTab('verify')">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'verify'" (click)="setTab('verify')">
       <mat-icon>verified</mat-icon> Verify
     </button>
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'compare'"
-      (click)="setTab('compare')">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'compare'" (click)="setTab('compare')">
       <mat-icon>compare_arrows</mat-icon> Compare
     </button>
   </div>
 
   <!-- TAB 1: INSPECTOR -->
   @if (activeTab() === 'inspect') {
-    <div class="tab-pane">
-      <div class="field">
-        <label>JWT Token</label>
-        <app-code-editor
-          class="jwt-input-editor"
-          [value]="inspectInput()"
-          language="plaintext"
-          wordWrap="on"
-          ariaLabel="JWT token"
-          (valueChange)="inspectInput.set($event); inspect()">
-        </app-code-editor>
-      </div>
-
-      <div class="action-row">
-        <button mat-raised-button color="primary" (click)="inspect()">
-          <mat-icon>visibility</mat-icon> Inspect Token
-        </button>
-      </div>
-
-      @if (inspectError()) {
-        <div class="error-banner">
-          <mat-icon>error_outline</mat-icon>
-          <span>{{ inspectError() }}</span>
-        </div>
-      }
-
-      @if (inspection(); as token) {
-        <div class="status-row">
-          <div class="status-badge" [class.status-expired]="token.status === 'Expired'" [class.status-valid]="token.status === 'Not expired'">
-            <mat-icon>{{ token.status === 'Expired' ? 'timer_off' : 'check_circle' }}</mat-icon>
-            <strong>{{ token.status }}</strong>
-          </div>
-          <span class="expiry-text">Expires: {{ token.expiry }}</span>
-        </div>
-
-        <div class="jwt-grid">
-          <div class="field">
-            <label>Header</label>
-            <pre class="code-result">{{ token.header | json }}</pre>
-          </div>
-          <div class="field">
-            <label>Payload & Claims</label>
-            <pre class="code-result">{{ token.payload | json }}</pre>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>ASP.NET Core Claim Helper</label>
-          <pre class="code-result">{{ claimHelper() }}</pre>
-        </div>
-
-        <p class="notice">Decoded locally in your browser. Use the <strong>Verify</strong> tab to validate HMAC signatures against a secret key.</p>
-      }
+  <div class="tab-pane">
+    <div class="field">
+      <label>JWT Token</label>
+      <app-code-editor class="jwt-input-editor" [value]="inspectInput()" language="plaintext" wordWrap="on"
+        ariaLabel="JWT token" (valueChange)="inspectInput.set($event); inspect()">
+      </app-code-editor>
     </div>
+
+    <div class="action-row">
+      <button mat-raised-button color="primary" (click)="inspect()">
+        <mat-icon>visibility</mat-icon> Inspect Token
+      </button>
+    </div>
+
+    @if (inspectError()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ inspectError() }}</span>
+    </div>
+    }
+
+    @if (inspection(); as token) {
+    <div class="status-row">
+      <div class="status-badge" [class.status-expired]="token.status === 'Expired'"
+        [class.status-valid]="token.status === 'Not expired'">
+        <mat-icon>{{ token.status === 'Expired' ? 'timer_off' : 'check_circle' }}</mat-icon>
+        <strong>{{ token.status }}</strong>
+      </div>
+      <span class="expiry-text">Expires: {{ token.expiry }}</span>
+    </div>
+
+    <div class="jwt-grid">
+      <div class="field">
+        <label>Header</label>
+        <pre class="code-result">{{ token.header | json }}</pre>
+      </div>
+      <div class="field">
+        <label>Payload & Claims</label>
+        <pre class="code-result">{{ token.payload | json }}</pre>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>ASP.NET Core Claim Helper</label>
+      <pre class="code-result">{{ claimHelper() }}</pre>
+    </div>
+
+    <p class="notice">Decoded locally in your browser. Use the <strong>Verify</strong> tab to validate HMAC signatures
+      against a secret key.</p>
+    }
+  </div>
   }
 
   <!-- TAB 2: BUILDER -->
   @if (activeTab() === 'build') {
-    <div class="tab-pane">
-      <div class="builder-config-row">
-        <div class="field">
-          <label>Algorithm</label>
-          <select [ngModel]="buildAlgorithm()" (ngModelChange)="buildAlgorithm.set($event)" class="select-input">
-            <option value="HS256">HS256 (HMAC with SHA-256)</option>
-          </select>
-        </div>
-
-        <div class="field grow">
-          <label>Signing Secret Key</label>
-          <input
-            type="text"
-            [ngModel]="buildSecret()"
-            (ngModelChange)="buildSecret.set($event)"
-            class="text-input"
-            placeholder="Enter secret key string..." />
-        </div>
-      </div>
-
+  <div class="tab-pane">
+    <div class="builder-config-row">
       <div class="field">
-        <label>JWT Payload (JSON)</label>
-        <app-code-editor
-          class="builder-payload-editor"
-          [value]="buildPayload()"
-          language="json"
-          wordWrap="on"
-          ariaLabel="JWT Payload"
-          (valueChange)="buildPayload.set($event)">
-        </app-code-editor>
+        <label>Algorithm</label>
+        <select [ngModel]="buildAlgorithm()" (ngModelChange)="buildAlgorithm.set($event)" class="select-input">
+          <option value="HS256">HS256 (HMAC with SHA-256)</option>
+        </select>
       </div>
 
-      <div class="action-row">
-        <button mat-raised-button color="primary" [disabled]="isBuilding()" (click)="build()">
-          <mat-icon>vpn_key</mat-icon> Sign & Generate JWT
+      <div class="field grow">
+        <label>Signing Secret Key</label>
+        <input type="text" [ngModel]="buildSecret()" (ngModelChange)="buildSecret.set($event)" class="text-input"
+          placeholder="Enter secret key string..." />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>JWT Payload (JSON)</label>
+      <app-code-editor class="builder-payload-editor" [value]="buildPayload()" language="json" wordWrap="on"
+        ariaLabel="JWT Payload" (valueChange)="buildPayload.set($event)">
+      </app-code-editor>
+    </div>
+
+    <div class="action-row">
+      <button mat-raised-button color="primary" [disabled]="isBuilding()" (click)="build()">
+        <mat-icon>vpn_key</mat-icon> Sign & Generate JWT
+      </button>
+    </div>
+
+    @if (buildError()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ buildError() }}</span>
+    </div>
+    }
+
+    @if (builtToken()) {
+    <div class="field">
+      <div class="label-with-copy">
+        <label>Signed JWT Output</label>
+        <button type="button" class="btn-copy-mini" (click)="copyBuiltToken()">
+          <mat-icon>{{ copiedBuilt() ? 'check' : 'content_copy' }}</mat-icon>
+          <span>{{ copiedBuilt() ? 'Copied!' : 'Copy Token' }}</span>
         </button>
       </div>
-
-      @if (buildError()) {
-        <div class="error-banner">
-          <mat-icon>error_outline</mat-icon>
-          <span>{{ buildError() }}</span>
-        </div>
-      }
-
-      @if (builtToken()) {
-        <div class="field">
-          <div class="label-with-copy">
-            <label>Signed JWT Output</label>
-            <button type="button" class="btn-copy-mini" (click)="copyBuiltToken()">
-              <mat-icon>{{ copiedBuilt() ? 'check' : 'content_copy' }}</mat-icon>
-              <span>{{ copiedBuilt() ? 'Copied!' : 'Copy Token' }}</span>
-            </button>
-          </div>
-          <app-code-editor
-            class="jwt-output-editor"
-            [value]="builtToken()"
-            language="plaintext"
-            wordWrap="on"
-            ariaLabel="Signed JWT Token"
-            [readOnly]="true">
-          </app-code-editor>
-        </div>
-      }
+      <app-code-editor class="jwt-output-editor" [value]="builtToken()" language="plaintext" wordWrap="on"
+        ariaLabel="Signed JWT Token" [readOnly]="true">
+      </app-code-editor>
     </div>
+    }
+  </div>
   }
 
   <!-- TAB 3: VERIFY -->
   @if (activeTab() === 'verify') {
-    <div class="tab-pane">
-      <div class="field">
-        <label>JWT Token to Verify</label>
-        <app-code-editor
-          class="jwt-input-editor"
-          [value]="verifyTokenInput()"
-          language="plaintext"
-          wordWrap="on"
-          ariaLabel="JWT token"
-          (valueChange)="verifyTokenInput.set($event)">
-        </app-code-editor>
-      </div>
-
-      <div class="field">
-        <label>Secret Key (HMAC SHA-256)</label>
-        <input
-          type="text"
-          [ngModel]="verifySecretInput()"
-          (ngModelChange)="verifySecretInput.set($event)"
-          class="text-input"
-          placeholder="Enter the secret key used to sign this token..." />
-      </div>
-
-      <div class="action-row">
-        <button mat-raised-button color="primary" [disabled]="isVerifying()" (click)="verify()">
-          <mat-icon>verified_user</mat-icon> Verify Signature
-        </button>
-      </div>
-
-      @if (verificationResult(); as res) {
-        @if (res.valid) {
-          <div class="verify-banner verify-valid">
-            <mat-icon>check_circle</mat-icon>
-            <div>
-              <strong>Signature Verified!</strong>
-              <p>The token signature matches the provided secret key and the payload is authentic.</p>
-            </div>
-          </div>
-
-          <div class="jwt-grid">
-            <div class="field">
-              <label>Verified Header</label>
-              <pre class="code-result">{{ res.header | json }}</pre>
-            </div>
-            <div class="field">
-              <label>Verified Payload</label>
-              <pre class="code-result">{{ res.payload | json }}</pre>
-            </div>
-          </div>
-        } @else {
-          <div class="verify-banner verify-invalid">
-            <mat-icon>cancel</mat-icon>
-            <div>
-              <strong>Signature Verification Failed</strong>
-              <p>{{ res.error }}</p>
-            </div>
-          </div>
-        }
-      }
+  <div class="tab-pane">
+    <div class="field">
+      <label>JWT Token to Verify</label>
+      <app-code-editor class="jwt-input-editor" [value]="verifyTokenInput()" language="plaintext" wordWrap="on"
+        ariaLabel="JWT token" (valueChange)="verifyTokenInput.set($event)">
+      </app-code-editor>
     </div>
+
+    <div class="field">
+      <label>Secret Key (HMAC SHA-256)</label>
+      <input type="text" [ngModel]="verifySecretInput()" (ngModelChange)="verifySecretInput.set($event)"
+        class="text-input" placeholder="Enter the secret key used to sign this token..." />
+    </div>
+
+    <div class="action-row">
+      <button mat-raised-button color="primary" [disabled]="isVerifying()" (click)="verify()">
+        <mat-icon>verified_user</mat-icon> Verify Signature
+      </button>
+    </div>
+
+    @if (verificationResult(); as res) {
+    @if (res.valid) {
+    <div class="verify-banner verify-valid">
+      <mat-icon>check_circle</mat-icon>
+      <div>
+        <strong>Signature Verified!</strong>
+        <p>The token signature matches the provided secret key and the payload is authentic.</p>
+      </div>
+    </div>
+
+    <div class="jwt-grid">
+      <div class="field">
+        <label>Verified Header</label>
+        <pre class="code-result">{{ res.header | json }}</pre>
+      </div>
+      <div class="field">
+        <label>Verified Payload</label>
+        <pre class="code-result">{{ res.payload | json }}</pre>
+      </div>
+    </div>
+    } @else {
+    <div class="verify-banner verify-invalid">
+      <mat-icon>cancel</mat-icon>
+      <div>
+        <strong>Signature Verification Failed</strong>
+        <p>{{ res.error }}</p>
+      </div>
+    </div>
+    }
+    }
+  </div>
   }
 
   <!-- TAB 4: COMPARE -->
   @if (activeTab() === 'compare') {
-    <div class="tab-pane">
-      <div class="compare-inputs-grid">
-        <div class="field">
-          <label>Token A</label>
-          <app-code-editor
-            class="jwt-compare-editor"
-            [value]="compareTokenA()"
-            language="plaintext"
-            wordWrap="on"
-            ariaLabel="Token A"
-            (valueChange)="compareTokenA.set($event); compare()">
-          </app-code-editor>
-        </div>
-
-        <div class="field">
-          <label>Token B</label>
-          <app-code-editor
-            class="jwt-compare-editor"
-            [value]="compareTokenB()"
-            language="plaintext"
-            wordWrap="on"
-            ariaLabel="Token B"
-            (valueChange)="compareTokenB.set($event); compare()">
-          </app-code-editor>
-        </div>
+  <div class="tab-pane">
+    <div class="compare-inputs-grid">
+      <div class="field">
+        <label>Token A</label>
+        <app-code-editor class="jwt-compare-editor" [value]="compareTokenA()" language="plaintext" wordWrap="on"
+          ariaLabel="Token A" (valueChange)="compareTokenA.set($event); compare()">
+        </app-code-editor>
       </div>
 
-      <div class="action-row">
-        <button mat-raised-button color="primary" (click)="compare()">
-          <mat-icon>compare</mat-icon> Compare Tokens
-        </button>
+      <div class="field">
+        <label>Token B</label>
+        <app-code-editor class="jwt-compare-editor" [value]="compareTokenB()" language="plaintext" wordWrap="on"
+          ariaLabel="Token B" (valueChange)="compareTokenB.set($event); compare()">
+        </app-code-editor>
       </div>
-
-      @if (comparisonResult(); as cmp) {
-        @if (cmp.errorA || cmp.errorB) {
-          <div class="error-banner">
-            <mat-icon>error_outline</mat-icon>
-            <span>
-              {{ cmp.errorA ? 'Token A: ' + cmp.errorA : '' }}
-              {{ cmp.errorB ? 'Token B: ' + cmp.errorB : '' }}
-            </span>
-          </div>
-        }
-
-        @if (cmp.claims.length > 0) {
-          <div class="comparison-table-wrapper">
-            <table class="comparison-table">
-              <thead>
-                <tr>
-                  <th>Claim Name</th>
-                  <th>Token A Value</th>
-                  <th>Token B Value</th>
-                  <th>Match Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (c of cmp.claims; track c.claim) {
-                  <tr [class.row-match]="c.status === 'match'" [class.row-mismatch]="c.status === 'mismatch'" [class.row-single]="c.status === 'only-a' || c.status === 'only-b'">
-                    <td class="claim-name-col">
-                      <code>{{ c.claim }}</code>
-                    </td>
-                    <td class="val-col" [class.val-missing]="c.valueA === undefined">
-                      {{ formatValue(c.valueA) }}
-                    </td>
-                    <td class="val-col" [class.val-missing]="c.valueB === undefined">
-                      {{ formatValue(c.valueB) }}
-                    </td>
-                    <td class="status-col">
-                      @if (c.status === 'match') {
-                        <span class="cmp-badge cmp-match">
-                          <mat-icon>check</mat-icon> Match
-                        </span>
-                      } @else if (c.status === 'mismatch') {
-                        <span class="cmp-badge cmp-mismatch">
-                          <mat-icon>close</mat-icon> Mismatch
-                        </span>
-                      } @else if (c.status === 'only-a') {
-                        <span class="cmp-badge cmp-only">
-                          Only in Token A
-                        </span>
-                      } @else {
-                        <span class="cmp-badge cmp-only">
-                          Only in Token B
-                        </span>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        } @else {
-          <div class="empty-state">Enter two valid JWT tokens above to compare claims side-by-side.</div>
-        }
-      }
     </div>
+
+    <div class="action-row">
+      <button mat-raised-button color="primary" (click)="compare()">
+        <mat-icon>compare</mat-icon> Compare Tokens
+      </button>
+    </div>
+
+    @if (comparisonResult(); as cmp) {
+    @if (cmp.errorA || cmp.errorB) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>
+        {{ cmp.errorA ? 'Token A: ' + cmp.errorA : '' }}
+        {{ cmp.errorB ? 'Token B: ' + cmp.errorB : '' }}
+      </span>
+    </div>
+    }
+
+    @if (cmp.claims.length > 0) {
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Claim Name</th>
+            <th>Token A Value</th>
+            <th>Token B Value</th>
+            <th>Match Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cmp.claims; track c.claim) {
+          <tr [class.row-match]="c.status === 'match'" [class.row-mismatch]="c.status === 'mismatch'"
+            [class.row-single]="c.status === 'only-a' || c.status === 'only-b'">
+            <td class="claim-name-col">
+              <code>{{ c.claim }}</code>
+            </td>
+            <td class="val-col" [class.val-missing]="c.valueA === undefined">
+              {{ formatValue(c.valueA) }}
+            </td>
+            <td class="val-col" [class.val-missing]="c.valueB === undefined">
+              {{ formatValue(c.valueB) }}
+            </td>
+            <td class="status-col">
+              @if (c.status === 'match') {
+              <span class="cmp-badge cmp-match">
+                <mat-icon>check</mat-icon> Match
+              </span>
+              } @else if (c.status === 'mismatch') {
+              <span class="cmp-badge cmp-mismatch">
+                <mat-icon>close</mat-icon> Mismatch
+              </span>
+              } @else if (c.status === 'only-a') {
+              <span class="cmp-badge cmp-only">
+                Only in Token A
+              </span>
+              } @else {
+              <span class="cmp-badge cmp-only">
+                Only in Token B
+              </span>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    } @else {
+    <div class="empty-state">Enter two valid JWT tokens above to compare claims side-by-side.</div>
+    }
+    }
+  </div>
   }
 </div>

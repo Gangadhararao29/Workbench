@@ -104,6 +104,15 @@
           @case ('ef-configuration') {
             <app-ef-configuration [instanceId]="inst.id" />
           }
+          @case ('ef-migrations') {
+            <app-ef-migrations [instanceId]="inst.id" />
+          }
+          @case ('ef-linq') {
+            <app-ef-linq [instanceId]="inst.id" />
+          }
+          @case ('ef-dbcontext') {
+            <app-ef-dbcontext [instanceId]="inst.id" />
+          }
           @case ('api-generator') {
             <app-api-generator [instanceId]="inst.id" />
           }

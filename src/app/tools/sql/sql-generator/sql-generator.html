@@ -1,56 +1,383 @@
-<div class="flex flex-col min-h-screen gap-4 box-border">
+<div class="sql-gen-container">
 
-  <div class="grid grid-cols-2 grid-rows-3 gap-3">
-    <div class="col-start-1 row-start-1 form">
-      <label>
-        Table name
-        <input [(ngModel)]="table" (ngModelChange)="generate()" />
-      </label>
-    </div>
-    <div class="col-start-1 row-start-2 form">
-      <label>
-        Filter column
-        <input [(ngModel)]="whereColumn" (ngModelChange)="generate()" />
-      </label>
-    </div>
-    <div class="col-start-1 row-start-3 form">
-      <label>
-        Page size
-        <input type="number" min="1" [(ngModel)]="pageSize" (ngModelChange)="generate()" />
-      </label>
+  <!-- Toolbar: Dialect | Presets | Upload -->
+  <div class="gen-toolbar">
+    <!-- Left: Dialect -->
+    <div class="toolbar-dialect">
+      <label class="ctrl-label">Dialect</label>
+      <select class="custom-select" [ngModel]="dialect()" (ngModelChange)="setDialect($event)">
+        <option value="tsql">T-SQL (SQL Server)</option>
+        <option value="postgres">PostgreSQL</option>
+        <option value="mysql">MySQL</option>
+        <option value="sqlite">SQLite</option>
+      </select>
     </div>
 
-    <!-- Right column: single block spanning all 3 rows -->
-    <div class="col-start-2 row-start-1 row-span-3 form">
-      <label>
-        Columns
-        <textarea [(ngModel)]="columns" (ngModelChange)="generate()"></textarea>
-      </label>
+    <!-- Center: Table Preset Buttons -->
+    <div class="toolbar-presets">
+      <button mat-stroked-button class="preset-btn" (click)="loadPreset('users')">
+        <mat-icon>group</mat-icon> Users Table
+      </button>
+      <button mat-stroked-button class="preset-btn" (click)="loadPreset('orders')">
+        <mat-icon>receipt_long</mat-icon> Orders Table
+      </button>
+      <button mat-stroked-button class="preset-btn" (click)="loadPreset('ssms')">
+        <mat-icon>grid_on</mat-icon> SSMS Paste
+      </button>
     </div>
 
-    <div class="col-start-1 row-start-4 form">
-      <label>
-        Join table (optional)
-        <input [(ngModel)]="joinTable" (ngModelChange)="generate()" />
-      </label>
-    </div>
-
-    <div class="col-start-2 row-start-4 form">
-      <label>
-        Join column
-        <input [(ngModel)]="joinColumn" (ngModelChange)="generate()" />
-      </label>
-    </div>
-
-
+    <!-- Right: Upload -->
+    <label class="upload-btn" matTooltip="Upload .sql or .txt schema definition">
+      <input type="file" accept=".sql,.txt,.ddl" (change)="onFileUpload($event)" hidden />
+      <mat-icon>upload_file</mat-icon> Upload DDL
+    </label>
   </div>
 
+  <!-- Main Split Layout -->
+  <div class="gen-workspace">
 
-  <button mat-raised-button color="primary" (click)="generate()">Generate SQL</button>
+    <!-- LEFT PANE: INPUT & CONFIGURATION (scrollable) -->
+    <div class="workspace-left">
 
-  <div class="field grow">
-    <label>Generated SQL</label>
-    <app-code-editor [value]="result()" language="sql" ariaLabel="Generated SQL output"
-      [readOnly]="true"></app-code-editor>
+      <!-- Input Switch Tabs -->
+      <div class="input-tabs">
+        <button class="tab-btn" [class.active]="activeInputTab() === 'ddl'" (click)="setInputTab('ddl')">
+          <mat-icon>table_chart</mat-icon>
+          <span>CREATE TABLE DDL</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeInputTab() === 'ssms'" (click)="setInputTab('ssms')">
+          <mat-icon>content_paste_go</mat-icon>
+          <span>SSMS Grid Paste</span>
+          @if (parsedSsmsData().rows.length > 0) {
+            <span class="badge badge-accent">{{ parsedSsmsData().rows.length }} rows</span>
+          }
+        </button>
+      </div>
+
+      <!-- DDL INPUT PANEL -->
+      @if (activeInputTab() === 'ddl') {
+        <div class="panel-section">
+          <div class="section-header">
+            <span class="section-title">Table Definition (DDL)</span>
+            <div class="section-actions">
+              <button class="action-link-btn" (click)="parseDdl()">
+                <mat-icon>sync</mat-icon> Parse &amp; Sync
+              </button>
+            </div>
+          </div>
+          <div class="editor-wrap">
+            <app-code-editor
+              [value]="ddlInput()"
+              (valueChange)="ddlInput.set($event); parseDdl()"
+              language="sql"
+              ariaLabel="CREATE TABLE DDL Input"
+              style="height: 180px;">
+            </app-code-editor>
+          </div>
+        </div>
+      }
+
+      <!-- SSMS DATA PASTE PANEL -->
+      @if (activeInputTab() === 'ssms') {
+        <div class="panel-section">
+          <div class="section-header">
+            <span class="section-title">SSMS Grid Data (Copy with Headers)</span>
+            <span class="section-hint">Paste Tab-Separated or CSV rows copied from SSMS</span>
+          </div>
+          <div class="textarea-wrap">
+            <textarea
+              class="ssms-textarea"
+              [ngModel]="ssmsInput()"
+              (ngModelChange)="ssmsInput.set($event)"
+              placeholder="Paste SSMS grid results here (e.g. Id&#9;Username&#9;Email...)"
+              rows="7"></textarea>
+          </div>
+          <div class="ssms-status-bar">
+            <div class="status-item">
+              <mat-icon class="status-icon">view_column</mat-icon>
+              <span><strong>{{ parsedSsmsData().headers.length }}</strong> Columns detected</span>
+            </div>
+            <div class="status-item">
+              <mat-icon class="status-icon">data_array</mat-icon>
+              <span><strong>{{ parsedSsmsData().rows.length }}</strong> Rows parsed</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TABLE INFO STRIP -->
+      <div class="table-info-strip">
+        <div class="table-badge-group">
+          <span class="schema-tag">Target Table</span>
+          <span class="table-name-tag">{{ fullTableName }}</span>
+          <span class="count-tag">{{ columns().length }} columns</span>
+        </div>
+        <div class="strip-actions">
+          <button class="mini-btn" (click)="resetColumnDefaults()" matTooltip="Reset default column selections">
+            <mat-icon>restart_alt</mat-icon> Reset Defaults
+          </button>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE COLUMN MATRIX -->
+      <div class="panel-section column-matrix-section">
+        <div class="section-header">
+          <span class="section-title">Column Matrix &amp; Clause Configuration</span>
+          <span class="section-hint">Choose columns for SELECT, INSERT, UPDATE, and WHERE matching</span>
+        </div>
+
+        <div class="matrix-table-container">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th class="th-col-name">Column Name &amp; Type</th>
+                <th class="th-check" matTooltip="Include column in SELECT queries">
+                  <div class="th-check-wrap">
+                    <span>SELECT</span>
+                    <input type="checkbox" (change)="toggleAllSelect($any($event.target).checked)" checked />
+                  </div>
+                </th>
+                <th class="th-check" matTooltip="Include column in INSERT statements">
+                  <div class="th-check-wrap">
+                    <span>INSERT</span>
+                    <input type="checkbox" (change)="toggleAllInsert($any($event.target).checked)" checked />
+                  </div>
+                </th>
+                <th class="th-check" matTooltip="Include column in UPDATE SET clauses">
+                  <div class="th-check-wrap">
+                    <span>UPDATE</span>
+                    <input type="checkbox" (change)="toggleAllUpdate($any($event.target).checked)" checked />
+                  </div>
+                </th>
+                <th class="th-check" matTooltip="Include column in WHERE / Match conditions">
+                  <div class="th-check-wrap">
+                    <span>WHERE</span>
+                    <input type="checkbox" (change)="toggleAllWhere($any($event.target).checked)" />
+                  </div>
+                </th>
+                <th class="th-sample">Sample / Var Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (col of columns(); track col.name; let i = $index) {
+                <tr [class.highlight-pk]="col.isPrimaryKey" [class.highlight-identity]="col.isIdentity">
+                  <!-- Column Meta -->
+                  <td class="td-col-meta">
+                    <div class="col-name-row">
+                      <span class="col-name">{{ col.name }}</span>
+                      @if (col.isPrimaryKey) {
+                        <span class="badge badge-pk" matTooltip="Primary Key">PK</span>
+                      }
+                      @if (col.isIdentity) {
+                        <span class="badge badge-identity" matTooltip="Identity / Auto-increment">IDENTITY</span>
+                      }
+                    </div>
+                    <div class="col-type-row">
+                      <span class="col-type">{{ col.fullType }}</span>
+                      <span class="col-nullability" [class.not-null]="!col.nullable">
+                        {{ col.nullable ? 'NULL' : 'NOT NULL' }}
+                      </span>
+                      @if (col.defaultValue) {
+                        <span class="col-default" [matTooltip]="'Default: ' + col.defaultValue">DF</span>
+                      }
+                    </div>
+                  </td>
+
+                  <!-- SELECT Checkbox -->
+                  <td class="td-check">
+                    <input type="checkbox"
+                           [checked]="col.selectedInSelect"
+                           (change)="updateColumnValue(i, 'selectedInSelect', $any($event.target).checked)" />
+                  </td>
+
+                  <!-- INSERT Checkbox -->
+                  <td class="td-check">
+                    <input type="checkbox"
+                           [checked]="col.selectedInInsert"
+                           (change)="updateColumnValue(i, 'selectedInInsert', $any($event.target).checked)" />
+                  </td>
+
+                  <!-- UPDATE Checkbox -->
+                  <td class="td-check">
+                    <input type="checkbox"
+                           [checked]="col.selectedInUpdate"
+                           (change)="updateColumnValue(i, 'selectedInUpdate', $any($event.target).checked)" />
+                  </td>
+
+                  <!-- WHERE Checkbox -->
+                  <td class="td-check">
+                    <input type="checkbox"
+                           [checked]="col.isWhereKey"
+                           (change)="updateColumnValue(i, 'isWhereKey', $any($event.target).checked)" />
+                  </td>
+
+                  <!-- Sample Value Input -->
+                  <td class="td-sample">
+                    <input type="text"
+                           class="sample-input"
+                           [value]="col.sampleValue || ''"
+                           (input)="updateColumnValue(i, 'sampleValue', $any($event.target).value)"
+                           placeholder="value..." />
+                  </td>
+                </tr>
+              }
+              @if (columns().length === 0) {
+                <tr>
+                  <td colspan="6" class="empty-state-cell">
+                    No columns found. Paste a valid CREATE TABLE statement above and click Parse.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GENERATION OPTIONS -->
+      <div class="panel-section options-section">
+        <div class="section-header">
+          <span class="section-title">Query &amp; Script Options</span>
+        </div>
+
+        <div class="options-grid">
+          <!-- Declare Variables on Top -->
+          <div class="option-card" [class.active]="declareVarsAtTop()" (click)="declareVarsAtTop.set(!declareVarsAtTop())">
+            <div class="option-check">
+              <input type="checkbox" [checked]="declareVarsAtTop()" (click)="$event.stopPropagation()" (change)="declareVarsAtTop.set($any($event.target).checked)" />
+            </div>
+            <div class="option-info">
+              <span class="option-title">Declare Variables on Top</span>
+              <span class="option-desc">Generates DECLARE &#64;var Type = value; at the top for immediate testing</span>
+            </div>
+          </div>
+
+          <!-- Guard Condition -->
+          <div class="option-group-card">
+            <label class="ctrl-label">Data Checking / Guard Condition</label>
+            <select class="custom-select" [ngModel]="guardCondition()" (ngModelChange)="guardCondition.set($event)">
+              <option value="none">None (Standard INSERT / UPDATE)</option>
+              <option value="if_not_exists">IF NOT EXISTS (Guard on Insert)</option>
+              <option value="if_exists_else">IF EXISTS ... UPDATE ... ELSE ... INSERT (UPSERT)</option>
+              <option value="merge">MERGE INTO (ANSI / T-SQL MERGE)</option>
+            </select>
+          </div>
+
+          <!-- NOLOCK Hint -->
+          <div class="option-card" [class.active]="includeNolock()" (click)="includeNolock.set(!includeNolock())">
+            <div class="option-check">
+              <input type="checkbox" [checked]="includeNolock()" (click)="$event.stopPropagation()" (change)="includeNolock.set($any($event.target).checked)" />
+            </div>
+            <div class="option-info">
+              <span class="option-title">Include WITH (NOLOCK)</span>
+              <span class="option-desc">Adds uncommitted read hint to SELECT queries</span>
+            </div>
+          </div>
+
+          <!-- ORDER BY -->
+          <div class="option-card" [class.active]="includeOrderBy()" (click)="includeOrderBy.set(!includeOrderBy())">
+            <div class="option-check">
+              <input type="checkbox" [checked]="includeOrderBy()" (click)="$event.stopPropagation()" (change)="includeOrderBy.set($any($event.target).checked)" />
+            </div>
+            <div class="option-info">
+              <span class="option-title">Include ORDER BY</span>
+              <span class="option-desc">Auto-sort by Primary Key or first column</span>
+            </div>
+          </div>
+
+          <!-- Square Brackets -->
+          <div class="option-card" [class.active]="useSquareBrackets()" (click)="useSquareBrackets.set(!useSquareBrackets())">
+            <div class="option-check">
+              <input type="checkbox" [checked]="useSquareBrackets()" (click)="$event.stopPropagation()" (change)="useSquareBrackets.set($any($event.target).checked)" />
+            </div>
+            <div class="option-info">
+              <span class="option-title">Enclose Identifiers in [ ]</span>
+              <span class="option-desc">Prevents reserved keyword collisions</span>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="option-card" [class.active]="includePagination()" (click)="includePagination.set(!includePagination())">
+            <div class="option-check">
+              <input type="checkbox" [checked]="includePagination()" (click)="$event.stopPropagation()" (change)="includePagination.set($any($event.target).checked)" />
+            </div>
+            <div class="option-info">
+              <span class="option-title">Enable Pagination</span>
+              <span class="option-desc">Adds OFFSET @Skip ROWS FETCH NEXT 20 ROWS ONLY</span>
+            </div>
+          </div>
+
+          <!-- Soft Delete -->
+          <div class="option-card" [class.active]="enableSoftDelete()" (click)="enableSoftDelete.set(!enableSoftDelete())">
+            <div class="option-check">
+              <input type="checkbox" [checked]="enableSoftDelete()" (click)="$event.stopPropagation()" (change)="enableSoftDelete.set($any($event.target).checked)" />
+            </div>
+            <div class="option-info">
+              <span class="option-title">Soft Delete (UPDATE IsActive=0)</span>
+              <span class="option-desc">Updates flag column instead of DELETE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE: OUTPUT & CODE VIEWER (auto-height, code scrollable) -->
+    <div class="workspace-right">
+
+      <!-- Output Tabs -->
+      <div class="output-nav-bar">
+        <div class="output-tabs">
+          <button class="out-tab" [class.active]="activeOutputTab() === 'all'" (click)="setOutputTab('all')">
+            <mat-icon>auto_stories</mat-icon> All CRUD
+          </button>
+          <button class="out-tab" [class.active]="activeOutputTab() === 'select'" (click)="setOutputTab('select')">
+            <mat-icon>search</mat-icon> SELECT
+          </button>
+          <button class="out-tab" [class.active]="activeOutputTab() === 'insert'" (click)="setOutputTab('insert')">
+            <mat-icon>add_circle_outline</mat-icon> INSERT
+          </button>
+          <button class="out-tab" [class.active]="activeOutputTab() === 'update'" (click)="setOutputTab('update')">
+            <mat-icon>edit_note</mat-icon> UPDATE
+          </button>
+          <button class="out-tab" [class.active]="activeOutputTab() === 'delete'" (click)="setOutputTab('delete')">
+            <mat-icon>delete_outline</mat-icon> DELETE
+          </button>
+          <button class="out-tab" [class.active]="activeOutputTab() === 'upsert'" (click)="setOutputTab('upsert')">
+            <mat-icon>merge_type</mat-icon> UPSERT / MERGE
+          </button>
+          <button class="out-tab" [class.active]="activeOutputTab() === 'ssms_batch'" (click)="setOutputTab('ssms_batch')">
+            <mat-icon>dataset</mat-icon> SSMS Batch
+          </button>
+        </div>
+      </div>
+
+      <!-- Output Toolbar -->
+      <div class="output-toolbar">
+        <div class="format-pill-group">
+          <button class="format-pill" [class.active]="outputFormat() === 'formatted'" (click)="setOutputFormat('formatted')">Formatted</button>
+          <button class="format-pill" [class.active]="outputFormat() === 'compact'" (click)="setOutputFormat('compact')">Compact</button>
+          <button class="format-pill" [class.active]="outputFormat() === 'minified'" (click)="setOutputFormat('minified')">Minified</button>
+        </div>
+        <div class="out-toolbar-right">
+          <button mat-stroked-button class="tool-btn" (click)="downloadSql()" matTooltip="Download SQL file">
+            <mat-icon>download</mat-icon> Download
+          </button>
+          <button mat-flat-button color="primary" class="copy-btn" (click)="copySql()">
+            <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+            {{ copied() ? 'Copied!' : 'Copy SQL' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Editor Output (fills remaining height, scrollable inside) -->
+      <div class="output-editor-container">
+        <app-code-editor
+          [value]="generatedSql()"
+          language="sql"
+          ariaLabel="Generated SQL output"
+          [readOnly]="true">
+        </app-code-editor>
+      </div>
+
+    </div>
   </div>
 </div>

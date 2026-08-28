@@ -8,6 +8,7 @@ const TOOLS_WITH_OPTIONS = new Set([
   'json-to-typescript',
   'sql-to-csharp',
   'feature-generator',
+  'regex-tester',
 ]);
 
 @Injectable({

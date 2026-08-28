@@ -1,11 +1,66 @@
-<div class="tool-surface-inner">
-  <div class="field">
-    <label>C# entity</label>
-    <app-code-editor [value]="input()" language="csharp" ariaLabel="C# entity input" (valueChange)="input.set($event)"></app-code-editor>
+<div class="tool-surface-inner ef-config-container">
+  <div class="top-toolbar">
+    <div class="preset-group">
+      <span class="toolbar-label">Presets:</span>
+      <button mat-stroked-button class="preset-btn" (click)="loadPreset('customer')">Customer & Orders</button>
+      <button mat-stroked-button class="preset-btn" (click)="loadPreset('blog')">Blog & Posts</button>
+      <button mat-stroked-button class="preset-btn" (click)="loadPreset('simple')">Simple Entity</button>
+    </div>
+
+    <div class="tab-group">
+      <span class="toolbar-label">Output Format:</span>
+      <button
+        mat-button
+        class="mode-btn"
+        [class.active]="activeTab() === 'fluent'"
+        (click)="setTab('fluent')"
+      >
+        Fluent API
+      </button>
+      <button
+        mat-button
+        class="mode-btn"
+        [class.active]="activeTab() === 'annotations'"
+        (click)="setTab('annotations')"
+      >
+        Data Annotations
+      </button>
+      <button
+        mat-button
+        class="mode-btn"
+        [class.active]="activeTab() === 'both'"
+        (click)="setTab('both')"
+      >
+        Both
+      </button>
+    </div>
   </div>
-  <button mat-raised-button color="primary" (click)="generate()">Generate EF configuration</button>
-  <div class="field grow">
-    <label>EF configuration output</label>
-    <app-code-editor [value]="result()" language="csharp" ariaLabel="EF configuration output" [readOnly]="true"></app-code-editor>
+
+  <div class="editor-split">
+    <div class="editor-pane field">
+      <div class="pane-header">
+        <label>C# Entity Classes (POCOs)</label>
+        <span class="pane-subtitle">Paste classes, records, or enums with navigation properties</span>
+      </div>
+      <app-code-editor
+        [value]="input()"
+        language="csharp"
+        ariaLabel="C# entity input"
+        (valueChange)="input.set($event); generate()"
+      ></app-code-editor>
+    </div>
+
+    <div class="editor-pane field grow">
+      <div class="pane-header">
+        <label>EF Core Output</label>
+        <span class="pane-subtitle">Generated entity configurations with keys, relations, and indexes</span>
+      </div>
+      <app-code-editor
+        [value]="result()"
+        language="csharp"
+        ariaLabel="EF configuration output"
+        [readOnly]="true"
+      ></app-code-editor>
+    </div>
   </div>
 </div>

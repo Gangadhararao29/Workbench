@@ -1,5 +1,5 @@
 .tool-surface-inner {
-  max-width: 1200px;
+  max-width: 100vw;
   gap: 20px;
 }
 
@@ -121,8 +121,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-header {
@@ -224,7 +230,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .pattern-card:hover {

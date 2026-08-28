@@ -21,14 +21,14 @@ export class InstanceService {
   private _instances = signal<ToolInstance[]>([]);
   private _activeId = signal<string | null>(null);
 
-  instances = computed(() => this._instances().filter(i => !i.closedAt));
+  instances = computed(() => this._instances().filter((i) => !i.closedAt));
   archived = computed(() =>
-    this._instances().filter(i => i.closedAt).sort((a, b) => b.closedAt! - a.closedAt!)
+    this._instances()
+      .filter((i) => i.closedAt)
+      .sort((a, b) => b.closedAt! - a.closedAt!),
   );
   recent = computed(() => [...this.instances()].reverse());
-  activeInstance = computed(() =>
-    this._instances().find(i => i.id === this._activeId()) ?? null
-  );
+  activeInstance = computed(() => this._instances().find((i) => i.id === this._activeId()) ?? null);
 
   constructor(private storage: WorkspaceStorage) {
     this._instances.set(this.loadFromStorage());
@@ -44,43 +44,45 @@ export class InstanceService {
   }
 
   open(toolType: string, groupId: string): ToolInstance {
-    const count = this.instances().filter(i => i.toolType === toolType).length + 1;
+    const count = this.instances().filter((i) => i.toolType === toolType).length;
     const instance: ToolInstance = {
       id: crypto.randomUUID(),
       toolType,
       groupId,
-      label: `${toolLabelFor(toolType)} ${count}`,
-      config: defaultConfigFor(toolType)
+      label: `${toolLabelFor(toolType)} ${count > 0 ? count : ''}`,
+      config: defaultConfigFor(toolType),
     };
-    this._instances.update(list => [...list, instance]);
+    this._instances.update((list) => [...list, instance]);
     this._activeId.set(instance.id);
     return instance;
   }
 
   clone(id: string): ToolInstance | null {
-    const target = this._instances().find(i => i.id === id);
+    const target = this._instances().find((i) => i.id === id);
     if (!target) return null;
-    const count = this.instances().filter(i => i.toolType === target.toolType).length + 1;
+    const count = this.instances().filter((i) => i.toolType === target.toolType).length + 1;
     const cloned: ToolInstance = {
       id: crypto.randomUUID(),
       toolType: target.toolType,
       groupId: target.groupId,
       label: `${toolLabelFor(target.toolType)} ${count}`,
-      config: JSON.parse(JSON.stringify(target.config || {}))
+      config: JSON.parse(JSON.stringify(target.config || {})),
     };
-    this._instances.update(list => [...list, cloned]);
+    this._instances.update((list) => [...list, cloned]);
     return cloned;
   }
 
   close(id: string) {
-    this._instances.update(list => {
-      const updated = list.map(i => i.id === id ? { ...i, closedAt: Date.now() } : i);
-      const archivedCount = updated.filter(i => i.closedAt).length;
+    this._instances.update((list) => {
+      const updated = list.map((i) => (i.id === id ? { ...i, closedAt: Date.now() } : i));
+      const archivedCount = updated.filter((i) => i.closedAt).length;
       if (archivedCount > MAX_ARCHIVED) {
         // drop oldest archived beyond the cap
-        const archived = updated.filter(i => i.closedAt).sort((a, b) => a.closedAt! - b.closedAt!);
-        const toDrop = new Set(archived.slice(0, archivedCount - MAX_ARCHIVED).map(i => i.id));
-        return updated.filter(i => !toDrop.has(i.id));
+        const archived = updated
+          .filter((i) => i.closedAt)
+          .sort((a, b) => a.closedAt! - b.closedAt!);
+        const toDrop = new Set(archived.slice(0, archivedCount - MAX_ARCHIVED).map((i) => i.id));
+        return updated.filter((i) => !toDrop.has(i.id));
       }
       return updated;
     });
@@ -91,19 +93,19 @@ export class InstanceService {
   }
 
   closeAll() {
-    this.instances().forEach(instance => this.close(instance.id));
+    this.instances().forEach((instance) => this.close(instance.id));
     this._activeId.set(null);
   }
 
   reopen(id: string) {
-    this._instances.update(list =>
-      list.map(i => i.id === id ? { ...i, closedAt: undefined } : i)
+    this._instances.update((list) =>
+      list.map((i) => (i.id === id ? { ...i, closedAt: undefined } : i)),
     );
     this._activeId.set(id);
   }
 
   deleteArchived(id: string) {
-    this._instances.update(list => list.filter(i => i.id !== id));
+    this._instances.update((list) => list.filter((i) => i.id !== id));
   }
 
   select(id: string) {
@@ -115,19 +117,26 @@ export class InstanceService {
   }
 
   updateLabel(id: string, label: string) {
-    this._instances.update(list =>
-      list.map(instance => instance.id === id ? { ...instance, label } : instance)
+    this._instances.update((list) =>
+      list.map((instance) => (instance.id === id ? { ...instance, label } : instance)),
     );
   }
 
   updateConfig(id: string, patch: Record<string, any>) {
-    this._instances.update(list =>
-      list.map(i => i.id === id ? { ...i, config: { ...i.config, ...patch } } : i)
+    this._instances.update((list) =>
+      list.map((i) => (i.id === id ? { ...i, config: { ...i.config, ...patch } } : i)),
     );
   }
 
   exportWorkspace(): string {
-    return JSON.stringify({ instances: this._instances(), favorites: this.storage.get<string[]>('workbench.favorite-tools', []) }, null, 2);
+    return JSON.stringify(
+      {
+        instances: this._instances(),
+        favorites: this.storage.get<string[]>('workbench.favorite-tools', []),
+      },
+      null,
+      2,
+    );
   }
 
   importWorkspace(raw: string) {

@@ -29,6 +29,9 @@ import { ScriptRunner } from '../tools/general/script-runner/script-runner';
 import { HttpRequestBuilder } from '../tools/api/http-request-builder/http-request-builder';
 import { OpenapiInspector } from '../tools/api/openapi-inspector/openapi-inspector';
 import { EfConfiguration } from '../tools/ef/ef-configuration/ef-configuration';
+import { EfMigrations } from '../tools/ef/ef-migrations/ef-migrations';
+import { EfLinq } from '../tools/ef/ef-linq/ef-linq';
+import { EfDbContext } from '../tools/ef/ef-dbcontext/ef-dbcontext';
 import { ApiGenerator } from '../tools/frontend/api-generator/api-generator';
 import { FeatureGenerator } from '../tools/dotnet/feature-generator/feature-generator';
 import { DocumentationHub } from '../tools/general/documentation-hub/documentation-hub';
@@ -65,6 +68,9 @@ import { SqlQueryBuilder } from '../tools/sql/sql-query-builder/sql-query-builde
     HttpRequestBuilder,
     OpenapiInspector,
     EfConfiguration,
+    EfMigrations,
+    EfLinq,
+    EfDbContext,
     ApiGenerator,
     FeatureGenerator,
     DocumentationHub,

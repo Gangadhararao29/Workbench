@@ -1,0 +1,220 @@
+<div class="tool-surface-inner ef-linq-container">
+  <div class="linq-header">
+    <div class="mode-tabs">
+      <button
+        mat-button
+        class="tab-btn"
+        [class.active]="viewMode() === 'patterns'"
+        (click)="setViewMode('patterns')"
+      >
+        <mat-icon>auto_fix_high</mat-icon> Query Pattern Builder
+      </button>
+      <button
+        mat-button
+        class="tab-btn"
+        [class.active]="viewMode() === 'cheatsheet'"
+        (click)="setViewMode('cheatsheet')"
+      >
+        <mat-icon>menu_book</mat-icon> SQL ↔ LINQ Cheatsheet & Guide
+      </button>
+    </div>
+
+    @if (viewMode() === 'patterns') {
+      <div class="syntax-switch">
+        <span class="syntax-label">Syntax Style:</span>
+        <button
+          mat-button
+          class="syntax-btn"
+          [class.active]="syntaxStyle() === 'method'"
+          (click)="setSyntax('method')"
+        >
+          Method (.Where().Select())
+        </button>
+        <button
+          mat-button
+          class="syntax-btn"
+          [class.active]="syntaxStyle() === 'query'"
+          (click)="setSyntax('query')"
+        >
+          Comprehension (from ... in ...)
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (viewMode() === 'patterns') {
+    <div class="main-split">
+      <!-- Left Pattern Selector & Config -->
+      <div class="patterns-panel">
+        <div class="panel-section-title">Query Pattern</div>
+        <div class="pattern-list">
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'eager-loading'"
+            (click)="setPattern('eager-loading')"
+          >
+            <mat-icon>hub</mat-icon> Eager Loading (.Include)
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'split-query'"
+            (click)="setPattern('split-query')"
+          >
+            <mat-icon>call_split</mat-icon> Split Queries (.AsSplitQuery)
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'batch-operations'"
+            (click)="setPattern('batch-operations')"
+          >
+            <mat-icon>bolt</mat-icon> Batch Update / Delete (EF7+)
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'pagination'"
+            (click)="setPattern('pagination')"
+          >
+            <mat-icon>format_list_numbered</mat-icon> Pagination & DTO Project
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'groupby'"
+            (click)="setPattern('groupby')"
+          >
+            <mat-icon>pie_chart</mat-icon> GroupBy & Having Aggregates
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'raw-sql'"
+            (click)="setPattern('raw-sql')"
+          >
+            <mat-icon>code</mat-icon> Raw SQL (FromSqlInterpolated)
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'soft-delete'"
+            (click)="setPattern('soft-delete')"
+          >
+            <mat-icon>filter_alt_off</mat-icon> Soft Delete & Ignore Filters
+          </button>
+          <button
+            mat-stroked-button
+            class="pattern-item"
+            [class.active]="activePattern() === 'explicit-loading'"
+            (click)="setPattern('explicit-loading')"
+          >
+            <mat-icon>sync_alt</mat-icon> Explicit Nav Loading
+          </button>
+        </div>
+
+        <div class="section-divider"></div>
+        <div class="panel-section-title">Query Parameters</div>
+
+        <div class="form-row">
+          <label>Entity Name</label>
+          <input [(ngModel)]="entityName" (ngModelChange)="generate()" placeholder="Customer, Order, Product" />
+        </div>
+
+        <div class="form-row">
+          <label>DbContext Variable</label>
+          <input [(ngModel)]="contextVar" (ngModelChange)="generate()" placeholder="_context or context" />
+        </div>
+
+        @if (activePattern() === 'eager-loading') {
+          <div class="form-row">
+            <label>Include Navigation</label>
+            <input [(ngModel)]="includeNavigation" (ngModelChange)="generate()" placeholder="Orders" />
+          </div>
+          <div class="form-row">
+            <label>ThenInclude Navigation</label>
+            <input [(ngModel)]="thenIncludeNav" (ngModelChange)="generate()" placeholder="OrderItems" />
+          </div>
+        }
+
+        @if (activePattern() === 'pagination') {
+          <div class="form-row">
+            <label>Page Size</label>
+            <input type="number" [(ngModel)]="pageSize" (ngModelChange)="generate()" />
+          </div>
+        }
+
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="asNoTracking" (ngModelChange)="generate()">AsNoTracking() (Faster Read-only)</mat-slide-toggle>
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="useCancellationToken" (ngModelChange)="generate()">Include CancellationToken</mat-slide-toggle>
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="useTagWith" (ngModelChange)="generate()">Tag Query with .TagWith()</mat-slide-toggle>
+        </div>
+        <div class="checkbox-row">
+          <mat-slide-toggle [(ngModel)]="wrapInHandler" (ngModelChange)="generate()">Wrap in Handler Class</mat-slide-toggle>
+        </div>
+      </div>
+
+      <!-- Right Code Output -->
+      <div class="output-panel field grow">
+        <div class="pane-header">
+          <label>C# / EF Core Query Code</label>
+          <span class="pane-subtitle">Optimized EF Core LINQ query execution pattern</span>
+        </div>
+        <app-code-editor
+          [value]="result()"
+          language="csharp"
+          ariaLabel="Generated LINQ query"
+          [readOnly]="true"
+        ></app-code-editor>
+      </div>
+    </div>
+  }
+
+  @if (viewMode() === 'cheatsheet') {
+    <div class="cheatsheet-container">
+      <div class="search-bar-row">
+        <mat-icon>search</mat-icon>
+        <input
+          [ngModel]="searchFilter()"
+          (ngModelChange)="searchFilter.set($event)"
+          placeholder="Search SQL or LINQ operations (e.g. Join, Group By, In, Exists, Pagination, Case)..."
+        />
+        @if (searchFilter()) {
+          <button mat-icon-button (click)="searchFilter.set('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <div class="cards-grid">
+        @for (card of filteredCards(); track card.title) {
+          <div class="card">
+            <div class="card-header">
+              <span class="card-badge">{{ card.category }}</span>
+              <div class="card-title">{{ card.title }}</div>
+            </div>
+            <div class="card-body">
+              <div class="code-column">
+                <div class="code-title">SQL Statement</div>
+                <pre class="code-block sql-block"><code>{{ card.sql }}</code></pre>
+              </div>
+              <div class="code-column">
+                <div class="code-title">EF Core LINQ Equivalent</div>
+                <pre class="code-block linq-block"><code>{{ card.linqMethod }}</code></pre>
+              </div>
+            </div>
+            <div class="card-footer">
+              <mat-icon>lightbulb</mat-icon>
+              <span>{{ card.notes }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
