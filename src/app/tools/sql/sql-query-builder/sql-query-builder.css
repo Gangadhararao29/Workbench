@@ -302,7 +302,7 @@
   box-sizing: border-box;
   width: 100%;
   padding: 7px 11px;
-  border: 1px solid var(--mat-sys-outline);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
@@ -577,8 +577,9 @@
 }
 
 .format-btn.active {
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-primary);
+  background: var(--mat-sys-secondary-container, var(--mat-sys-surface-container-highest));
+  color: var(--mat-sys-on-secondary-container, var(--mat-sys-primary));
+  font-weight: 700;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 

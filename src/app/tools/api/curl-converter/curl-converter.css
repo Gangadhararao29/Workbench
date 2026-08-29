@@ -241,8 +241,13 @@
 
 .auth-tag {
   background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
+  color: #4338ca;
   border: 1px solid rgba(99, 102, 241, 0.3);
+  font-weight: 600;
+}
+
+body.dark-theme .auth-tag {
+  color: #a5b4fc;
 }
 
 /* Error Banner */
@@ -254,9 +259,13 @@
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 6px;
-  color: #f87171;
+  color: #dc2626;
   font-size: 12.5px;
   font-weight: 500;
+}
+
+body.dark-theme .error-banner {
+  color: #f87171;
 }
 
 .error-banner mat-icon {
@@ -311,10 +320,10 @@
   height: 38px;
   padding: 0 12px 0 34px;
   box-sizing: border-box;
-  border: 1px solid var(--mat-sys-outline, rgba(255, 255, 255, 0.15));
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
-  background: var(--mat-sys-surface-container-high, #2d2d2d);
-  color: var(--mat-sys-on-surface, #e2e8f0);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
   font-size: 12.5px;
   font-family: inherit;
   font-weight: 600;
@@ -329,8 +338,8 @@
 }
 
 .select-wrapper option {
-  background: var(--mat-sys-surface-container-high, #2d2d2d);
-  color: var(--mat-sys-on-surface, #e2e8f0);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
 }
 
 .target-actions {

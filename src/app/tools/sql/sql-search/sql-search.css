@@ -95,10 +95,18 @@
 .filter-fav-btn.active {
   background: rgba(245, 158, 11, 0.15);
   border-color: rgba(245, 158, 11, 0.4);
+  color: #b45309;
+}
+
+body.dark-theme .filter-fav-btn.active {
   color: #fbbf24;
 }
 
 .filter-fav-btn.active mat-icon {
+  color: #b45309;
+}
+
+body.dark-theme .filter-fav-btn.active mat-icon {
   color: #fbbf24;
 }
 
@@ -236,7 +244,7 @@
 }
 
 .pattern-card:hover {
-  border-color: rgba(59, 130, 246, 0.4);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
 }
 
 .pattern-card.is-custom {
@@ -271,8 +279,12 @@
   padding: 2px 6px;
   border-radius: 4px;
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+body.dark-theme .custom-badge {
+  color: #10b981;
 }
 
 .card-top-actions {
@@ -294,15 +306,23 @@
 }
 
 .star-btn:hover {
+  color: #d97706;
+}
+
+body.dark-theme .star-btn:hover {
   color: #fbbf24;
 }
 
 .star-btn.starred {
+  color: #d97706;
+}
+
+body.dark-theme .star-btn.starred {
   color: #fbbf24;
 }
 
 .delete-btn:hover {
-  color: #ef4444;
+  color: #dc2626;
 }
 
 .pattern-desc {
@@ -328,15 +348,25 @@
 }
 
 .meta-category {
-  color: #60a5fa;
-  border-color: rgba(96, 165, 250, 0.3);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.3);
   background: rgba(59, 130, 246, 0.1);
+  font-weight: 600;
+}
+
+body.dark-theme .meta-category {
+  color: #60a5fa;
 }
 
 .meta-db {
-  color: #a78bfa;
-  border-color: rgba(167, 139, 250, 0.3);
+  color: #6d28d9;
+  border-color: rgba(139, 92, 246, 0.3);
   background: rgba(139, 92, 246, 0.1);
+  font-weight: 600;
+}
+
+body.dark-theme .meta-db {
+  color: #a78bfa;
 }
 
 .code-box-wrapper {
@@ -350,9 +380,9 @@
   overflow: auto;
   margin: 0;
   padding: 12px;
-  background: var(--mat-sys-surface-container, #10141c);
-  color: #f1f5f9;
-  font-family: Consolas, Monaco, monospace;
+  background: var(--mat-sys-surface-container-high, #10141c);
+  color: var(--mat-sys-on-surface, #e2e8f0);
+  font-family: Consolas, Monaco, 'Roboto Mono', monospace;
   font-size: 12px;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -363,14 +393,14 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(30, 41, 59, 0.85);
+  background: var(--mat-sys-surface-container-highest, rgba(30, 41, 59, 0.85));
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.1));
   border-radius: 4px;
-  color: #e2e8f0;
+  color: var(--mat-sys-on-surface, #e2e8f0);
   padding: 4px 8px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -379,8 +409,9 @@
 }
 
 .btn-copy-sql:hover {
-  background: rgba(59, 130, 246, 0.8);
-  color: #ffffff;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary, #ffffff);
+  border-color: var(--mat-sys-primary);
 }
 
 .btn-copy-sql mat-icon {

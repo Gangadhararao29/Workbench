@@ -33,13 +33,13 @@ export class ToolSidebar implements OnInit, OnDestroy {
 
   constructor(private storage: WorkspaceStorage) {
     this.favoriteTools = new Set(storage.get<string[]>('workbench.favorite-tools', []));
-    if (this.router) {
+    if (this.router?.url) {
       this.currentActiveTool.set(this.getToolTypeFromUrl(this.router.url));
     }
   }
 
   ngOnInit(): void {
-    if (this.router) {
+    if (this.router?.events) {
       this.routerSub = this.router.events
         .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
         .subscribe((event) => {

@@ -132,7 +132,9 @@ app-code-editor.result-editor {
 .badge-patch, .method-patch { background: rgba(147, 51, 234, 0.15); color: #9333ea; border: 1px solid rgba(147, 51, 234, 0.3); }
 .badge-delete, .method-delete { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
 .badge-head, .method-head { background: rgba(8, 145, 178, 0.15); color: #0891b2; border: 1px solid rgba(8, 145, 178, 0.3); }
-.badge-options, .method-options, .method-default { background: rgba(124, 58, 237, 0.15); color: #c084fc; border: 1px solid rgba(124, 58, 237, 0.3); }
+.badge-options, .method-options, .method-default { background: rgba(124, 58, 237, 0.15); color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.3); }
+
+body.dark-theme .badge-options, body.dark-theme .method-options, body.dark-theme .method-default { color: #c084fc; }
 
 /* HTTP Status Code Badges */
 .status-2xx, .status-pill.status-2xx { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
@@ -149,37 +151,46 @@ app-code-editor.result-editor {
   border-radius: 4px;
   text-transform: uppercase;
 }
-.in-path { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.in-query { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-.in-header { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
-.in-cookie { background: rgba(20, 184, 166, 0.15); color: #2dd4bf; }
+.in-path { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+.in-query { background: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
+.in-header { background: rgba(168, 85, 247, 0.15); color: #7e22ce; }
+.in-cookie { background: rgba(20, 184, 166, 0.15); color: #0f766e; }
+
+body.dark-theme .in-path { color: #fbbf24; }
+body.dark-theme .in-query { color: #60a5fa; }
+body.dark-theme .in-header { color: #c084fc; }
+body.dark-theme .in-cookie { color: #2dd4bf; }
 
 /* Type & Tag Badges */
 .type-badge {
   font-family: monospace;
   font-size: 11px;
-  color: var(--mat-sys-primary, #60a5fa);
+  color: var(--mat-sys-primary, #2563eb);
 }
 
 .format-badge {
   font-family: monospace;
   font-size: 10px;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--mat-sys-on-surface-variant, #64748b);
   margin-left: 4px;
 }
 
 .sec-badge {
   background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
+  color: #7e22ce;
   font-family: monospace;
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
 }
 
+body.dark-theme .sec-badge {
+  color: #c084fc;
+}
+
 .tag-pill {
-  background: var(--mat-sys-surface-container-high, #212835);
-  color: var(--mat-sys-on-surface-variant, #cbd5e1);
+  background: var(--mat-sys-surface-container-high, #e2e8f0);
+  color: var(--mat-sys-on-surface-variant, #475569);
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 12px;
@@ -188,11 +199,15 @@ app-code-editor.result-editor {
 /* Required / Optional Badges */
 .required-badge {
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: #b91c1c;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+body.dark-theme .required-badge {
+  color: #f87171;
 }
 
 .optional-badge {

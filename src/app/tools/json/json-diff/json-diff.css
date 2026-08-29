@@ -52,7 +52,7 @@
 
 .seg-btn.active {
   background: var(--mat-sys-primary, #3b82f6);
-  color: #ffffff;
+  color: var(--mat-sys-on-primary, #ffffff);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
