@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { load as loadYaml } from 'js-yaml';
+import { formatJson } from '../../../core/engines/json-engine';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   inspectOpenApi,
@@ -131,10 +132,9 @@ export class OpenapiInspector implements OnInit {
       if (!src) return;
       if (this.detectedFormat() === 'YAML') {
         const parsed = loadYaml(src);
-        this.input.set(JSON.stringify(parsed, null, 2));
+        this.input.set(formatJson(parsed));
       } else {
-        const parsed = JSON.parse(src);
-        this.input.set(JSON.stringify(parsed, null, 2));
+        this.input.set(formatJson(src));
       }
       this.inspect();
     } catch (err) {

@@ -21,6 +21,7 @@ import {
   YAML_PRESETS,
   YamlPreset
 } from '../../../core/engines/yaml-engine';
+import { formatJson, minifyJson } from '../../../core/engines/json-engine';
 
 export type ConversionMode = 'json-to-yaml' | 'yaml-to-json';
 
@@ -202,9 +203,8 @@ export class JsonToYaml implements OnInit {
 
     try {
       if (this.mode() === 'json-to-yaml') {
-        const parsed = JSON.parse(val);
         const indent = this.config()['indent'] === '4 spaces' ? 4 : 2;
-        this.input.set(JSON.stringify(parsed, null, indent));
+        this.input.set(formatJson(val, { indent }));
       } else {
         // Beautify YAML via js-yaml dump
         const indent = this.config()['indent'] === '4 spaces' ? 4 : 2;
@@ -223,8 +223,7 @@ export class JsonToYaml implements OnInit {
 
     try {
       if (this.mode() === 'json-to-yaml') {
-        const parsed = JSON.parse(val);
-        this.input.set(JSON.stringify(parsed));
+        this.input.set(minifyJson(val));
       } else {
         // For YAML, compact flow mode
         const converted = jsonToYaml(yamlToJson(val), { flowLevel: 0 });

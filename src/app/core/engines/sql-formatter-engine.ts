@@ -1,8 +1,13 @@
 import { format } from 'sql-formatter';
 
+export type SqlDialectLanguage = 'sql' | 'transactsql' | 'postgresql' | 'mysql' | 'sqlite' | 'plsql';
+
 export interface SqlFormatterOptions {
   dialect?: string;
+  language?: string;
   indent?: string;
+  tabWidth?: number;
+  useTabs?: boolean;
   uppercaseKeywords?: boolean;
   breakOnCommas?: boolean;
   keywordCase?: 'upper' | 'lower' | 'preserve';
@@ -16,15 +21,40 @@ export interface SqlFormatterOptions {
   newlineBeforeSemicolon?: boolean;
 }
 
+export function normalizeSqlDialect(dialect?: string): SqlDialectLanguage {
+  if (!dialect) return 'sql';
+  const lower = dialect.toLowerCase().trim();
+  if (lower === 'tsql' || lower === 'transactsql' || lower === 'sql server' || lower === 'transact-sql') {
+    return 'transactsql';
+  }
+  if (lower === 'postgres' || lower === 'postgresql') {
+    return 'postgresql';
+  }
+  if (lower === 'mysql' || lower === 'mariadb') {
+    return 'mysql';
+  }
+  if (lower === 'sqlite') {
+    return 'sqlite';
+  }
+  if (lower === 'oracle' || lower === 'plsql') {
+    return 'plsql';
+  }
+  return 'sql';
+}
+
 export function formatSql(source: string, options: SqlFormatterOptions = {}): string {
+  const lang = normalizeSqlDialect(options.language || options.dialect);
+  const tabWidth = options.tabWidth ?? (options.indent === '4 spaces' ? 4 : 2);
+  const useTabs = options.useTabs ?? (options.indent === 'Tab');
+
   return format(source, {
-    language: dialectFor(options.dialect),
+    language: lang,
     keywordCase: options.keywordCase ?? (options.uppercaseKeywords === false ? 'preserve' : 'upper'),
     dataTypeCase: options.dataTypeCase ?? 'preserve',
     functionCase: options.functionCase ?? 'preserve',
     identifierCase: options.identifierCase ?? 'preserve',
-    useTabs: options.indent === 'Tab',
-    tabWidth: options.indent === '4 spaces' ? 4 : 2,
+    useTabs,
+    tabWidth,
     logicalOperatorNewline: options.logicalOperatorNewline ?? 'before',
     expressionWidth: options.expressionWidth ?? (options.breakOnCommas === false ? 1000 : 50),
     linesBetweenQueries: options.linesBetweenQueries ?? 1,
@@ -170,17 +200,4 @@ function uppercaseKeywordsOutsideQuotes(source: string, keywords: string[]): str
   }
 
   return result;
-}
-
-function dialectFor(
-  dialect: string | undefined
-): 'sql' | 'transactsql' | 'postgresql' | 'mysql' | 'sqlite' {
-  switch (dialect) {
-    case 'SQL Server': return 'transactsql';
-    case 'Transact-SQL': return 'transactsql';
-    case 'PostgreSQL': return 'postgresql';
-    case 'MySQL': return 'mysql';
-    case 'SQLite': return 'sqlite';
-    default: return 'sql';
-  }
 }

@@ -84,7 +84,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'Formatter',
     description: 'Format, validate, and inspect JSON.',
     defaultConfig: { indent: '2 spaces', sortKeys: false },
-    loadComponent: () => import('../tools/json/json-formatter/json-formatter').then((m) => m.JsonFormatter),
+    loadComponent: () =>
+      import('../tools/json/json-formatter/json-formatter').then((m) => m.JsonFormatter),
   },
   {
     type: 'json-diff',
@@ -106,7 +107,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'JSON → TypeScript',
     description: 'Generate TypeScript types from JSON data.',
     defaultConfig: { rootName: 'Root', outputType: 'interface' },
-    loadComponent: () => import('../tools/json/json-to-typescript/json-to-typescript').then((m) => m.JsonToTypescript),
+    loadComponent: () =>
+      import('../tools/json/json-to-typescript/json-to-typescript').then((m) => m.JsonToTypescript),
   },
   {
     type: 'json-to-csharp',
@@ -114,7 +116,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'JSON → C#',
     description: 'Generate C# models from JSON data.',
     defaultConfig: { rootName: 'Root' },
-    loadComponent: () => import('../tools/json/json-to-csharp/json-to-csharp').then((m) => m.JsonToCsharp),
+    loadComponent: () =>
+      import('../tools/json/json-to-csharp/json-to-csharp').then((m) => m.JsonToCsharp),
   },
   {
     type: 'json-to-yaml',
@@ -130,7 +133,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       forceQuotes: false,
       compactJson: false,
     },
-    loadComponent: () => import('../tools/json/json-to-yaml/json-to-yaml').then((m) => m.JsonToYaml),
+    loadComponent: () =>
+      import('../tools/json/json-to-yaml/json-to-yaml').then((m) => m.JsonToYaml),
   },
 
   // .NET / C# Group
@@ -139,22 +143,32 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'dotnet',
     label: 'C# → TypeScript',
     description: 'Convert C# classes, records, and enums into TypeScript.',
-    defaultConfig: { outputType: 'interface', naming: 'camel', nullable: 'null', enumOutput: 'enum' },
-    loadComponent: () => import('../tools/dotnet/csharp-to-typescript/csharp-to-typescript').then((m) => m.CsharpToTypescript),
+    defaultConfig: {
+      outputType: 'interface',
+      naming: 'camel',
+      nullable: 'null',
+      enumOutput: 'enum',
+    },
+    loadComponent: () =>
+      import('../tools/dotnet/csharp-to-typescript/csharp-to-typescript').then(
+        (m) => m.CsharpToTypescript,
+      ),
   },
   {
     type: 'csharp-to-json',
     groupId: 'dotnet',
     label: 'C# → JSON',
     description: 'Create a JSON example from C# model definitions.',
-    loadComponent: () => import('../tools/dotnet/csharp-to-json/csharp-to-json').then((m) => m.CsharpToJson),
+    loadComponent: () =>
+      import('../tools/dotnet/csharp-to-json/csharp-to-json').then((m) => m.CsharpToJson),
   },
   {
     type: 'csharp-formatter',
     groupId: 'dotnet',
     label: 'Formatter',
     description: 'Format and tidy C# source code.',
-    loadComponent: () => import('../tools/dotnet/csharp-formatter/csharp-formatter').then((m) => m.CsharpFormatter),
+    loadComponent: () =>
+      import('../tools/dotnet/csharp-formatter/csharp-formatter').then((m) => m.CsharpFormatter),
   },
   {
     type: 'feature-generator',
@@ -171,7 +185,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       includeFrontend: true,
       frontendFramework: 'angular',
     },
-    loadComponent: () => import('../tools/dotnet/feature-generator/feature-generator').then((m) => m.FeatureGenerator),
+    loadComponent: () =>
+      import('../tools/dotnet/feature-generator/feature-generator').then((m) => m.FeatureGenerator),
   },
 
   // EF Core Group
@@ -180,14 +195,16 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'ef',
     label: 'Entity configuration',
     description: 'Generate Entity Framework Core Fluent API & annotations configuration.',
-    loadComponent: () => import('../tools/ef/ef-configuration/ef-configuration').then((m) => m.EfConfiguration),
+    loadComponent: () =>
+      import('../tools/ef/ef-configuration/ef-configuration').then((m) => m.EfConfiguration),
   },
   {
     type: 'ef-migrations',
     groupId: 'ef',
     label: 'Migration helper',
     description: 'Generate dotnet ef CLI commands and custom migration scripts.',
-    loadComponent: () => import('../tools/ef/ef-migrations/ef-migrations').then((m) => m.EfMigrations),
+    loadComponent: () =>
+      import('../tools/ef/ef-migrations/ef-migrations').then((m) => m.EfMigrations),
   },
   {
     type: 'ef-linq',
@@ -223,7 +240,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       denseOperators: false,
       newlineBeforeSemicolon: false,
     },
-    loadComponent: () => import('../tools/sql/sql-formatter/sql-formatter').then((m) => m.SqlFormatter),
+    loadComponent: () =>
+      import('../tools/sql/sql-formatter/sql-formatter').then((m) => m.SqlFormatter),
   },
   {
     type: 'sql-to-csharp',
@@ -231,14 +249,16 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'SQL → C#',
     description: 'Generate C# models from SQL definitions.',
     defaultConfig: { outputType: 'class', className: 'QueryResult' },
-    loadComponent: () => import('../tools/sql/sql-to-csharp/sql-to-csharp').then((m) => m.SqlToCsharp),
+    loadComponent: () =>
+      import('../tools/sql/sql-to-csharp/sql-to-csharp').then((m) => m.SqlToCsharp),
   },
   {
     type: 'sql-generator',
     groupId: 'sql',
     label: 'Sql generator',
     description: 'Parse DDL & SSMS grid data to generate CRUD SQL, batch queries & variables.',
-    loadComponent: () => import('../tools/sql/sql-generator/sql-generator').then((m) => m.SqlGenerator),
+    loadComponent: () =>
+      import('../tools/sql/sql-generator/sql-generator').then((m) => m.SqlGenerator),
   },
   {
     type: 'sql-search',
@@ -252,7 +272,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'sql',
     label: 'Query builder',
     description: 'Build SQL queries interactively.',
-    loadComponent: () => import('../tools/sql/sql-query-builder/sql-query-builder').then((m) => m.SqlQueryBuilder),
+    loadComponent: () =>
+      import('../tools/sql/sql-query-builder/sql-query-builder').then((m) => m.SqlQueryBuilder),
   },
 
   // API Group
@@ -261,28 +282,34 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'api',
     label: 'OpenAPI inspector',
     description: 'Inspect endpoints and schemas from an OpenAPI document.',
-    loadComponent: () => import('../tools/api/openapi-inspector/openapi-inspector').then((m) => m.OpenapiInspector),
+    loadComponent: () =>
+      import('../tools/api/openapi-inspector/openapi-inspector').then((m) => m.OpenapiInspector),
   },
   {
     type: 'http-request-builder',
     groupId: 'api',
     label: 'HTTP request builder',
     description: 'Build and preview HTTP requests.',
-    loadComponent: () => import('../tools/api/http-request-builder/http-request-builder').then((m) => m.HttpRequestBuilder),
+    loadComponent: () =>
+      import('../tools/api/http-request-builder/http-request-builder').then(
+        (m) => m.HttpRequestBuilder,
+      ),
   },
   {
     type: 'jwt-inspector',
     groupId: 'api',
     label: 'JWT inspector',
     description: 'Decode and inspect JWT headers, claims, and expiry.',
-    loadComponent: () => import('../tools/api/jwt-inspector/jwt-inspector').then((m) => m.JwtInspector),
+    loadComponent: () =>
+      import('../tools/api/jwt-inspector/jwt-inspector').then((m) => m.JwtInspector),
   },
   {
     type: 'curl-converter',
     groupId: 'api',
     label: 'cURL converter',
     description: 'Convert cURL commands into application code.',
-    loadComponent: () => import('../tools/api/curl-converter/curl-converter').then((m) => m.CurlConverter),
+    loadComponent: () =>
+      import('../tools/api/curl-converter/curl-converter').then((m) => m.CurlConverter),
   },
 
   // Frontend Group
@@ -291,7 +318,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'frontend',
     label: 'API client generator',
     description: 'Generate a frontend client from an API shape.',
-    loadComponent: () => import('../tools/frontend/api-generator/api-generator').then((m) => m.ApiGenerator),
+    loadComponent: () =>
+      import('../tools/frontend/api-generator/api-generator').then((m) => m.ApiGenerator),
   },
 
   // General Group
@@ -300,7 +328,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'GUID generator',
     description: 'Generate GUIDs in common formats.',
-    loadComponent: () => import('../tools/general/guid-generator/guid-generator').then((m) => m.GuidGenerator),
+    loadComponent: () =>
+      import('../tools/general/guid-generator/guid-generator').then((m) => m.GuidGenerator),
   },
   {
     type: 'timestamp-converter',
@@ -308,28 +337,36 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'Timestamp converter',
     description: 'Convert timestamps between common formats.',
     defaultConfig: { defaultUnit: 'auto', hourFormat: '12h', autoTicker: true },
-    loadComponent: () => import('../tools/general/timestamp-converter/timestamp-converter').then((m) => m.TimestampConverter),
+    loadComponent: () =>
+      import('../tools/general/timestamp-converter/timestamp-converter').then(
+        (m) => m.TimestampConverter,
+      ),
   },
   {
     type: 'regex-tester',
     groupId: 'general',
     label: 'Regex tester',
     description: 'Test regular expressions against sample text.',
-    loadComponent: () => import('../tools/general/regex-tester/regex-tester').then((m) => m.RegexTester),
+    loadComponent: () =>
+      import('../tools/general/regex-tester/regex-tester').then((m) => m.RegexTester),
   },
   {
     type: 'script-runner',
     groupId: 'general',
     label: 'Script runner',
     description: 'Run utility scripts against supplied input.',
-    loadComponent: () => import('../tools/general/script-runner/script-runner').then((m) => m.ScriptRunner),
+    loadComponent: () =>
+      import('../tools/general/script-runner/script-runner').then((m) => m.ScriptRunner),
   },
   {
     type: 'documentation-hub',
     groupId: 'general',
     label: 'Documentation hub',
     description: 'Keep useful development documentation close at hand.',
-    loadComponent: () => import('../tools/general/documentation-hub/documentation-hub').then((m) => m.DocumentationHub),
+    loadComponent: () =>
+      import('../tools/general/documentation-hub/documentation-hub').then(
+        (m) => m.DocumentationHub,
+      ),
   },
   {
     type: 'terminal',
@@ -379,7 +416,9 @@ export function isValidToolType(toolType: string): boolean {
   return TOOL_REGISTRY.has(toolType);
 }
 
-export function findToolDefinition(toolType: string): { tool: ToolDefinition; group: ToolGroup } | null {
+export function findToolDefinition(
+  toolType: string,
+): { tool: ToolDefinition; group: ToolGroup } | null {
   const tool = TOOL_REGISTRY.get(toolType);
   if (!tool) return null;
 
@@ -400,9 +439,20 @@ export const UPCOMING_GROUPS: UpcomingGroup[] = [
     label: 'Database',
     icon: 'storage',
     features: [
-      { label: 'Query Runner', description: 'Connect to SQL Server/PostgreSQL/MySQL, execute queries, and return results.' },
-      { label: 'Database Explorer', description: 'Explore tables, views, procedures, functions, columns, keys, indexes, and database metadata.' },
-      { label: 'Schema Search', description: 'Search tables, columns, procedures, functions in a live DB with fuzzy search across database metadata.' },
+      {
+        label: 'Query Runner',
+        description: 'Connect to SQL Server/PostgreSQL/MySQL, execute queries, and return results.',
+      },
+      {
+        label: 'Database Explorer',
+        description:
+          'Explore tables, views, procedures, functions, columns, keys, indexes, and database metadata.',
+      },
+      {
+        label: 'Schema Search',
+        description:
+          'Search tables, columns, procedures, functions in a live DB with fuzzy search across database metadata.',
+      },
     ],
   },
   {
@@ -410,11 +460,27 @@ export const UPCOMING_GROUPS: UpcomingGroup[] = [
     label: '.NET',
     icon: 'code',
     features: [
-      { label: 'Roslyn Analyzer', description: 'Semantic C# analysis to find classes, interfaces, references, and usages.' },
-      { label: 'Solution Analyzer', description: 'Analyze .sln / .csproj files and perform project dependency analysis.' },
-      { label: 'EF Core Tools', description: 'Inspect DbContext, EF entities/configurations, and EF metadata.' },
-      { label: 'Migration Runner', description: 'Create, apply, or revert EF migrations in a project + database environment.' },
-      { label: 'dotnet CLI', description: 'Create/modify .csproj, .sln, source files, and run builds/tests via dotnet CLI.' },
+      {
+        label: 'Roslyn Analyzer',
+        description: 'Semantic C# analysis to find classes, interfaces, references, and usages.',
+      },
+      {
+        label: 'Solution Analyzer',
+        description: 'Analyze .sln / .csproj files and perform project dependency analysis.',
+      },
+      {
+        label: 'EF Core Tools',
+        description: 'Inspect DbContext, EF entities/configurations, and EF metadata.',
+      },
+      {
+        label: 'Migration Runner',
+        description: 'Create, apply, or revert EF migrations in a project + database environment.',
+      },
+      {
+        label: 'dotnet CLI',
+        description:
+          'Create/modify .csproj, .sln, source files, and run builds/tests via dotnet CLI.',
+      },
     ],
   },
   {
@@ -422,7 +488,11 @@ export const UPCOMING_GROUPS: UpcomingGroup[] = [
     label: 'Execution',
     icon: 'play_arrow',
     features: [
-      { label: 'Server Script Runner', description: 'Execute C#, PowerShell, or shell/dotnet scripts with sandboxed execution, process execution, and environment variables.' },
+      {
+        label: 'Server Script Runner',
+        description:
+          'Execute C#, PowerShell, or shell/dotnet scripts with sandboxed execution, process execution, and environment variables.',
+      },
     ],
   },
   {
@@ -430,8 +500,16 @@ export const UPCOMING_GROUPS: UpcomingGroup[] = [
     label: 'Git / Projects',
     icon: 'account_tree',
     features: [
-      { label: 'Repository + filesystem operations', description: 'Clone/access repositories, search source code, analyze commits/branches, and generate changes/PRs.' },
-      { label: 'Project-wide code generation', description: 'Generate files directly into a .NET/Angular/React/Vue project, modify existing files, and run format/build/test afterward.' },
+      {
+        label: 'Repository + filesystem operations',
+        description:
+          'Clone/access repositories, search source code, analyze commits/branches, and generate changes/PRs.',
+      },
+      {
+        label: 'Project-wide code generation',
+        description:
+          'Generate files directly into a .NET/Angular/React/Vue project, modify existing files, and run format/build/test afterward.',
+      },
     ],
   },
   {
@@ -439,7 +517,11 @@ export const UPCOMING_GROUPS: UpcomingGroup[] = [
     label: 'AI',
     icon: 'psychology',
     features: [
-      { label: 'LLM Gateway', description: 'LLM calls through the backend for prompt/model management, usage limits, user/team quotas, keeping API keys private.' },
+      {
+        label: 'LLM Gateway',
+        description:
+          'LLM calls through the backend for prompt/model management, usage limits, user/team quotas, keeping API keys private.',
+      },
     ],
   },
   {
@@ -447,9 +529,19 @@ export const UPCOMING_GROUPS: UpcomingGroup[] = [
     label: 'Cloud',
     icon: 'cloud',
     features: [
-      { label: 'Auth', description: 'User accounts, authentication, saved tools, and configuration settings.' },
-      { label: 'Sync', description: 'Saved tools, script/template synchronization across devices.' },
-      { label: 'Team Workspaces', description: 'Shared/team script & template repository with versioning, permissions, and private/public libraries.' },
+      {
+        label: 'Auth',
+        description: 'User accounts, authentication, saved tools, and configuration settings.',
+      },
+      {
+        label: 'Sync',
+        description: 'Saved tools, script/template synchronization across devices.',
+      },
+      {
+        label: 'Team Workspaces',
+        description:
+          'Shared/team script & template repository with versioning, permissions, and private/public libraries.',
+      },
     ],
   },
 ];

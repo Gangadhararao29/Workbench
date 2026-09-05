@@ -775,14 +775,8 @@ export class SqlGenerator implements OnInit {
     }
 
     try {
-      const dialectMap: Record<SqlDialect, string> = {
-        tsql: 'Transact-SQL',
-        postgres: 'PostgreSQL',
-        mysql: 'MySQL',
-        sqlite: 'SQLite'
-      };
       return formatSql(raw, {
-        dialect: dialectMap[this.dialect()] || 'Transact-SQL',
+        dialect: this.dialect(),
         uppercaseKeywords: true,
         breakOnCommas: true,
         indent: '2 spaces'
