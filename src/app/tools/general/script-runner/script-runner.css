@@ -175,6 +175,11 @@
   color: var(--mat-sys-error);
 }
 
+.running-badge {
+  background: color-mix(in srgb, var(--mat-sys-tertiary, #e09f3e) 15%, transparent);
+  color: var(--mat-sys-tertiary, #e09f3e);
+}
+
 .console-body {
   min-height: 150px;
   background: var(--mat-sys-surface-container-lowest);
