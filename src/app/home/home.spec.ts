@@ -37,6 +37,15 @@ describe('Home', () => {
     expect(compiled.querySelector('.home-groups')).toBeTruthy();
   });
 
+  it('renders beta badge and version badge in header', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const betaBadge = compiled.querySelector('.badge-beta');
+    const versionBadge = compiled.querySelector('.badge-version');
+
+    expect(betaBadge?.textContent).toContain('Beta');
+    expect(versionBadge?.textContent).toContain('v0.1.0');
+  });
+
   it('navigates to tool page when openTool is called', () => {
     component.openTool('json-formatter');
     expect(router.navigate).toHaveBeenCalledWith(['/tools', 'json-formatter']);

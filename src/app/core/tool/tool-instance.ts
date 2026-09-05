@@ -1,7 +1,13 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { defaultConfigFor } from './tool-defaults';
-import { toolLabelFor } from './tool-registry';
-import { WorkspaceStorage } from './workspace-storage';
+import {
+  defaultConfigFor,
+  findToolDefinition,
+  hasSidebarOptions,
+  isSidebarOpenByDefault,
+  toolLabelFor,
+  ToolDefinition,
+} from './tool-registry';
+import { WorkspaceStorage } from '../workspace-storage';
 
 export interface ToolInstance<TConfig = Record<string, any>> {
   id: string;
@@ -19,9 +25,12 @@ const LEGACY_STORAGE_KEY = 'workbench.instances.v1';
 const MAX_ARCHIVED = 50;
 
 @Injectable({ providedIn: 'root' })
-export class InstanceService {
+export class ToolInstanceService {
   private _instances = signal<ToolInstance[]>([]);
   private _activeId = signal<string | null>(null);
+
+  searchQuery = signal('');
+  rightDrawerOpened = signal(false);
 
   instances = computed(() => this._instances().filter((i) => !i.closedAt));
   archived = computed(() =>
@@ -31,12 +40,29 @@ export class InstanceService {
   );
   recent = computed(() => [...this.instances()].reverse());
   activeInstance = computed(() => this._instances().find((i) => i.id === this._activeId()) ?? null);
+  selectedInstance = computed(() => this.activeInstance());
+
+  activeToolDef = computed<ToolDefinition | null>(() => {
+    const inst = this.activeInstance();
+    if (!inst) return null;
+    return findToolDefinition(inst.toolType)?.tool ?? null;
+  });
+
+  hasOptions = computed(() => {
+    const inst = this.activeInstance();
+    if (!inst) return false;
+    return hasSidebarOptions(inst.toolType);
+  });
 
   constructor(private storage: WorkspaceStorage) {
     this._instances.set(this.loadFromStorage());
-    effect(() => {
-      this.storage.set(STORAGE_KEY, this._instances());
-    });
+    try {
+      effect(() => {
+        this.storage.set(STORAGE_KEY, this._instances());
+      });
+    } catch {
+      // Handled when constructed outside of Angular injection context in unit tests
+    }
   }
 
   private loadFromStorage(): ToolInstance[] {
@@ -45,19 +71,23 @@ export class InstanceService {
     return this.storage.get<ToolInstance[]>(LEGACY_STORAGE_KEY, []);
   }
 
-  open(toolType: string, groupId: string): ToolInstance {
+  open(toolType: string, groupId?: string): ToolInstance {
+    const def = findToolDefinition(toolType);
+    const resolvedGroup = groupId || def?.group.id || 'general';
     const count = this.instances().filter((i) => i.toolType === toolType).length;
+
     const instance: ToolInstance = {
       id: crypto.randomUUID(),
       toolType,
-      groupId,
+      groupId: resolvedGroup,
       label: `${toolLabelFor(toolType)} ${count + 1}`,
       config: defaultConfigFor(toolType),
       version: 1,
       createdAt: Date.now(),
     };
+
     this._instances.update((list) => [...list, instance]);
-    this._activeId.set(instance.id);
+    this.select(instance.id);
     return instance;
   }
 
@@ -75,6 +105,7 @@ export class InstanceService {
       createdAt: Date.now(),
     };
     this._instances.update((list) => [...list, cloned]);
+    this.select(cloned.id);
     return cloned;
   }
 
@@ -83,7 +114,6 @@ export class InstanceService {
       const updated = list.map((i) => (i.id === id ? { ...i, closedAt: Date.now() } : i));
       const archivedCount = updated.filter((i) => i.closedAt).length;
       if (archivedCount > MAX_ARCHIVED) {
-        // drop oldest archived beyond the cap
         const archived = updated
           .filter((i) => i.closedAt)
           .sort((a, b) => a.closedAt! - b.closedAt!);
@@ -92,22 +122,30 @@ export class InstanceService {
       }
       return updated;
     });
+
     if (this._activeId() === id) {
       const remaining = this.instances();
-      this._activeId.set(remaining.at(-1)?.id ?? null);
+      const nextId = remaining.at(-1)?.id ?? null;
+      if (nextId) {
+        this.select(nextId);
+      } else {
+        this._activeId.set(null);
+        this.rightDrawerOpened.set(false);
+      }
     }
   }
 
   closeAll() {
     this.instances().forEach((instance) => this.close(instance.id));
     this._activeId.set(null);
+    this.rightDrawerOpened.set(false);
   }
 
   reopen(id: string) {
     this._instances.update((list) =>
       list.map((i) => (i.id === id ? { ...i, closedAt: undefined } : i)),
     );
-    this._activeId.set(id);
+    this.select(id);
   }
 
   deleteArchived(id: string) {
@@ -116,10 +154,19 @@ export class InstanceService {
 
   select(id: string) {
     this._activeId.set(id);
+    const inst = this._instances().find((i) => i.id === id);
+    if (inst) {
+      if (!hasSidebarOptions(inst.toolType)) {
+        this.rightDrawerOpened.set(false);
+      } else if (isSidebarOpenByDefault(inst.toolType)) {
+        this.rightDrawerOpened.set(true);
+      }
+    }
   }
 
   goHome() {
     this._activeId.set(null);
+    this.rightDrawerOpened.set(false);
   }
 
   updateLabel(id: string, label: string) {
@@ -132,6 +179,14 @@ export class InstanceService {
     this._instances.update((list) =>
       list.map((i) => (i.id === id ? { ...i, config: { ...i.config, ...patch } } : i)),
     );
+  }
+
+  setRightDrawer(opened: boolean): void {
+    this.rightDrawerOpened.set(opened);
+  }
+
+  toggleRightDrawer(): void {
+    this.rightDrawerOpened.update((v) => !v);
   }
 
   exportWorkspace(): string {
@@ -153,3 +208,5 @@ export class InstanceService {
     this.storage.set(STORAGE_KEY, workspace.instances);
   }
 }
+
+export { ToolInstanceService as InstanceService };

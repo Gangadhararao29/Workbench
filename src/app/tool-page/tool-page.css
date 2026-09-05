@@ -47,9 +47,11 @@
 .scoped-tab {
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   height: 30px;
-  padding: 0 10px;
+  padding-left: 6px;
+  padding-right: 4px;
   border-radius: 6px;
   font-size: 0.82rem;
   font-weight: 500;
@@ -82,20 +84,18 @@
 }
 
 .tab-close-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 18px;
   height: 18px;
   padding: 0;
-  margin-left: 2px;
   border: none;
   background: transparent;
   border-radius: 4px;
   color: inherit;
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .tab-close-btn:hover {
@@ -170,4 +170,155 @@
   .tool-surface {
     padding: 12px;
   }
+}
+
+/* ── Skeleton & Loading State ─────────────────────────────────────────── */
+
+.tool-skeleton-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 480px;
+  height: 100%;
+  width: 100%;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low, #181a1f);
+  border-radius: 8px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.08));
+  overflow: hidden;
+}
+
+.tool-skeleton-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+}
+
+.skeleton-pill {
+  width: 140px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.skeleton-btn {
+  width: 70px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.tool-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.tool-skeleton-panel {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.06));
+  padding: 16px;
+  box-sizing: border-box;
+  min-height: 260px;
+}
+
+.skeleton-panel-header {
+  margin-bottom: 20px;
+}
+
+.skeleton-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.skeleton-bar {
+  height: 14px;
+  border-radius: 4px;
+}
+
+.skeleton-bar.sm {
+  width: 35%;
+}
+
+.skeleton-bar.md {
+  width: 65%;
+}
+
+.skeleton-bar.lg {
+  width: 90%;
+}
+
+/* Shimmer effect */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--mat-sys-surface-container, rgba(255, 255, 255, 0.04)) 0%,
+    var(--mat-sys-surface-container-high, rgba(255, 255, 255, 0.09)) 50%,
+    var(--mat-sys-surface-container, rgba(255, 255, 255, 0.04)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerAnim 1.6s infinite ease-in-out;
+}
+
+@keyframes shimmerAnim {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Centered Loading Badge */
+.tool-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: color-mix(in srgb, var(--mat-sys-surface, #121316) 65%, transparent);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tool-loading-spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--mat-sys-primary, #6366f1) 20%, transparent);
+  border-top-color: var(--mat-sys-primary, #6366f1);
+  animation: spin 0.85s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tool-loading-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface, #e2e8f0);
+  letter-spacing: 0.2px;
+}
+
+.tool-loading-subtext {
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }

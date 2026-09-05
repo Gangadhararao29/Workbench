@@ -1,7 +1,7 @@
-﻿import { Component, Input, computed, signal } from '@angular/core';
+import { Component, Input, computed, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { InstanceService } from '../../../core/instance-service';
+import { InstanceService } from '../../../core/tool/tool-instance';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { generateCSharpModelFromSql, SqlToCSharpOptions } from '../../../core/engines/sql-to-csharp-engine';
 

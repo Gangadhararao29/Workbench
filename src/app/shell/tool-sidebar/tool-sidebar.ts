@@ -1,4 +1,13 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, signal, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnInit,
+  OnDestroy,
+  signal,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
@@ -6,15 +15,22 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TOOL_GROUPS, ToolGroup, ToolDefinition, matchesToolSearch, getToolSearchSnippet } from '../../core/tool-registry';
 import { WorkspaceStorage } from '../../core/workspace-storage';
+import {
+  ToolGroup,
+  TOOL_GROUPS,
+  matchesToolSearch,
+  ToolDefinition,
+  getToolSearchSnippet,
+  resolveToolComponent,
+} from '../../core/tool/tool-registry';
 
 @Component({
   selector: 'app-tool-sidebar',
   standalone: true,
   imports: [CommonModule, MatExpansionModule, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './tool-sidebar.html',
-  styleUrls: ['./tool-sidebar.css']
+  styleUrls: ['./tool-sidebar.css'],
 })
 export class ToolSidebar implements OnInit, OnDestroy {
   @Input() searchQuery = '';
@@ -62,13 +78,19 @@ export class ToolSidebar implements OnInit, OnDestroy {
   get filteredGroups(): ToolGroup[] {
     const query = this.searchQuery.trim().toLowerCase();
     if (!query) {
-      const favorites = this.groups.flatMap(group => group.tools).filter(tool => this.isFavorite(tool.type));
-      return favorites.length ? [{ id: 'favorites', label: 'Favorites', icon: 'star', tools: favorites }, ...this.groups] : this.groups;
+      const favorites = this.groups
+        .flatMap((group) => group.tools)
+        .filter((tool) => this.isFavorite(tool.type));
+      return favorites.length
+        ? [{ id: 'favorites', label: 'Favorites', icon: 'star', tools: favorites }, ...this.groups]
+        : this.groups;
     }
-    return this.groups.map(group => ({
-      ...group,
-      tools: group.tools.filter(tool => matchesToolSearch(tool, query, group.label))
-    })).filter(group => group.tools.length > 0);
+    return this.groups
+      .map((group) => ({
+        ...group,
+        tools: group.tools.filter((tool) => matchesToolSearch(tool, query, group.label)),
+      }))
+      .filter((group) => group.tools.length > 0);
   }
 
   isToolActive(toolType: string): boolean {
@@ -82,7 +104,7 @@ export class ToolSidebar implements OnInit, OnDestroy {
     }
     const active = this.activeToolType ?? this.currentActiveTool();
     if (active) {
-      return group.tools.some(t => t.type === active);
+      return group.tools.some((t) => t.type === active);
     }
     return group.id === 'json';
   }
@@ -95,11 +117,17 @@ export class ToolSidebar implements OnInit, OnDestroy {
     this.openTool.emit({ toolType, groupId });
   }
 
+  preloadTool(toolType: string): void {
+    resolveToolComponent(toolType).catch(() => {});
+  }
+
   toggleFavorite(toolType: string) {
     if (this.favoriteTools.has(toolType)) this.favoriteTools.delete(toolType);
     else this.favoriteTools.add(toolType);
     this.storage.set('workbench.favorite-tools', [...this.favoriteTools]);
   }
 
-  isFavorite(toolType: string) { return this.favoriteTools.has(toolType); }
+  isFavorite(toolType: string) {
+    return this.favoriteTools.has(toolType);
+  }
 }

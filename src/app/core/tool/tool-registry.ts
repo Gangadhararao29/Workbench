@@ -2,12 +2,15 @@ import { Type } from '@angular/core';
 
 export interface ToolDefinition<TConfig = Record<string, any>> {
   type: string;
+  name: string;
   label: string;
   description: string;
   groupId: string;
   icon?: string;
   keywords?: string[];
   defaultConfig?: TConfig;
+  hasSidebarOptions?: boolean;
+  defaultSidebarOpen?: boolean;
   loadComponent: () => Promise<Type<any>> | Type<any>;
 }
 
@@ -44,6 +47,8 @@ export const GROUP_METADATA: Record<string, { label: string; icon: string; order
 };
 
 export function registerTool(tool: ToolDefinition): void {
+  if (!tool.label && tool.name) tool.label = tool.name;
+  if (!tool.name && tool.label) tool.name = tool.label;
   TOOL_REGISTRY.set(tool.type, tool);
 }
 
@@ -75,58 +80,88 @@ export async function resolveToolComponent(toolType: string): Promise<Type<any> 
   return resolved;
 }
 
-// Pre-register all standard workbench tools
+export function defaultConfigFor(toolType: string): Record<string, any> {
+  const tool = getToolDefinition(toolType);
+  if (!tool || !tool.defaultConfig) return {};
+  return JSON.parse(JSON.stringify(tool.defaultConfig));
+}
+
+export function hasSidebarOptions(toolType: string): boolean {
+  return getToolDefinition(toolType)?.hasSidebarOptions ?? false;
+}
+
+export function isSidebarOpenByDefault(toolType: string): boolean {
+  return getToolDefinition(toolType)?.defaultSidebarOpen ?? false;
+}
+
+// Pre-register all workbench tools with complete definitions in one place
 const INITIAL_TOOLS: ToolDefinition[] = [
   // JSON Group
   {
     type: 'json-formatter',
     groupId: 'json',
+    name: 'Formatter',
     label: 'Formatter',
     description: 'Format, validate, and inspect JSON.',
     keywords: ['json', 'format', 'beautify', 'minify', 'pretty', 'validate', 'lint', 'indent', 'clean'],
     defaultConfig: { indent: '2 spaces', sortKeys: false },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/json/json-formatter/json-formatter').then((m) => m.JsonFormatter),
+      import('../../tools/json/json-formatter/json-formatter').then((m) => m.JsonFormatter),
   },
   {
     type: 'json-diff',
     groupId: 'json',
+    name: 'Diff',
     label: 'Diff',
     description: 'Compare two JSON documents and inspect changes.',
     keywords: ['json', 'diff', 'compare', 'difference', 'patch', 'changes', 'merge'],
-    loadComponent: () => import('../tools/json/json-diff/json-diff').then((m) => m.JsonDiff),
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    loadComponent: () => import('../../tools/json/json-diff/json-diff').then((m) => m.JsonDiff),
   },
   {
     type: 'json-path',
     groupId: 'json',
+    name: 'Path tester',
     label: 'Path tester',
     description: 'Test paths against JSON data.',
     keywords: ['json', 'path', 'jsonpath', 'query', 'filter', 'extract', 'tester', 'expression'],
-    loadComponent: () => import('../tools/json/json-path/json-path').then((m) => m.JsonPath),
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    loadComponent: () => import('../../tools/json/json-path/json-path').then((m) => m.JsonPath),
   },
   {
     type: 'json-to-typescript',
     groupId: 'json',
+    name: 'JSON → TypeScript',
     label: 'JSON → TypeScript',
     description: 'Generate TypeScript types from JSON data.',
     keywords: ['json', 'typescript', 'ts', 'interface', 'type', 'convert', 'generate', 'schema', 'models'],
     defaultConfig: { rootName: 'Root', outputType: 'interface' },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/json/json-to-typescript/json-to-typescript').then((m) => m.JsonToTypescript),
+      import('../../tools/json/json-to-typescript/json-to-typescript').then((m) => m.JsonToTypescript),
   },
   {
     type: 'json-to-csharp',
     groupId: 'json',
+    name: 'JSON → C#',
     label: 'JSON → C#',
     description: 'Generate C# models from JSON data.',
     keywords: ['json', 'c#', 'csharp', 'dotnet', 'class', 'record', 'dto', 'convert', 'generate', 'model', 'poco'],
     defaultConfig: { rootName: 'Root' },
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/json/json-to-csharp/json-to-csharp').then((m) => m.JsonToCsharp),
+      import('../../tools/json/json-to-csharp/json-to-csharp').then((m) => m.JsonToCsharp),
   },
   {
     type: 'json-to-yaml',
     groupId: 'json',
+    name: 'JSON ↔ YAML',
     label: 'JSON ↔ YAML',
     description: 'Convert bi-directionally between JSON and YAML.',
     keywords: ['json', 'yaml', 'yml', 'convert', 'converter', 'serialization', 'parse', 'k8s', 'kubernetes'],
@@ -139,14 +174,17 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       forceQuotes: false,
       compactJson: false,
     },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/json/json-to-yaml/json-to-yaml').then((m) => m.JsonToYaml),
+      import('../../tools/json/json-to-yaml/json-to-yaml').then((m) => m.JsonToYaml),
   },
 
   // .NET / C# Group
   {
     type: 'csharp-to-typescript',
     groupId: 'dotnet',
+    name: 'C# → TypeScript',
     label: 'C# → TypeScript',
     description: 'Convert C# classes, records, and enums into TypeScript.',
     keywords: ['c#', 'csharp', 'typescript', 'ts', 'interface', 'type', 'convert', 'models', 'dto', 'enum'],
@@ -156,32 +194,41 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       nullable: 'null',
       enumOutput: 'enum',
     },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/dotnet/csharp-to-typescript/csharp-to-typescript').then(
+      import('../../tools/dotnet/csharp-to-typescript/csharp-to-typescript').then(
         (m) => m.CsharpToTypescript,
       ),
   },
   {
     type: 'csharp-to-json',
     groupId: 'dotnet',
+    name: 'C# → JSON',
     label: 'C# → JSON',
     description: 'Create a JSON example from C# model definitions.',
     keywords: ['c#', 'csharp', 'json', 'mock', 'sample', 'example', 'generator', 'dto', 'model', 'dummy data'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/dotnet/csharp-to-json/csharp-to-json').then((m) => m.CsharpToJson),
+      import('../../tools/dotnet/csharp-to-json/csharp-to-json').then((m) => m.CsharpToJson),
   },
   {
     type: 'csharp-formatter',
     groupId: 'dotnet',
+    name: 'Formatter',
     label: 'Formatter',
     description: 'Format and tidy C# source code.',
     keywords: ['c#', 'csharp', 'format', 'tidy', 'beautify', 'indent', 'clean', 'source code', 'style'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/dotnet/csharp-formatter/csharp-formatter').then((m) => m.CsharpFormatter),
+      import('../../tools/dotnet/csharp-formatter/csharp-formatter').then((m) => m.CsharpFormatter),
   },
   {
     type: 'feature-generator',
     groupId: 'dotnet',
+    name: 'Feature generator',
     label: 'Feature generator',
     description: 'Generate a starting point for a .NET feature.',
     keywords: ['dotnet', 'c#', 'csharp', 'scaffold', 'clean architecture', 'cqrs', 'repository', 'controller', 'service', 'dto', 'api', 'boilerplate', 'feature'],
@@ -195,50 +242,85 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       includeFrontend: true,
       frontendFramework: 'angular',
     },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/dotnet/feature-generator/feature-generator').then((m) => m.FeatureGenerator),
+      import('../../tools/dotnet/feature-generator/feature-generator').then((m) => m.FeatureGenerator),
   },
 
   // EF Core Group
   {
     type: 'ef-configuration',
     groupId: 'ef',
+    name: 'Entity configuration',
     label: 'Entity configuration',
     description: 'Generate Entity Framework Core Fluent API & annotations configuration.',
     keywords: ['entity framework', 'ef core', 'fluent api', 'data annotations', 'model builder', 'mapping', 'orm', 'entity', 'dbcontext'],
+    defaultConfig: {
+      tableNaming: 'plural',
+      schema: '',
+      defaultStringLength: 200,
+      deleteBehavior: 'Restrict',
+      enableSoftDelete: true,
+      enablePrecision: true,
+      enableEnumConversion: true,
+    },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/ef/ef-configuration/ef-configuration').then((m) => m.EfConfiguration),
+      import('../../tools/ef/ef-configuration/ef-configuration').then((m) => m.EfConfiguration),
   },
   {
     type: 'ef-migrations',
     groupId: 'ef',
+    name: 'Migration helper',
     label: 'Migration helper',
     description: 'Generate dotnet ef CLI commands and custom migration scripts.',
     keywords: ['entity framework', 'ef core', 'migrations', 'dotnet ef', 'database update', 'script', 'cli', 'schema migration', 'up', 'down'],
+    defaultConfig: {
+      project: 'src/Infrastructure',
+      startupProject: 'src/WebApi',
+      contextName: 'AppDbContext',
+      provider: 'Microsoft.EntityFrameworkCore.SqlServer',
+    },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/ef/ef-migrations/ef-migrations').then((m) => m.EfMigrations),
+      import('../../tools/ef/ef-migrations/ef-migrations').then((m) => m.EfMigrations),
   },
   {
     type: 'ef-linq',
     groupId: 'ef',
+    name: 'LINQ & query assistant',
     label: 'LINQ & query assistant',
     description: 'Draft LINQ queries, EF Core performance patterns, and SQL translations.',
     keywords: ['linq', 'ef core', 'query', 'sql', 'expression', 'assistant', 'orm', 'c#', 'csharp', 'performance', 'include'],
-    loadComponent: () => import('../tools/ef/ef-linq/ef-linq').then((m) => m.EfLinq),
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    loadComponent: () => import('../../tools/ef/ef-linq/ef-linq').then((m) => m.EfLinq),
   },
   {
     type: 'ef-dbcontext',
     groupId: 'ef',
+    name: 'DbContext generator',
     label: 'DbContext generator',
     description: 'Generate production-ready DbContext with DbSets, audit filters, and DI.',
     keywords: ['entity framework', 'ef core', 'dbcontext', 'dbset', 'onmodelcreating', 'dependency injection', 'database context', 'orm'],
-    loadComponent: () => import('../tools/ef/ef-dbcontext/ef-dbcontext').then((m) => m.EfDbContext),
+    defaultConfig: {
+      contextName: 'AppDbContext',
+      namespace: 'MyApp.Infrastructure.Data',
+      provider: 'SqlServer',
+    },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
+    loadComponent: () => import('../../tools/ef/ef-dbcontext/ef-dbcontext').then((m) => m.EfDbContext),
   },
 
   // SQL Group
   {
     type: 'sql-formatter',
     groupId: 'sql',
+    name: 'Formatter',
     label: 'Formatter',
     description: 'Format SQL queries for easier reading.',
     keywords: ['sql', 'format', 'beautify', 'query', 'tsql', 'postgres', 'mysql', 'clean', 'indent', 'uppercase'],
@@ -255,170 +337,220 @@ const INITIAL_TOOLS: ToolDefinition[] = [
       denseOperators: false,
       newlineBeforeSemicolon: false,
     },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/sql/sql-formatter/sql-formatter').then((m) => m.SqlFormatter),
+      import('../../tools/sql/sql-formatter/sql-formatter').then((m) => m.SqlFormatter),
   },
   {
     type: 'sql-to-csharp',
     groupId: 'sql',
+    name: 'SQL → C#',
     label: 'SQL → C#',
     description: 'Generate C# models from SQL definitions.',
     keywords: ['sql', 'c#', 'csharp', 'poco', 'model', 'class', 'query result', 'convert', 'entities', 'dapper'],
     defaultConfig: { outputType: 'class', className: 'QueryResult' },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/sql/sql-to-csharp/sql-to-csharp').then((m) => m.SqlToCsharp),
+      import('../../tools/sql/sql-to-csharp/sql-to-csharp').then((m) => m.SqlToCsharp),
   },
   {
     type: 'sql-generator',
     groupId: 'sql',
+    name: 'Sql generator',
     label: 'Sql generator',
     description: 'Parse DDL & SSMS grid data to generate CRUD SQL, batch queries & variables.',
     keywords: ['sql', 'ddl', 'crud', 'insert', 'update', 'select', 'table', 'ssms', 'generate', 'batch', 'grid', 'values'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/sql/sql-generator/sql-generator').then((m) => m.SqlGenerator),
+      import('../../tools/sql/sql-generator/sql-generator').then((m) => m.SqlGenerator),
   },
   {
     type: 'sql-search',
     groupId: 'sql',
+    name: 'Search',
     label: 'Search',
     description: 'Search and inspect SQL snippets.',
     keywords: ['sql', 'search', 'snippets', 'stored procedures', 'indexes', 'queries', 'cheat sheet', 'foreign keys', 'metadata', 'find'],
-    loadComponent: () => import('../tools/sql/sql-search/sql-search').then((m) => m.SqlSearch),
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    loadComponent: () => import('../../tools/sql/sql-search/sql-search').then((m) => m.SqlSearch),
   },
   {
     type: 'sql-query-builder',
     groupId: 'sql',
+    name: 'Query builder',
     label: 'Query builder',
     description: 'Build SQL queries interactively.',
     keywords: ['sql', 'query builder', 'visual', 'interactive', 'join', 'filter', 'group by', 'select', 'insert', 'update'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/sql/sql-query-builder/sql-query-builder').then((m) => m.SqlQueryBuilder),
+      import('../../tools/sql/sql-query-builder/sql-query-builder').then((m) => m.SqlQueryBuilder),
   },
 
   // API Group
   {
     type: 'openapi-inspector',
     groupId: 'api',
+    name: 'OpenAPI inspector',
     label: 'OpenAPI inspector',
     description: 'Inspect endpoints and schemas from an OpenAPI document. Generate cURL commands.',
     keywords: ['openapi', 'swagger', 'api', 'endpoints', 'spec', 'documentation', 'curl', 'schema', 'rest', 'json'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/api/openapi-inspector/openapi-inspector').then((m) => m.OpenapiInspector),
+      import('../../tools/api/openapi-inspector/openapi-inspector').then((m) => m.OpenapiInspector),
   },
   {
     type: 'http-request-builder',
     groupId: 'api',
+    name: 'HTTP request builder',
     label: 'HTTP request builder',
     description: 'Build, import cURL, and preview HTTP requests.',
     keywords: ['http', 'api', 'request', 'postman', 'rest', 'curl', 'fetch', 'client', 'webhook', 'headers', 'params', 'import curl', 'export curl'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/api/http-request-builder/http-request-builder').then(
+      import('../../tools/api/http-request-builder/http-request-builder').then(
         (m) => m.HttpRequestBuilder,
       ),
   },
   {
     type: 'jwt-inspector',
     groupId: 'api',
+    name: 'JWT inspector',
     label: 'JWT inspector',
     description: 'Decode and inspect JWT headers, claims, and expiry.',
     keywords: ['jwt', 'token', 'bearer', 'auth', 'authentication', 'decode', 'claims', 'base64', 'header', 'payload', 'signature', 'expiry'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/api/jwt-inspector/jwt-inspector').then((m) => m.JwtInspector),
+      import('../../tools/api/jwt-inspector/jwt-inspector').then((m) => m.JwtInspector),
   },
   {
     type: 'curl-converter',
     groupId: 'api',
+    name: 'cURL converter',
     label: 'cURL converter',
     description: 'Convert cURL commands into application code.',
     keywords: ['curl', 'bash', 'convert', 'http', 'fetch', 'c#', 'csharp', 'python', 'javascript', 'typescript', 'request', 'api'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/api/curl-converter/curl-converter').then((m) => m.CurlConverter),
+      import('../../tools/api/curl-converter/curl-converter').then((m) => m.CurlConverter),
   },
 
   // Frontend Group
   {
     type: 'api-generator',
     groupId: 'frontend',
+    name: 'API client generator',
     label: 'API client generator',
     description: 'Generate a frontend client from an API shape.',
     keywords: ['api', 'client', 'frontend', 'fetch', 'axios', 'angular', 'react', 'service', 'http', 'rest', 'sdk'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/frontend/api-generator/api-generator').then((m) => m.ApiGenerator),
+      import('../../tools/frontend/api-generator/api-generator').then((m) => m.ApiGenerator),
   },
 
   // General Group
   {
     type: 'guid-generator',
     groupId: 'general',
+    name: 'GUID generator',
     label: 'GUID generator',
     description: 'Generate GUIDs in common formats.',
     keywords: ['guid', 'uuid', 'v4', 'random', 'unique', 'identifier', 'generate', 'id'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/general/guid-generator/guid-generator').then((m) => m.GuidGenerator),
+      import('../../tools/general/guid-generator/guid-generator').then((m) => m.GuidGenerator),
   },
   {
     type: 'timestamp-converter',
     groupId: 'general',
+    name: 'Timestamp converter',
     label: 'Timestamp converter',
     description: 'Convert timestamps between common formats.',
     keywords: ['timestamp', 'unix', 'epoch', 'datetime', 'iso', 'utc', 'timezone', 'date', 'time', 'clock', 'milliseconds'],
     defaultConfig: { defaultUnit: 'auto', hourFormat: '12h', autoTicker: true },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     loadComponent: () =>
-      import('../tools/general/timestamp-converter/timestamp-converter').then(
+      import('../../tools/general/timestamp-converter/timestamp-converter').then(
         (m) => m.TimestampConverter,
       ),
   },
   {
     type: 'regex-tester',
     groupId: 'general',
+    name: 'Regex tester',
     label: 'Regex tester',
     description: 'Test regular expressions against sample text.',
     keywords: ['regex', 'regular expression', 'pattern', 'test', 'matcher', 'match', 'extract', 'replace', 'groups'],
+    hasSidebarOptions: true,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/general/regex-tester/regex-tester').then((m) => m.RegexTester),
+      import('../../tools/general/regex-tester/regex-tester').then((m) => m.RegexTester),
   },
   {
     type: 'script-runner',
     groupId: 'general',
+    name: 'Script runner',
     label: 'Script runner',
     description: 'Run utility scripts against supplied input.',
     keywords: ['script', 'runner', 'code', 'javascript', 'transform', 'eval', 'snippet', 'utility', 'automation', 'process'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/general/script-runner/script-runner').then((m) => m.ScriptRunner),
+      import('../../tools/general/script-runner/script-runner').then((m) => m.ScriptRunner),
   },
   {
     type: 'documentation-hub',
     groupId: 'general',
+    name: 'Documentation hub',
     label: 'Documentation hub',
     description: 'Keep useful development documentation close at hand.',
     keywords: ['docs', 'documentation', 'cheatsheet', 'reference', 'markdown', 'links', 'guide', 'manual', 'handbook'],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     loadComponent: () =>
-      import('../tools/general/documentation-hub/documentation-hub').then(
+      import('../../tools/general/documentation-hub/documentation-hub').then(
         (m) => m.DocumentationHub,
       ),
   },
   {
     type: 'terminal',
     groupId: 'general',
+    name: 'Terminal',
     label: 'Terminal',
     description: 'Work with terminal commands and snippets including cURL, Git, and Docker.',
     keywords: ['terminal', 'console', 'cli', 'bash', 'shell', 'commands', 'curl', 'git', 'docker', 'powershell', 'snippets'],
-    loadComponent: () => import('../tools/general/terminal/terminal').then((m) => m.TerminalTool),
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    loadComponent: () => import('../../tools/general/terminal/terminal').then((m) => m.TerminalTool),
   },
   {
     type: 'log-viewer',
     groupId: 'general',
+    name: 'Log viewer',
     label: 'Log viewer',
     description: 'Inspect and filter application logs.',
     keywords: ['logs', 'viewer', 'filter', 'parse', 'json logs', 'tail', 'trace', 'debug', 'grep', 'events'],
-    loadComponent: () => import('../tools/general/log-viewer/log-viewer').then((m) => m.LogViewer),
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    loadComponent: () => import('../../tools/general/log-viewer/log-viewer').then((m) => m.LogViewer),
   },
 ];
 
 INITIAL_TOOLS.forEach(registerTool);
 
 /**
- * Checks if a tool matches a search query across its label, description,
+ * Checks if a tool matches a search query across its label, name, description,
  * keywords, tool type, and parent group label.
  */
 export function matchesToolSearch(tool: ToolDefinition, query: string, groupLabel?: string): boolean {
@@ -427,7 +559,8 @@ export function matchesToolSearch(tool: ToolDefinition, query: string, groupLabe
 
   const terms = normalized.split(/\s+/).filter(Boolean);
   const searchableText = [
-    tool.label,
+    tool.name ?? '',
+    tool.label ?? '',
     tool.description,
     tool.type,
     tool.type.replace(/-/g, ' '),
@@ -449,10 +582,10 @@ export function getToolSearchSnippet(tool: ToolDefinition, query: string): strin
 
   const terms = normalized.split(/\s+/).filter(Boolean);
   const matchedKeywords = (tool.keywords ?? []).filter((kw) =>
-    terms.some((t) => kw.toLowerCase().includes(t))
+    terms.some((t) => kw.toLowerCase().includes(t)),
   );
 
-  const labelLower = tool.label.toLowerCase();
+  const labelLower = (tool.label || tool.name || '').toLowerCase();
   const isOnlyInLabel = terms.every((t) => labelLower.includes(t));
 
   if (matchedKeywords.length > 0 && !isOnlyInLabel) {
@@ -484,7 +617,7 @@ export const TOOL_GROUPS: ToolGroup[] = getToolGroups();
 
 export function toolLabelFor(toolType: string): string {
   const tool = TOOL_REGISTRY.get(toolType);
-  return tool ? tool.label : toolType;
+  return tool ? (tool.label || tool.name) : toolType;
 }
 
 export function isValidToolType(toolType: string): boolean {

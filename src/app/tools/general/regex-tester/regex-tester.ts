@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ShellStateService } from '../../../core/shell-state.service';
 import {
   MatchDetail,
   RegexEvaluationResult,
   validateRegex,
   evaluateTestCase,
 } from '../../../core/engines/regex-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 export interface TestCaseEvaluation extends RegexEvaluationResult {
   id: string;
@@ -29,7 +29,7 @@ export type { MatchDetail };
 export class RegexTester {
   @Input({ required: true }) instanceId!: string;
 
-  public shellState = inject(ShellStateService);
+  public instanceService = inject(InstanceService);
 
   pattern = signal('(?<prefix>user|admin)-(?<id>\\d+)');
   flags = signal('g');

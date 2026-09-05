@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { InstanceService } from '../../../core/instance-service';
+import { InstanceService } from '../../../core/tool/tool-instance';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   jsonToYaml,

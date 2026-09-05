@@ -2,13 +2,13 @@ import { Component, Input, OnInit, computed, effect, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { InstanceService } from '../../../core/instance-service';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   generateFeatureFiles,
   formatFeatureBundle,
   FeatureGeneratorOptions,
 } from '../../../core/engines/feature-generator-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 @Component({
   selector: 'app-feature-generator',

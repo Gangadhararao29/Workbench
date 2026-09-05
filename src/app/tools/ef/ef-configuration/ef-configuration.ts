@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InstanceService } from '../../../core/instance-service';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   generateEfConfiguration,
@@ -11,6 +10,7 @@ import {
   PRESET_BLOG_POST,
   EfConfigurationOptions,
 } from '../../../core/engines/ef-configuration-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 @Component({
   selector: 'app-ef-configuration',

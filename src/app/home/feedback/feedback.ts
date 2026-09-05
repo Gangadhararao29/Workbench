@@ -5,7 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FeedbackService, FeedbackType, FeedbackSeverity, SystemInfo } from '../../core/feedback.service';
-import { TOOL_GROUPS } from '../../core/tool-registry';
+import { TOOL_GROUPS } from '../../core/tool/tool-registry';
+
 
 @Component({
   selector: 'app-feedback',

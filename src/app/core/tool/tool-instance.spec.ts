@@ -1,25 +1,40 @@
-import { TestBed } from '@angular/core/testing';
-import { InstanceService } from './instance-service';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { ToolInstanceService } from './tool-instance';
+import { WorkspaceStorage } from '../workspace-storage';
 
-describe('InstanceService', () => {
-  let service: InstanceService;
+describe('ToolInstanceService', () => {
+  let service: ToolInstanceService;
 
   beforeEach(() => {
     try { window?.localStorage?.clear(); } catch {}
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(InstanceService);
+    service = new ToolInstanceService(new WorkspaceStorage());
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('opens and selects a tool instance with default configuration', () => {
+  it('opens and selects a tool instance with default configuration and sidebar state', () => {
     service.open('sql-formatter', 'sql');
 
     expect(service.instances()).toHaveLength(1);
     expect(service.activeInstance()?.toolType).toBe('sql-formatter');
     expect(service.activeInstance()?.config['keywordCase']).toBe('upper');
+    expect(service.hasOptions()).toBe(true);
+    expect(service.rightDrawerOpened()).toBe(true);
+  });
+
+  it('handles tools without options and closes sidebar', () => {
+    service.open('guid-generator', 'general');
+
+    expect(service.hasOptions()).toBe(false);
+    expect(service.rightDrawerOpened()).toBe(false);
+  });
+
+  it('manages searchQuery correctly', () => {
+    expect(service.searchQuery()).toBe('');
+    service.searchQuery.set('formatter');
+    expect(service.searchQuery()).toBe('formatter');
   });
 
   it('updates configuration without replacing the instance', () => {

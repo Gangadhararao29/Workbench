@@ -6,7 +6,7 @@
       <button
         type="button"
         class="action-link-btn"
-        (click)="shellState.toggleRightDrawer()"
+        (click)="instanceService.toggleRightDrawer()"
         matTooltip="Toggle Regex Cheat Sheet in sidebar">
         <mat-icon>menu_book</mat-icon>
         Cheat Sheet
@@ -64,7 +64,8 @@
       <span class="header-hint">Live evaluation with match highlights</span>
     </div>
     <button mat-flat-button color="primary" type="button" class="btn-add-test" (click)="addTestCase()">
-      <mat-icon>add</mat-icon> Add Test Case
+      <mat-icon>add</mat-icon>
+      <span>Add Test Case</span>
     </button>
   </div>
 
@@ -88,6 +89,7 @@
               type="button"
               class="btn-delete-case"
               (click)="removeTestCase(tc.id)"
+              aria-label="Remove this test case"
               matTooltip="Remove this test case">
               <mat-icon>delete_outline</mat-icon>
             </button>

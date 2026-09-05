@@ -3,29 +3,35 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { TOOL_GROUPS, UPCOMING_GROUPS, matchesToolSearch } from '../core/tool-registry';
-import { ShellStateService } from '../core/shell-state.service';
+import {
+  TOOL_GROUPS,
+  UPCOMING_GROUPS,
+  matchesToolSearch,
+  resolveToolComponent,
+} from '../core/tool/tool-registry';
 import { FeedbackComponent } from './feedback/feedback';
+import { InstanceService } from '../core/tool/tool-instance';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule, FeedbackComponent],
   templateUrl: './home.html',
-  styleUrls: ['./home.css']
+  styleUrls: ['./home.css'],
 })
 export class Home {
-  private shellState = inject(ShellStateService);
+  private instanceService = inject(InstanceService);
   private router = inject(Router);
 
   readonly toolGroups = TOOL_GROUPS;
   readonly upcomingGroups = UPCOMING_GROUPS;
+  readonly version = '0.1.0';
   activeHomeTab = signal<'tools' | 'upcoming' | 'feedback'>('tools');
 
-  searchQuery = this.shellState.searchQuery;
+  searchQuery = this.instanceService.searchQuery;
 
   filteredToolGroups = computed(() => {
-    const query = this.shellState.searchQuery().trim().toLowerCase();
+    const query = this.searchQuery().trim().toLowerCase();
     if (!query) return this.toolGroups;
     return this.toolGroups
       .map((group) => ({
@@ -39,7 +45,11 @@ export class Home {
     this.router.navigate(['/tools', toolType]);
   }
 
+  preloadTool(toolType: string): void {
+    resolveToolComponent(toolType).catch(() => {});
+  }
+
   clearSearch(): void {
-    this.shellState.searchQuery.set('');
+    this.searchQuery.set('');
   }
 }

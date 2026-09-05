@@ -13,7 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InstanceService } from '../../../core/instance-service';
 import {
   TimestampInputUnit,
   parseTimestampInput,
@@ -26,6 +25,7 @@ import {
   TimezoneInfo,
   FormattedTimestampOutputs,
 } from '../../../core/engines/timestamp-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 @Component({
   selector: 'app-timestamp-converter',

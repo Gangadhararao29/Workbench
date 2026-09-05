@@ -201,8 +201,9 @@
   white-space: pre-wrap;
   word-break: break-all;
   overflow: auto;
-  flex: 1;
-  max-height: 300px;
+  resize: vertical;
+  min-height: 160px;
+  box-sizing: border-box;
 }
 
 .console-placeholder {

@@ -5,10 +5,6 @@
     <div class="field-header">
       <label>SQL Input</label>
       <div class="input-actions">
-        <button type="button" class="action-link-btn" (click)="loadSample()" matTooltip="Load sample SQL">
-          <mat-icon>auto_awesome</mat-icon>
-          <span>Sample</span>
-        </button>
         <button type="button" class="action-link-btn" (click)="clear()" matTooltip="Clear all">
           <mat-icon>clear_all</mat-icon>
           <span>Clear</span>
@@ -30,15 +26,18 @@
     </div>
 
     <div class="format-actions">
-      <button mat-stroked-button (click)="minify()" [class.active-mode]="mode() === 'minified'" matTooltip="Remove all whitespace">
+      <button mat-stroked-button (click)="minify()" [class.active-mode]="mode() === 'minified'"
+        matTooltip="Remove all whitespace">
         <mat-icon>compress</mat-icon>
         <span>Minify</span>
       </button>
-      <button mat-stroked-button (click)="compact()" [class.active-mode]="mode() === 'compact'" matTooltip="Single-line per clause">
+      <button mat-stroked-button (click)="compact()" [class.active-mode]="mode() === 'compact'"
+        matTooltip="Single-line per clause">
         <mat-icon>view_headline</mat-icon>
         <span>Compact</span>
       </button>
-      <button mat-flat-button color="primary" (click)="format()" [class.active-mode]="mode() === 'pretty'" matTooltip="Pretty-print SQL">
+      <button mat-flat-button color="primary" (click)="format()" [class.active-mode]="mode() === 'pretty'"
+        matTooltip="Pretty-print SQL">
         <mat-icon>auto_fix_high</mat-icon>
         <span>Format</span>
       </button>

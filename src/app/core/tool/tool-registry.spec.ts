@@ -7,6 +7,9 @@ import {
   getAllTools,
   matchesToolSearch,
   getToolSearchSnippet,
+  defaultConfigFor,
+  hasSidebarOptions,
+  isSidebarOpenByDefault,
 } from './tool-registry';
 
 describe('tool-registry', () => {
@@ -41,6 +44,28 @@ describe('tool-registry', () => {
   it('findToolDefinition returns null for invalid tool type', () => {
     const res = findToolDefinition('unknown-tool');
     expect(res).toBeNull();
+  });
+
+  it('defaultConfigFor returns defaults for configured tools and empty object for others', () => {
+    const jsonDefaults = defaultConfigFor('json-formatter');
+    expect(jsonDefaults).toEqual({ indent: '2 spaces', sortKeys: false });
+
+    const sqlDefaults = defaultConfigFor('sql-formatter');
+    expect(sqlDefaults['dialect']).toBe('Standard SQL');
+
+    const unknownDefaults = defaultConfigFor('unknown-tool');
+    expect(unknownDefaults).toEqual({});
+  });
+
+  it('hasSidebarOptions and isSidebarOpenByDefault correctly reflect tool definition', () => {
+    expect(hasSidebarOptions('sql-formatter')).toBe(true);
+    expect(isSidebarOpenByDefault('sql-formatter')).toBe(true);
+
+    expect(hasSidebarOptions('regex-tester')).toBe(true);
+    expect(isSidebarOpenByDefault('regex-tester')).toBe(false);
+
+    expect(hasSidebarOptions('guid-generator')).toBe(false);
+    expect(isSidebarOpenByDefault('guid-generator')).toBe(false);
   });
 
   describe('matchesToolSearch', () => {

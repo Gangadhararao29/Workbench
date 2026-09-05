@@ -6,7 +6,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InstanceService, ToolInstance } from '../../core/instance-service';
+import { InstanceService, ToolInstance } from '../../core/tool/tool-instance';
 
 @Component({
   selector: 'app-options-panel',

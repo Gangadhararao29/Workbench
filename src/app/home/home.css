@@ -43,12 +43,72 @@
   color: var(--mat-sys-primary);
 }
 
+.home-hero-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-hero-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 4px;
+}
+
 .home-hero h1 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 1.45rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
+}
+
+.home-hero-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-beta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  color: var(--mat-sys-primary);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
+  line-height: 1.4;
+  user-select: none;
+}
+
+.badge-beta-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--mat-sys-primary);
+}
+
+.badge-version {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border-radius: 9999px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+  border: 1px solid var(--mat-sys-outline-variant);
+  line-height: 1.4;
+  user-select: none;
 }
 
 .home-hero p {

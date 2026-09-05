@@ -3,8 +3,14 @@
     <div class="home-hero-icon">
       <mat-icon>terminal</mat-icon>
     </div>
-    <div>
-      <h1 id="welcome-title">Developer Workbench</h1>
+    <div class="home-hero-text">
+      <div class="home-hero-title-row">
+        <h1 id="welcome-title">Developer Workbench</h1>
+        <div class="home-hero-badges">
+          <span class="badge-beta"><span class="badge-beta-dot"></span>Beta</span>
+          <span class="badge-version">v{{ version }}</span>
+        </div>
+      </div>
       <p>All your everyday dev tools in one focused workspace. Pick a tool below or use the sidebar.</p>
     </div>
   </header>
@@ -49,7 +55,8 @@
       </h2>
       <div class="home-tool-grid">
         @for (tool of group.tools; track tool.type) {
-        <button class="home-tool-card" (click)="openTool(tool.type)" [attr.aria-label]="'Open ' + tool.label">
+        <button class="home-tool-card" (mouseenter)="preloadTool(tool.type)" (click)="openTool(tool.type)"
+          [attr.aria-label]="'Open ' + tool.label">
           <span class="home-tool-name">{{ tool.label }}</span>
           <span class="home-tool-desc">{{ tool.description }}</span>
         </button>

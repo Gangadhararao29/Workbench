@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy, computed, signal, effect, inject, Type } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, signal, inject, Type } from '@angular/core';
 import { CommonModule, NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InstanceService, ToolInstance } from '../core/instance-service';
-import { findToolDefinition, getLoadedComponent, resolveToolComponent } from '../core/tool-registry';
-import { ShellStateService } from '../core/shell-state.service';
+import { InstanceService, ToolInstance } from '../core/tool/tool-instance';
+import { findToolDefinition, getLoadedComponent, resolveToolComponent } from '../core/tool/tool-registry';
 
 @Component({
   selector: 'app-tool-page',
@@ -25,30 +24,28 @@ export class ToolPage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   public instanceService = inject(InstanceService);
-  public shellState = inject(ShellStateService);
 
   toolType = signal<string>('');
   groupId = signal<string>('general');
-  selectedInstanceId = signal<string | null>(null);
   loadedComponents = signal<Record<string, Type<any>>>({});
 
   scopedInstances = computed(() =>
-    this.instanceService.instances().filter((i) => i.toolType === this.toolType())
+    this.instanceService.instances().filter((i) => i.toolType === this.toolType()),
   );
 
-  selectedInstance = computed(() => {
+  selectedInstance = computed<ToolInstance | null>(() => {
+    const active = this.instanceService.activeInstance();
     const list = this.scopedInstances();
-    const id = this.selectedInstanceId();
-    if (!list.length) return null;
-    return list.find((i) => i.id === id) ?? list[0] ?? null;
+    if (active && list.some((i) => i.id === active.id)) {
+      return active;
+    }
+    return list[0] ?? null;
   });
 
-  constructor() {
-    effect(() => {
-      const active = this.selectedInstance();
-      this.shellState.selectedInstance.set(active);
-    });
-  }
+  currentToolDef = computed(() => {
+    const type = this.toolType();
+    return type ? findToolDefinition(type) : null;
+  });
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -64,18 +61,22 @@ export class ToolPage implements OnInit, OnDestroy {
 
       const existing = this.scopedInstances();
       if (existing.length === 0 && type) {
-        const created = this.instanceService.open(type, this.groupId());
-        this.selectedInstanceId.set(created.id);
+        this.instanceService.open(type, this.groupId());
       } else if (existing.length > 0) {
-        if (!this.selectedInstanceId() || !existing.some((i) => i.id === this.selectedInstanceId())) {
-          this.selectedInstanceId.set(existing[0].id);
+        const active = this.instanceService.activeInstance();
+        if (!active || !existing.some((i) => i.id === active.id)) {
+          this.instanceService.select(existing[0].id);
         }
       }
     });
   }
 
   ngOnDestroy(): void {
-    this.shellState.selectedInstance.set(null);
+    // If not navigating to another tool, reset active instance
+    const currentUrl = this.router.url || '';
+    if (!currentUrl.startsWith('/tools/')) {
+      this.instanceService.goHome();
+    }
   }
 
   ensureComponentLoaded(type: string): void {
@@ -96,21 +97,17 @@ export class ToolPage implements OnInit, OnDestroy {
   }
 
   selectInstance(id: string): void {
-    this.selectedInstanceId.set(id);
+    this.instanceService.select(id);
   }
 
   addInstance(): void {
-    const created = this.instanceService.open(this.toolType(), this.groupId());
-    this.selectedInstanceId.set(created.id);
+    this.instanceService.open(this.toolType(), this.groupId());
   }
 
   cloneInstance(): void {
     const current = this.selectedInstance();
     if (!current) return;
-    const cloned = this.instanceService.clone(current.id);
-    if (cloned) {
-      this.selectedInstanceId.set(cloned.id);
-    }
+    this.instanceService.clone(current.id);
   }
 
   closeInstance(id: string, event: MouseEvent): void {
@@ -119,8 +116,11 @@ export class ToolPage implements OnInit, OnDestroy {
     const remaining = this.scopedInstances();
     if (remaining.length === 0) {
       this.router.navigate(['/']);
-    } else if (this.selectedInstanceId() === id) {
-      this.selectedInstanceId.set(remaining[remaining.length - 1].id);
+    } else {
+      const active = this.instanceService.activeInstance();
+      if (!active || !remaining.some((i) => i.id === active.id)) {
+        this.instanceService.select(remaining[remaining.length - 1].id);
+      }
     }
   }
 }

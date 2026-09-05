@@ -4,7 +4,7 @@
 }
 
 .feedback-container {
-  max-width: 860px;
+  /* max-width: 860px; */
   margin: 0 auto;
   padding: 8px 0 32px;
 }
@@ -62,7 +62,10 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
 }
 
 .type-btn mat-icon {
@@ -131,8 +134,8 @@
 
 /* ── Inputs, Textareas, Selects ──────────────────────────────────── */
 
-input[type="text"],
-input[type="email"],
+input[type='text'],
+input[type='email'],
 textarea,
 select {
   width: 100%;
@@ -145,11 +148,13 @@ select {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
+input[type='text']:focus,
+input[type='email']:focus,
 textarea:focus,
 select:focus {
   border-color: var(--mat-sys-primary);
@@ -230,10 +235,18 @@ textarea {
   margin-bottom: 4px;
 }
 
-.severity-pill.low .severity-dot { background: #3b82f6; }
-.severity-pill.medium .severity-dot { background: #eab308; }
-.severity-pill.high .severity-dot { background: #f97316; }
-.severity-pill.critical .severity-dot { background: #ef4444; }
+.severity-pill.low .severity-dot {
+  background: #3b82f6;
+}
+.severity-pill.medium .severity-dot {
+  background: #eab308;
+}
+.severity-pill.high .severity-dot {
+  background: #f97316;
+}
+.severity-pill.critical .severity-dot {
+  background: #ef4444;
+}
 
 .severity-pill:hover {
   border-color: color-mix(in srgb, var(--mat-sys-primary) 60%, var(--mat-sys-outline-variant));
@@ -276,7 +289,9 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.1s, color 0.15s;
+  transition:
+    transform 0.1s,
+    color 0.15s;
 }
 
 .star-btn mat-icon {
@@ -325,7 +340,7 @@ textarea {
   color: var(--mat-sys-on-surface-variant);
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 16px;
   height: 16px;
   cursor: pointer;
@@ -333,8 +348,6 @@ textarea {
 }
 
 .btn-text {
-  display: inline-flex;
-  align-items: center;
   gap: 4px;
   background: transparent;
   border: none;
@@ -456,7 +469,11 @@ textarea {
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 12px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
-  transition: transform 0.15s, background 0.15s, box-shadow 0.15s, opacity 0.15s;
+  transition:
+    transform 0.15s,
+    background 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
 }
 
 .btn-submit mat-icon {
@@ -493,7 +510,9 @@ textarea {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Success State ───────────────────────────────────────────────── */
@@ -582,7 +601,9 @@ textarea {
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  transition:
+    transform 0.15s,
+    background 0.15s;
 }
 
 .btn-primary:hover {

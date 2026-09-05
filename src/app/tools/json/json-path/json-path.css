@@ -7,9 +7,9 @@
   min-height: 0;
 }
 
-.tool-surface-inner {
+/* .tool-surface-inner {
   max-width: 900px;
-}
+} */
 
 .path-actions {
   flex: 1;
@@ -24,7 +24,9 @@
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
-  font: 13px/1.5 'Roboto Mono', monospace;
+  font:
+    13px/1.5 'Roboto Mono',
+    monospace;
   outline: none;
   transition: border-color 0.15s;
 }
