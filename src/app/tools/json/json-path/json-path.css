@@ -1,23 +1,39 @@
+/* toolbar-row, format-actions, result-label, field-header — from tool-common.css */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 900px;
 }
-.path-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
+
+.path-actions {
+  flex: 1;
   gap: 8px;
 }
-.path-row input {
+
+.path-input {
+  flex: 1;
   box-sizing: border-box;
-  width: 100%;
-  padding: 10px;
+  padding: 5px 10px;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
-  font: 14px/1.5 'Roboto Mono', monospace;
+  font: 13px/1.5 'Roboto Mono', monospace;
+  outline: none;
+  transition: border-color 0.15s;
 }
-@media (max-width: 600px) {
-  .path-row {
-    grid-template-columns: 1fr;
-  }
+
+.path-input:focus {
+  border-color: var(--mat-sys-primary);
+}
+
+.field:not(.grow) app-code-editor {
+  height: 160px;
+  min-height: 80px;
 }

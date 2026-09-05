@@ -1,6 +1,7 @@
-import { Component, Input, computed, signal } from '@angular/core';
+﻿import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { InstanceService } from '../../../core/instance-service';
 import { convertCsharpToTypescript } from '../../../core/engines/csharp-typescript-engine';
 import { formatTypescript } from '../../../core/engines/typescript-formatter';
@@ -9,7 +10,7 @@ import { CodeEditor } from '../../../shared/code-editor/code-editor';
 @Component({
   selector: 'app-csharp-to-typescript',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, CodeEditor],
+  imports: [CommonModule, MatIconModule, MatButtonModule, CodeEditor],
   templateUrl: './csharp-to-typescript.html',
   styleUrls: ['./csharp-to-typescript.css']
 })
@@ -24,6 +25,13 @@ export class CsharpToTypescript {
     public List<string> Roles { get; set; }
 }`);
   result = signal('');
+  copied = signal(false);
+  copyResult() {
+    navigator.clipboard.writeText(this.result()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1500);
+    });
+  }
 
   constructor(private instanceService: InstanceService) {}
 

@@ -5,9 +5,9 @@
       <div class="spec-title-group">
         <h2 class="section-title">OpenAPI Specification</h2>
         <span class="format-badge" [class.format-yaml]="detectedFormat() === 'YAML'">{{ detectedFormat() }}</span>
-        <button type="button" class="btn-preset" (click)="loadSample()">
+        <button type="button" class="btn-preset" (click)="loadSample()" matTooltip="Load petstore sample spec">
           <mat-icon class="preset-icon">auto_awesome</mat-icon>
-          <span>Load Sample Spec</span>
+          <span>Sample Spec</span>
         </button>
       </div>
       <div class="spec-actions">
@@ -17,20 +17,30 @@
         <button type="button" class="btn-action" (click)="clearInput()" matTooltip="Clear document">
           <mat-icon>clear</mat-icon> Clear
         </button>
-        <button mat-raised-button color="primary" class="btn-inspect" (click)="inspect()">
-          <mat-icon>play_arrow</mat-icon> Inspect Spec
+        @if (inspection()) {
+          <button type="button" class="btn-action" (click)="specEditorCollapsed.set(!specEditorCollapsed())"
+            [matTooltip]="specEditorCollapsed() ? 'Show spec editor' : 'Hide spec editor'">
+            <mat-icon>{{ specEditorCollapsed() ? 'unfold_more' : 'unfold_less' }}</mat-icon>
+            <span>{{ specEditorCollapsed() ? 'Show Editor' : 'Hide Editor' }}</span>
+          </button>
+        }
+        <button mat-flat-button color="primary" class="btn-inspect" (click)="inspect()">
+          <mat-icon>auto_fix_high</mat-icon>
+          <span>Inspect Spec</span>
         </button>
       </div>
     </div>
 
-    <div class="editor-wrapper">
-      <app-code-editor
-        [value]="input()"
-        [language]="editorLanguage()"
-        ariaLabel="OpenAPI Spec"
-        (valueChange)="input.set($event)">
-      </app-code-editor>
-    </div>
+    @if (!specEditorCollapsed()) {
+      <div class="editor-wrapper">
+        <app-code-editor
+          [value]="input()"
+          [language]="editorLanguage()"
+          ariaLabel="OpenAPI Spec"
+          (valueChange)="input.set($event)">
+        </app-code-editor>
+      </div>
+    }
 
     @if (error()) {
       <div class="error-banner">

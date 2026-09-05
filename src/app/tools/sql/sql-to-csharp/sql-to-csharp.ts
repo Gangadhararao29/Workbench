@@ -1,5 +1,6 @@
-import { Component, Input, computed, signal } from '@angular/core';
+﻿import { Component, Input, computed, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { InstanceService } from '../../../core/instance-service';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { generateCSharpModelFromSql, SqlToCSharpOptions } from '../../../core/engines/sql-to-csharp-engine';
@@ -7,7 +8,7 @@ import { generateCSharpModelFromSql, SqlToCSharpOptions } from '../../../core/en
 @Component({
   selector: 'app-sql-to-csharp',
   standalone: true,
-  imports: [MatButtonModule, CodeEditor],
+  imports: [MatIconModule, MatButtonModule, CodeEditor],
   templateUrl: './sql-to-csharp.html',
   styleUrls: ['./sql-to-csharp.css'],
 })
@@ -17,6 +18,13 @@ export class SqlToCsharp {
     'CREATE TABLE Users (\n  Id INT NOT NULL,\n  Name NVARCHAR(200) NULL,\n  CreatedAt DATETIME2 NOT NULL\n);',
   );
   result = signal('');
+  copied = signal(false);
+  copyResult() {
+    navigator.clipboard.writeText(this.result()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1500);
+    });
+  }
 
   constructor(private instanceService: InstanceService) {}
 

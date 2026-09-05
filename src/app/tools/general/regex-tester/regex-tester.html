@@ -2,11 +2,10 @@
   <!-- Pattern Configuration Section -->
   <div class="regex-config-card">
     <div class="pattern-header">
-      <span class="config-title">Pattern Configuration</span>
+      <span class="config-title">Regex Pattern</span>
       <button
         type="button"
-        mat-button
-        class="btn-toggle-cheat"
+        class="action-link-btn"
         (click)="shellState.toggleRightDrawer()"
         matTooltip="Toggle Regex Cheat Sheet in sidebar">
         <mat-icon>menu_book</mat-icon>
@@ -61,8 +60,8 @@
   <!-- Test Cases Header -->
   <div class="test-cases-header">
     <div class="header-title-group">
-      <h3>Test Cases ({{ testCases().length }})</h3>
-      <span class="header-hint">Live evaluations & inline match highlights</span>
+      <span class="config-title">Test Cases <span class="count-badge">{{ testCases().length }}</span></span>
+      <span class="header-hint">Live evaluation with match highlights</span>
     </div>
     <button mat-flat-button color="primary" type="button" class="btn-add-test" (click)="addTestCase()">
       <mat-icon>add</mat-icon> Add Test Case

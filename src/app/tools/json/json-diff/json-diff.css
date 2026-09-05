@@ -1,110 +1,84 @@
+/* toolbar-row, format-actions, result-label, field-header, action-link-btn — from tool-common.css */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 1200px;
 }
 
-.diff-options-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  background: var(--mat-sys-surface-container-low, #181c24);
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-
-.mode-toggle-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.mode-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
-}
-
-.segmented-control {
-  display: inline-flex;
-  background: var(--mat-sys-surface-container, #10141c);
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
-  border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
-}
-
+/* Segmented mode buttons */
 .seg-btn {
   background: transparent;
-  border: none;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
-  font-size: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 11px;
   font-weight: 500;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .seg-btn:hover {
-  color: var(--mat-sys-on-surface, #e2e8f0);
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container-highest);
 }
 
-.seg-btn.active {
-  background: var(--mat-sys-primary, #3b82f6);
-  color: var(--mat-sys-on-primary, #ffffff);
+.seg-btn.active-mode {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: var(--mat-sys-secondary-container);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.key-input-group {
+.diff-mode-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
-.key-input-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
-}
-
-.key-input {
-  background: var(--mat-sys-surface-container, #10141c);
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
-  color: var(--mat-sys-on-surface, #e2e8f0);
-  padding: 4px 10px;
-  border-radius: 5px;
-  font-size: 13px;
-  font-family: monospace;
-  width: 130px;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.key-input:focus {
-  border-color: var(--mat-sys-primary, #3b82f6);
-}
-
-.compare-btn {
-  margin-left: auto;
-  display: inline-flex;
+.key-field-inline {
+  display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.inline-input {
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  width: 110px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.inline-input:focus {
+  border-color: var(--mat-sys-primary);
 }
 
 .diff-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.diff-grid .field app-code-editor {
+  height: 160px;
+  min-height: 80px;
 }
 
 @media (max-width: 700px) {
   .diff-grid {
     grid-template-columns: 1fr;
-  }
-  .compare-btn {
-    margin-left: 0;
-    width: 100%;
   }
 }

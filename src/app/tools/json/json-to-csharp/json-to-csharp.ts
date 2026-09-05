@@ -1,17 +1,25 @@
-import { Component, Input, signal } from '@angular/core';
+﻿import { Component, Input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { InstanceService } from '../../../core/instance-service';
 import { convertJsonToCsharp } from '../../../core/engines/json-csharp-engine';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-json-to-csharp', standalone: true, imports: [MatButtonModule, CodeEditor],
+  selector: 'app-json-to-csharp', standalone: true, imports: [MatIconModule, MatButtonModule, CodeEditor],
   templateUrl: './json-to-csharp.html', styleUrls: ['./json-to-csharp.css']
 })
 export class JsonToCsharp {
   @Input({ required: true }) instanceId!: string;
   input = signal('{"id":1,"name":"Ada","active":true}');
   result = signal('');
+  copied = signal(false);
+  copyResult() {
+    navigator.clipboard.writeText(this.result()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1500);
+    });
+  }
   constructor(private instanceService: InstanceService) {}
   convert() {
     try {

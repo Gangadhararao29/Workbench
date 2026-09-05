@@ -1,25 +1,29 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 1100px;
-  gap: 20px;
 }
 
 /* Config Card */
 .regex-config-card {
-  background: var(--mat-sys-surface-container-low, #181c24);
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
-  border-radius: 10px;
-  padding: 18px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .pattern-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--mat-sys-outline-variant, #2a313d);
-  padding-bottom: 10px;
 }
 
 .config-title {
@@ -30,23 +34,19 @@
   color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
-.btn-toggle-cheat {
+.count-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--mat-sys-primary, #60a5fa);
-  padding: 0 10px;
-  height: 32px;
-  line-height: 32px;
-  border-radius: 6px;
-}
-
-.btn-toggle-cheat mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 .pattern-row {

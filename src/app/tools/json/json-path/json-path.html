@@ -1,14 +1,27 @@
 <div class="tool-surface-inner">
+
   <div class="field">
-    <label>JSON input</label>
-    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="input.set($event)"></app-code-editor>
+    <div class="field-header"><label>JSON Input</label></div>
+    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input"
+      (valueChange)="input.set($event)"></app-code-editor>
   </div>
-  <div class="path-row">
-    <input [(ngModel)]="path" placeholder="$.users[0].name" />
-    <button mat-raised-button color="primary" (click)="evaluate()">Evaluate path</button>
+
+  <div class="toolbar-row">
+    <div class="result-header">
+      <span class="result-label">Result</span>
+    </div>
+    <div class="format-actions path-actions">
+      <input class="path-input" [(ngModel)]="path" placeholder="$.users[0].name" aria-label="JSONPath expression" />
+      <button mat-flat-button color="primary" (click)="evaluate()">
+        <mat-icon>search</mat-icon>
+        <span>Evaluate</span>
+      </button>
+    </div>
   </div>
+
   <div class="field grow">
-    <label>Result</label>
-    <app-code-editor [value]="result()" language="json" ariaLabel="JSON path result" [readOnly]="true"></app-code-editor>
+    <app-code-editor [value]="result()" language="json" ariaLabel="JSON path result"
+      [readOnly]="true"></app-code-editor>
   </div>
+
 </div>

@@ -3,11 +3,180 @@
   display: flex;
   width: 100%;
   max-width: 1000px;
-  min-height: 100%;
-  flex: 1 0 auto;
+  height: 100%;
+  flex: 1 1 0;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   box-sizing: border-box;
+}
+
+/* ── Compact toolbar row: result header (title + copy) LEFT, action buttons RIGHT ──────── */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 38px;
+}
+
+.result-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.result-label {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* Copy result button inside toolbar-row */
+.btn-copy-result {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+  padding: 0 !important;
+  margin-left: 2px;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.btn-copy-result mat-icon {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+}
+
+.btn-copy-result:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+  border-color: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.1));
+}
+
+.btn-copy-result.copied {
+  color: #10b981;
+}
+
+.format-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.format-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  margin: 0 2px;
+  transition: all 0.15s ease;
+}
+
+.format-actions button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* Active mode highlight (for formatter-style toggles) */
+.format-actions button.active-mode {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: var(--mat-sys-secondary-container);
+}
+
+/* ── Inline text action link buttons (Sample, Clear, etc.) ────────────── */
+.action-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.action-link-btn:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+}
+
+.action-link-btn mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Field header: label row above code editor ────────────────────────── */
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-header label {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Copy icon button (small, used in toolbar-row) ────────────────────── */
+.btn-icon-copy {
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--mat-sys-on-surface-variant);
+  transition: all 0.18s ease;
+}
+
+.btn-icon-copy mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.btn-icon-copy:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+}
+
+.btn-icon-copy.copied {
+  color: #16a34a;
 }
 
 /* Fields & Code Editor Containers */
@@ -26,8 +195,8 @@
 .field.grow {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1 1 auto;
+  gap: 4px;
+  flex: 1 1 0;
   min-height: 0;
 }
 
@@ -36,7 +205,7 @@ app-code-editor.result-editor {
   display: flex;
   flex-direction: column;
   width: 100%;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 180px;
   height: 100%;
   box-sizing: border-box;

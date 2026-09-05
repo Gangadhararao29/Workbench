@@ -1,3 +1,10 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 1200px;
   gap: 14px;
@@ -377,3 +384,4 @@ body.dark-theme .error-banner {
     gap: 10px;
   }
 }
+

@@ -1,3 +1,10 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 100vw;
   gap: 20px;
@@ -448,3 +455,4 @@ body.dark-theme .meta-db {
     grid-template-columns: 1fr;
   }
 }
+

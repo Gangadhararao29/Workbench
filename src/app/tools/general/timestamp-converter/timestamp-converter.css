@@ -1,3 +1,10 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   display: flex;
   flex-direction: column;
@@ -1050,3 +1057,4 @@
   overflow-x: auto;
   white-space: pre-wrap;
 }
+

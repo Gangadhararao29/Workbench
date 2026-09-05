@@ -62,6 +62,7 @@ export class OpenapiInspector implements OnInit {
   selectedMethod = signal('ALL');
   selectedServerUrl = signal('');
   curlMultiline = signal(true);
+  specEditorCollapsed = signal(false);
 
   // Server URL inline editing
   editingServer = signal(false);

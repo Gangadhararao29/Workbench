@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+﻿import { Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,6 +18,13 @@ export class JsonFormatter {
 
   input = signal('{"id":1,"name":"admin","roles":["read","write"]}');
   result = signal('');
+  copied = signal(false);
+  copyResult() {
+    navigator.clipboard.writeText(this.result()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1500);
+    });
+  }
   status = signal('');
   constructor(private instanceService: InstanceService) {}
 

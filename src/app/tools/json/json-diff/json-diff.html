@@ -1,56 +1,53 @@
 <div class="tool-surface-inner">
-  <div class="diff-options-bar">
-    <div class="mode-toggle-group">
-      <span class="mode-label">Compare Arrays:</span>
-      <div class="segmented-control">
-        <button
-          type="button"
-          class="seg-btn"
-          [class.active]="arrayMode() === 'key'"
-          (click)="setArrayMode('key')">
-          By Key Field
-        </button>
-        <button
-          type="button"
-          class="seg-btn"
-          [class.active]="arrayMode() === 'index'"
-          (click)="setArrayMode('index')">
-          By Index
-        </button>
+
+  <!-- Options + Compare bar -->
+  <div class="toolbar-row">
+    <div class="format-actions">
+      <!-- Array comparison mode -->
+      <div class="diff-mode-group">
+        <span class="result-label" style="margin-right: 4px;">Arrays:</span>
+        <button type="button" class="seg-btn" [class.active-mode]="arrayMode() === 'key'"
+          (click)="setArrayMode('key')">By Key</button>
+        <button type="button" class="seg-btn" [class.active-mode]="arrayMode() === 'index'"
+          (click)="setArrayMode('index')">By Index</button>
       </div>
+
+      @if (arrayMode() === 'key') {
+      <div class="key-field-inline">
+        <label for="array-key-field" class="result-label">Key:</label>
+        <input id="array-key-field" type="text" class="inline-input" [ngModel]="arrayKeyField()"
+          (ngModelChange)="arrayKeyField.set($event); compare()" placeholder="id, name…" />
+      </div>
+      }
+
+
     </div>
-
-    @if (arrayMode() === 'key') {
-      <div class="key-input-group">
-        <label for="array-key-field">Key field name:</label>
-        <input
-          id="array-key-field"
-          type="text"
-          class="key-input"
-          [ngModel]="arrayKeyField()"
-          (ngModelChange)="arrayKeyField.set($event); compare()"
-          placeholder="e.g. id, key, name" />
-      </div>
-    }
-
-    <button mat-raised-button color="primary" class="compare-btn" (click)="compare()">
-      <mat-icon>difference</mat-icon> Compare JSON
-    </button>
+    <span class="result-label">
+      <button mat-flat-button color="primary" (click)="compare()">
+        <mat-icon>difference</mat-icon>
+        <span>Compare</span>
+      </button>
+    </span>
   </div>
 
+  <!-- Side-by-side editors -->
   <div class="diff-grid">
     <div class="field">
-      <label>JSON A</label>
-      <app-code-editor [value]="left()" language="json" ariaLabel="JSON A" (valueChange)="left.set($event); compare()"></app-code-editor>
+      <div class="field-header"><label>JSON A</label></div>
+      <app-code-editor [value]="left()" language="json" ariaLabel="JSON A"
+        (valueChange)="left.set($event); compare()"></app-code-editor>
     </div>
     <div class="field">
-      <label>JSON B</label>
-      <app-code-editor [value]="right()" language="json" ariaLabel="JSON B" (valueChange)="right.set($event); compare()"></app-code-editor>
+      <div class="field-header"><label>JSON B</label></div>
+      <app-code-editor [value]="right()" language="json" ariaLabel="JSON B"
+        (valueChange)="right.set($event); compare()"></app-code-editor>
     </div>
   </div>
 
+  <!-- Diff result fills remaining height -->
   <div class="field grow">
-    <label>Differences</label>
-    <app-code-editor [value]="result()" language="plaintext" ariaLabel="Diff result" [readOnly]="true"></app-code-editor>
+    <app-code-editor [value]="result()" language="plaintext" ariaLabel="Diff result"
+      [readOnly]="true"></app-code-editor>
   </div>
+
 </div>

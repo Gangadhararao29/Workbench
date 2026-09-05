@@ -1,10 +1,17 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .openapi-inspector-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   width: 100%;
   box-sizing: border-box;
-  padding-bottom: 40px;
+  padding-bottom: 24px;
 }
 
 /* --- Common Base Cards & Layouts --- */
@@ -17,16 +24,16 @@
 .overview-card {
   background: var(--mat-sys-surface-container-low, #181c24);
   border: 1px solid var(--mat-sys-outline-variant, #2a313d);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .spec-editor-card,
 .schema-card,
 .overview-card {
-  padding: 16px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .spec-header,
@@ -82,7 +89,9 @@
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-:host-context(body.dark-theme) .format-badge { color: #60a5fa; }
+:host-context(body.dark-theme) .format-badge {
+  color: #60a5fa;
+}
 
 .format-badge.format-yaml {
   background: rgba(245, 158, 11, 0.15);
@@ -90,7 +99,9 @@
   border-color: rgba(245, 158, 11, 0.3);
 }
 
-:host-context(body.dark-theme) .format-badge.format-yaml { color: #fbbf24; }
+:host-context(body.dark-theme) .format-badge.format-yaml {
+  color: #fbbf24;
+}
 
 /* --- Action & Preset Buttons --- */
 .btn-preset,
@@ -148,8 +159,15 @@
 }
 
 .btn-inspect {
+  height: 36px;
+  padding: 0 16px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  margin-left: 2px;
 }
 
 .editor-wrapper {
@@ -159,14 +177,14 @@
 }
 
 .editor-wrapper app-code-editor {
-  height: 200px;
+  height: 150px;
   min-height: 100px;
 }
 
 /* --- API Summary Banner & Server Configuration --- */
 .api-summary-card {
-  padding: 16px 20px;
-  gap: 16px;
+  padding: 12px 16px;
+  gap: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
@@ -208,7 +226,7 @@
 .tag-desc {
   font-size: 13px;
   color: var(--mat-sys-on-surface-variant, #94a3b8);
-  margin: 0;
+  margin: 5px 0px;
   line-height: 1.5;
 }
 
@@ -217,7 +235,7 @@
   background: var(--mat-sys-surface-container-high, #222936);
   border: 1px solid var(--mat-sys-outline-variant, #303a4b);
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -312,13 +330,27 @@
   color: var(--mat-sys-on-surface, #fff);
 }
 
-.btn-save-server { color: #059669; }
-:host-context(body.dark-theme) .btn-save-server { color: #34d399; }
-.btn-save-server:hover { background: rgba(16, 185, 129, 0.2); color: #059669; }
+.btn-save-server {
+  color: #059669;
+}
+:host-context(body.dark-theme) .btn-save-server {
+  color: #34d399;
+}
+.btn-save-server:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #059669;
+}
 
-.btn-cancel-server { color: #dc2626; }
-:host-context(body.dark-theme) .btn-cancel-server { color: #f87171; }
-.btn-cancel-server:hover { background: rgba(239, 68, 68, 0.2); color: #dc2626; }
+.btn-cancel-server {
+  color: #dc2626;
+}
+:host-context(body.dark-theme) .btn-cancel-server {
+  color: #f87171;
+}
+.btn-cancel-server:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+}
 
 /* Metrics & Tabs Bar */
 .summary-bottom {
@@ -327,7 +359,8 @@
   gap: 16px;
   flex-wrap: wrap;
   border-top: 1px solid var(--mat-sys-outline-variant, #2a3342);
-  padding-top: 14px;
+  margin-top: 8px;
+  padding-top: 8px;
 }
 
 .stat-pill {
@@ -336,7 +369,7 @@
   gap: 6px;
   background: var(--mat-sys-surface-container-high, #242c3b);
   border: 1px solid var(--mat-sys-outline-variant, #333e52);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
 }
@@ -464,6 +497,7 @@
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  margin: 8px 0;
 }
 
 .filter-pill {
@@ -491,11 +525,31 @@
   font-weight: 800;
 }
 
-.filter-pill.pill-get.active { background: #2563eb; color: #fff; border-color: #1d4ed8; }
-.filter-pill.pill-post.active { background: #059669; color: #fff; border-color: #047857; }
-.filter-pill.pill-put.active { background: #d97706; color: #fff; border-color: #b45309; }
-.filter-pill.pill-patch.active { background: #0d9488; color: #fff; border-color: #0f766e; }
-.filter-pill.pill-delete.active { background: #dc2626; color: #fff; border-color: #b91c1c; }
+.filter-pill.pill-get.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+.filter-pill.pill-post.active {
+  background: #059669;
+  color: #fff;
+  border-color: #047857;
+}
+.filter-pill.pill-put.active {
+  background: #d97706;
+  color: #fff;
+  border-color: #b45309;
+}
+.filter-pill.pill-patch.active {
+  background: #0d9488;
+  color: #fff;
+  border-color: #0f766e;
+}
+.filter-pill.pill-delete.active {
+  background: #dc2626;
+  color: #fff;
+  border-color: #b91c1c;
+}
 
 .view-options {
   display: flex;
@@ -531,6 +585,7 @@
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .copy-all-btn.copied,
@@ -705,7 +760,9 @@
   text-transform: uppercase;
 }
 
-:host-context(body.dark-theme) .deprecated-tag { color: #f87171; }
+:host-context(body.dark-theme) .deprecated-tag {
+  color: #f87171;
+}
 
 .endpoint-quick-actions {
   display: flex;
@@ -951,7 +1008,9 @@
   margin: 0;
 }
 
-:host-context(body.dark-theme) .schema-name { color: #60a5fa; }
+:host-context(body.dark-theme) .schema-name {
+  color: #60a5fa;
+}
 
 /* --- Overview Tab --- */
 .server-url code {
@@ -960,7 +1019,9 @@
   font-weight: 600;
 }
 
-:host-context(body.dark-theme) .server-url code { color: #60a5fa; }
+:host-context(body.dark-theme) .server-url code {
+  color: #60a5fa;
+}
 
 .tags-directory {
   display: grid;

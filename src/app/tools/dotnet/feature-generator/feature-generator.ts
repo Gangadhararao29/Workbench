@@ -1,5 +1,7 @@
 import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { InstanceService } from '../../../core/instance-service';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
@@ -11,7 +13,7 @@ import {
 @Component({
   selector: 'app-feature-generator',
   standalone: true,
-  imports: [FormsModule, CodeEditor],
+  imports: [FormsModule, MatButtonModule, MatIconModule, CodeEditor],
   templateUrl: './feature-generator.html',
   styleUrls: ['./feature-generator.css'],
 })
@@ -20,6 +22,14 @@ export class FeatureGenerator implements OnInit {
   feature = 'Product';
   namespace = 'MyApp';
   result = signal('');
+  copied = signal(false);
+
+  copyResult() {
+    navigator.clipboard.writeText(this.result()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1500);
+    });
+  }
 
   constructor(private instanceService: InstanceService) {
     effect(() => {

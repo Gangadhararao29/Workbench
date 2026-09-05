@@ -60,6 +60,11 @@ export class SqlFormatter implements OnInit {
     }
   }
 
+  onInputChange(value: string) {
+    this.input.set(value);
+    this.transform(this.mode());
+  }
+
   clear() {
     this.input.set('');
     this.result.set('');
