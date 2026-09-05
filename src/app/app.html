@@ -10,13 +10,27 @@
     </div>
 
     <div class="toolbar-right">
-      <input
-        type="text"
-        placeholder="Search tools…"
-        class="search-input"
-        [value]="shellState.searchQuery()"
-        (input)="shellState.searchQuery.set($any($event.target).value)"
-      />
+      <div class="search-box">
+        <mat-icon class="search-box-icon">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Search tools by name, description, keywords…"
+          class="search-input"
+          [value]="shellState.searchQuery()"
+          (input)="shellState.searchQuery.set($any($event.target).value)"
+        />
+        @if (shellState.searchQuery()) {
+          <button
+            type="button"
+            class="search-clear-btn"
+            (click)="shellState.searchQuery.set('')"
+            matTooltip="Clear search"
+            aria-label="Clear search"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
 
       <button mat-icon-button (click)="toggleLeft()" matTooltip="Toggle tools panel" aria-label="Toggle tools panel">
         <mat-icon>dock_to_right</mat-icon>

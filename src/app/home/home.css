@@ -263,3 +263,57 @@
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
+
+/* ── Home Empty Search State ────────────────────────────────────────────── */
+
+.home-empty-search {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--mat-sys-surface-container);
+  border: 1px dashed var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.home-empty-search .empty-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.6;
+  margin-bottom: 12px;
+}
+
+.home-empty-search h2 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.home-empty-search p {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.home-empty-search .btn-clear-search {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--mat-sys-primary);
+  background: transparent;
+  color: var(--mat-sys-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.home-empty-search .btn-clear-search:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}

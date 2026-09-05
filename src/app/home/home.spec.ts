@@ -47,4 +47,26 @@ describe('Home', () => {
     fixture.detectChanges();
     expect(component.activeHomeTab()).toBe('upcoming');
   });
+
+  it('filters tool groups when search query is present', () => {
+    component.searchQuery.set('curl');
+    fixture.detectChanges();
+
+    const filtered = component.filteredToolGroups();
+    const allMatching = filtered.flatMap((g) => g.tools).map((t) => t.type);
+
+    expect(allMatching).toContain('curl-converter');
+    expect(allMatching).toContain('http-request-builder');
+    expect(allMatching).toContain('openapi-inspector');
+    expect(allMatching).toContain('terminal');
+    expect(allMatching).not.toContain('guid-generator');
+  });
+
+  it('clears search when clearSearch is called', () => {
+    component.searchQuery.set('curl');
+    expect(component.searchQuery()).toBe('curl');
+
+    component.clearSearch();
+    expect(component.searchQuery()).toBe('');
+  });
 });

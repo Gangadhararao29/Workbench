@@ -83,6 +83,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'json',
     label: 'Formatter',
     description: 'Format, validate, and inspect JSON.',
+    keywords: ['json', 'format', 'beautify', 'minify', 'pretty', 'validate', 'lint', 'indent', 'clean'],
     defaultConfig: { indent: '2 spaces', sortKeys: false },
     loadComponent: () =>
       import('../tools/json/json-formatter/json-formatter').then((m) => m.JsonFormatter),
@@ -92,6 +93,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'json',
     label: 'Diff',
     description: 'Compare two JSON documents and inspect changes.',
+    keywords: ['json', 'diff', 'compare', 'difference', 'patch', 'changes', 'merge'],
     loadComponent: () => import('../tools/json/json-diff/json-diff').then((m) => m.JsonDiff),
   },
   {
@@ -99,6 +101,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'json',
     label: 'Path tester',
     description: 'Test paths against JSON data.',
+    keywords: ['json', 'path', 'jsonpath', 'query', 'filter', 'extract', 'tester', 'expression'],
     loadComponent: () => import('../tools/json/json-path/json-path').then((m) => m.JsonPath),
   },
   {
@@ -106,6 +109,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'json',
     label: 'JSON → TypeScript',
     description: 'Generate TypeScript types from JSON data.',
+    keywords: ['json', 'typescript', 'ts', 'interface', 'type', 'convert', 'generate', 'schema', 'models'],
     defaultConfig: { rootName: 'Root', outputType: 'interface' },
     loadComponent: () =>
       import('../tools/json/json-to-typescript/json-to-typescript').then((m) => m.JsonToTypescript),
@@ -115,6 +119,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'json',
     label: 'JSON → C#',
     description: 'Generate C# models from JSON data.',
+    keywords: ['json', 'c#', 'csharp', 'dotnet', 'class', 'record', 'dto', 'convert', 'generate', 'model', 'poco'],
     defaultConfig: { rootName: 'Root' },
     loadComponent: () =>
       import('../tools/json/json-to-csharp/json-to-csharp').then((m) => m.JsonToCsharp),
@@ -124,6 +129,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'json',
     label: 'JSON ↔ YAML',
     description: 'Convert bi-directionally between JSON and YAML.',
+    keywords: ['json', 'yaml', 'yml', 'convert', 'converter', 'serialization', 'parse', 'k8s', 'kubernetes'],
     defaultConfig: {
       mode: 'json-to-yaml',
       indent: '2 spaces',
@@ -143,6 +149,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'dotnet',
     label: 'C# → TypeScript',
     description: 'Convert C# classes, records, and enums into TypeScript.',
+    keywords: ['c#', 'csharp', 'typescript', 'ts', 'interface', 'type', 'convert', 'models', 'dto', 'enum'],
     defaultConfig: {
       outputType: 'interface',
       naming: 'camel',
@@ -159,6 +166,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'dotnet',
     label: 'C# → JSON',
     description: 'Create a JSON example from C# model definitions.',
+    keywords: ['c#', 'csharp', 'json', 'mock', 'sample', 'example', 'generator', 'dto', 'model', 'dummy data'],
     loadComponent: () =>
       import('../tools/dotnet/csharp-to-json/csharp-to-json').then((m) => m.CsharpToJson),
   },
@@ -167,6 +175,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'dotnet',
     label: 'Formatter',
     description: 'Format and tidy C# source code.',
+    keywords: ['c#', 'csharp', 'format', 'tidy', 'beautify', 'indent', 'clean', 'source code', 'style'],
     loadComponent: () =>
       import('../tools/dotnet/csharp-formatter/csharp-formatter').then((m) => m.CsharpFormatter),
   },
@@ -175,6 +184,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'dotnet',
     label: 'Feature generator',
     description: 'Generate a starting point for a .NET feature.',
+    keywords: ['dotnet', 'c#', 'csharp', 'scaffold', 'clean architecture', 'cqrs', 'repository', 'controller', 'service', 'dto', 'api', 'boilerplate', 'feature'],
     defaultConfig: {
       includeEntity: true,
       includeDto: true,
@@ -195,6 +205,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'ef',
     label: 'Entity configuration',
     description: 'Generate Entity Framework Core Fluent API & annotations configuration.',
+    keywords: ['entity framework', 'ef core', 'fluent api', 'data annotations', 'model builder', 'mapping', 'orm', 'entity', 'dbcontext'],
     loadComponent: () =>
       import('../tools/ef/ef-configuration/ef-configuration').then((m) => m.EfConfiguration),
   },
@@ -203,6 +214,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'ef',
     label: 'Migration helper',
     description: 'Generate dotnet ef CLI commands and custom migration scripts.',
+    keywords: ['entity framework', 'ef core', 'migrations', 'dotnet ef', 'database update', 'script', 'cli', 'schema migration', 'up', 'down'],
     loadComponent: () =>
       import('../tools/ef/ef-migrations/ef-migrations').then((m) => m.EfMigrations),
   },
@@ -211,6 +223,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'ef',
     label: 'LINQ & query assistant',
     description: 'Draft LINQ queries, EF Core performance patterns, and SQL translations.',
+    keywords: ['linq', 'ef core', 'query', 'sql', 'expression', 'assistant', 'orm', 'c#', 'csharp', 'performance', 'include'],
     loadComponent: () => import('../tools/ef/ef-linq/ef-linq').then((m) => m.EfLinq),
   },
   {
@@ -218,6 +231,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'ef',
     label: 'DbContext generator',
     description: 'Generate production-ready DbContext with DbSets, audit filters, and DI.',
+    keywords: ['entity framework', 'ef core', 'dbcontext', 'dbset', 'onmodelcreating', 'dependency injection', 'database context', 'orm'],
     loadComponent: () => import('../tools/ef/ef-dbcontext/ef-dbcontext').then((m) => m.EfDbContext),
   },
 
@@ -227,6 +241,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'sql',
     label: 'Formatter',
     description: 'Format SQL queries for easier reading.',
+    keywords: ['sql', 'format', 'beautify', 'query', 'tsql', 'postgres', 'mysql', 'clean', 'indent', 'uppercase'],
     defaultConfig: {
       dialect: 'Standard SQL',
       indent: '2 spaces',
@@ -248,6 +263,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'sql',
     label: 'SQL → C#',
     description: 'Generate C# models from SQL definitions.',
+    keywords: ['sql', 'c#', 'csharp', 'poco', 'model', 'class', 'query result', 'convert', 'entities', 'dapper'],
     defaultConfig: { outputType: 'class', className: 'QueryResult' },
     loadComponent: () =>
       import('../tools/sql/sql-to-csharp/sql-to-csharp').then((m) => m.SqlToCsharp),
@@ -257,6 +273,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'sql',
     label: 'Sql generator',
     description: 'Parse DDL & SSMS grid data to generate CRUD SQL, batch queries & variables.',
+    keywords: ['sql', 'ddl', 'crud', 'insert', 'update', 'select', 'table', 'ssms', 'generate', 'batch', 'grid', 'values'],
     loadComponent: () =>
       import('../tools/sql/sql-generator/sql-generator').then((m) => m.SqlGenerator),
   },
@@ -265,6 +282,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'sql',
     label: 'Search',
     description: 'Search and inspect SQL snippets.',
+    keywords: ['sql', 'search', 'snippets', 'stored procedures', 'indexes', 'queries', 'cheat sheet', 'foreign keys', 'metadata', 'find'],
     loadComponent: () => import('../tools/sql/sql-search/sql-search').then((m) => m.SqlSearch),
   },
   {
@@ -272,6 +290,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'sql',
     label: 'Query builder',
     description: 'Build SQL queries interactively.',
+    keywords: ['sql', 'query builder', 'visual', 'interactive', 'join', 'filter', 'group by', 'select', 'insert', 'update'],
     loadComponent: () =>
       import('../tools/sql/sql-query-builder/sql-query-builder').then((m) => m.SqlQueryBuilder),
   },
@@ -281,7 +300,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     type: 'openapi-inspector',
     groupId: 'api',
     label: 'OpenAPI inspector',
-    description: 'Inspect endpoints and schemas from an OpenAPI document.',
+    description: 'Inspect endpoints and schemas from an OpenAPI document. Generate cURL commands.',
+    keywords: ['openapi', 'swagger', 'api', 'endpoints', 'spec', 'documentation', 'curl', 'schema', 'rest', 'json'],
     loadComponent: () =>
       import('../tools/api/openapi-inspector/openapi-inspector').then((m) => m.OpenapiInspector),
   },
@@ -289,7 +309,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     type: 'http-request-builder',
     groupId: 'api',
     label: 'HTTP request builder',
-    description: 'Build and preview HTTP requests.',
+    description: 'Build, import cURL, and preview HTTP requests.',
+    keywords: ['http', 'api', 'request', 'postman', 'rest', 'curl', 'fetch', 'client', 'webhook', 'headers', 'params', 'import curl', 'export curl'],
     loadComponent: () =>
       import('../tools/api/http-request-builder/http-request-builder').then(
         (m) => m.HttpRequestBuilder,
@@ -300,6 +321,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'api',
     label: 'JWT inspector',
     description: 'Decode and inspect JWT headers, claims, and expiry.',
+    keywords: ['jwt', 'token', 'bearer', 'auth', 'authentication', 'decode', 'claims', 'base64', 'header', 'payload', 'signature', 'expiry'],
     loadComponent: () =>
       import('../tools/api/jwt-inspector/jwt-inspector').then((m) => m.JwtInspector),
   },
@@ -308,6 +330,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'api',
     label: 'cURL converter',
     description: 'Convert cURL commands into application code.',
+    keywords: ['curl', 'bash', 'convert', 'http', 'fetch', 'c#', 'csharp', 'python', 'javascript', 'typescript', 'request', 'api'],
     loadComponent: () =>
       import('../tools/api/curl-converter/curl-converter').then((m) => m.CurlConverter),
   },
@@ -318,6 +341,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'frontend',
     label: 'API client generator',
     description: 'Generate a frontend client from an API shape.',
+    keywords: ['api', 'client', 'frontend', 'fetch', 'axios', 'angular', 'react', 'service', 'http', 'rest', 'sdk'],
     loadComponent: () =>
       import('../tools/frontend/api-generator/api-generator').then((m) => m.ApiGenerator),
   },
@@ -328,6 +352,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'GUID generator',
     description: 'Generate GUIDs in common formats.',
+    keywords: ['guid', 'uuid', 'v4', 'random', 'unique', 'identifier', 'generate', 'id'],
     loadComponent: () =>
       import('../tools/general/guid-generator/guid-generator').then((m) => m.GuidGenerator),
   },
@@ -336,6 +361,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'Timestamp converter',
     description: 'Convert timestamps between common formats.',
+    keywords: ['timestamp', 'unix', 'epoch', 'datetime', 'iso', 'utc', 'timezone', 'date', 'time', 'clock', 'milliseconds'],
     defaultConfig: { defaultUnit: 'auto', hourFormat: '12h', autoTicker: true },
     loadComponent: () =>
       import('../tools/general/timestamp-converter/timestamp-converter').then(
@@ -347,6 +373,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'Regex tester',
     description: 'Test regular expressions against sample text.',
+    keywords: ['regex', 'regular expression', 'pattern', 'test', 'matcher', 'match', 'extract', 'replace', 'groups'],
     loadComponent: () =>
       import('../tools/general/regex-tester/regex-tester').then((m) => m.RegexTester),
   },
@@ -355,6 +382,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'Script runner',
     description: 'Run utility scripts against supplied input.',
+    keywords: ['script', 'runner', 'code', 'javascript', 'transform', 'eval', 'snippet', 'utility', 'automation', 'process'],
     loadComponent: () =>
       import('../tools/general/script-runner/script-runner').then((m) => m.ScriptRunner),
   },
@@ -363,6 +391,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'Documentation hub',
     description: 'Keep useful development documentation close at hand.',
+    keywords: ['docs', 'documentation', 'cheatsheet', 'reference', 'markdown', 'links', 'guide', 'manual', 'handbook'],
     loadComponent: () =>
       import('../tools/general/documentation-hub/documentation-hub').then(
         (m) => m.DocumentationHub,
@@ -372,7 +401,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     type: 'terminal',
     groupId: 'general',
     label: 'Terminal',
-    description: 'Work with terminal commands and snippets.',
+    description: 'Work with terminal commands and snippets including cURL, Git, and Docker.',
+    keywords: ['terminal', 'console', 'cli', 'bash', 'shell', 'commands', 'curl', 'git', 'docker', 'powershell', 'snippets'],
     loadComponent: () => import('../tools/general/terminal/terminal').then((m) => m.TerminalTool),
   },
   {
@@ -380,11 +410,56 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'general',
     label: 'Log viewer',
     description: 'Inspect and filter application logs.',
+    keywords: ['logs', 'viewer', 'filter', 'parse', 'json logs', 'tail', 'trace', 'debug', 'grep', 'events'],
     loadComponent: () => import('../tools/general/log-viewer/log-viewer').then((m) => m.LogViewer),
   },
 ];
 
 INITIAL_TOOLS.forEach(registerTool);
+
+/**
+ * Checks if a tool matches a search query across its label, description,
+ * keywords, tool type, and parent group label.
+ */
+export function matchesToolSearch(tool: ToolDefinition, query: string, groupLabel?: string): boolean {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return true;
+
+  const terms = normalized.split(/\s+/).filter(Boolean);
+  const searchableText = [
+    tool.label,
+    tool.description,
+    tool.type,
+    tool.type.replace(/-/g, ' '),
+    groupLabel ?? '',
+    ...(tool.keywords ?? []),
+  ]
+    .join(' ')
+    .toLowerCase();
+
+  return terms.every((term) => searchableText.includes(term));
+}
+
+/**
+ * Returns contextual snippet/hint for search results.
+ */
+export function getToolSearchSnippet(tool: ToolDefinition, query: string): string {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return tool.description;
+
+  const terms = normalized.split(/\s+/).filter(Boolean);
+  const matchedKeywords = (tool.keywords ?? []).filter((kw) =>
+    terms.some((t) => kw.toLowerCase().includes(t))
+  );
+
+  const labelLower = tool.label.toLowerCase();
+  const isOnlyInLabel = terms.every((t) => labelLower.includes(t));
+
+  if (matchedKeywords.length > 0 && !isOnlyInLabel) {
+    return `Matches: ${matchedKeywords.slice(0, 3).join(', ')}`;
+  }
+  return tool.description;
+}
 
 export function getToolGroups(): ToolGroup[] {
   const groupMap = new Map<string, ToolDefinition[]>();

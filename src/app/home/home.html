@@ -29,28 +29,39 @@
   </div>
 
   @if (activeHomeTab() === 'tools') {
-    <div class="home-groups">
-      @for (group of toolGroups; track group.id) {
-        <div class="home-group">
-          <h2 class="home-group-title">
-            <mat-icon class="home-group-icon">{{ group.icon }}</mat-icon>
-            {{ group.label }}
-          </h2>
-          <div class="home-tool-grid">
-            @for (tool of group.tools; track tool.type) {
-              <button
-                class="home-tool-card"
-                (click)="openTool(tool.type)"
-                [attr.aria-label]="'Open ' + tool.label"
-              >
-                <span class="home-tool-name">{{ tool.label }}</span>
-                <span class="home-tool-desc">{{ tool.description }}</span>
-              </button>
-            }
+    @if (filteredToolGroups().length === 0) {
+      <div class="home-empty-search">
+        <mat-icon class="empty-icon">search_off</mat-icon>
+        <h2>No tools found matching "{{ searchQuery().trim() }}"</h2>
+        <p>Try searching for other keywords, descriptions, or tool names.</p>
+        <button type="button" class="btn-clear-search" (click)="clearSearch()">
+          Clear Search
+        </button>
+      </div>
+    } @else {
+      <div class="home-groups">
+        @for (group of filteredToolGroups(); track group.id) {
+          <div class="home-group">
+            <h2 class="home-group-title">
+              <mat-icon class="home-group-icon">{{ group.icon }}</mat-icon>
+              {{ group.label }}
+            </h2>
+            <div class="home-tool-grid">
+              @for (tool of group.tools; track tool.type) {
+                <button
+                  class="home-tool-card"
+                  (click)="openTool(tool.type)"
+                  [attr.aria-label]="'Open ' + tool.label"
+                >
+                  <span class="home-tool-name">{{ tool.label }}</span>
+                  <span class="home-tool-desc">{{ tool.description }}</span>
+                </button>
+              }
+            </div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    }
   } @else {
     <div class="home-groups">
       @for (group of upcomingGroups; track group.id) {
