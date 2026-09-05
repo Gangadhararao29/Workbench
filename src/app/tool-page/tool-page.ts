@@ -19,6 +19,7 @@ import { JwtInspector } from '../tools/api/jwt-inspector/jwt-inspector';
 import { GuidGenerator } from '../tools/general/guid-generator/guid-generator';
 import { JsonToTypescript } from '../tools/json/json-to-typescript/json-to-typescript';
 import { JsonToCsharp } from '../tools/json/json-to-csharp/json-to-csharp';
+import { JsonToYaml } from '../tools/json/json-to-yaml/json-to-yaml';
 import { SqlToCsharp } from '../tools/sql/sql-to-csharp/sql-to-csharp';
 import { SqlGenerator } from '../tools/sql/sql-generator/sql-generator';
 import { JsonDiff } from '../tools/json/json-diff/json-diff';
@@ -58,6 +59,7 @@ import { SqlQueryBuilder } from '../tools/sql/sql-query-builder/sql-query-builde
     GuidGenerator,
     JsonToTypescript,
     JsonToCsharp,
+    JsonToYaml,
     SqlToCsharp,
     SqlGenerator,
     JsonDiff,

@@ -20,6 +20,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
       { type: 'json-path', label: 'Path tester', description: 'Test paths against JSON data.' },
       { type: 'json-to-typescript', label: 'JSON → TypeScript', description: 'Generate TypeScript types from JSON data.' },
       { type: 'json-to-csharp', label: 'JSON → C#', description: 'Generate C# models from JSON data.' },
+      { type: 'json-to-yaml', label: 'JSON ↔ YAML', description: 'Convert bi-directionally between JSON and YAML.' },
     ]
   },
   {

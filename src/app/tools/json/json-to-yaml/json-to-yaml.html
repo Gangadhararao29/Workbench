@@ -1,0 +1,195 @@
+<div class="tool-surface-inner">
+  <!-- Top Bar: Quick Sample Templates & Presets -->
+  <div class="top-bar">
+    <div class="presets-section">
+      <span class="section-label">
+        <mat-icon>auto_stories</mat-icon>
+        <span>Templates:</span>
+      </span>
+      <div class="preset-pills">
+        @for (preset of presets; track preset.name) {
+          <button
+            type="button"
+            class="preset-pill"
+            [class.active]="activePreset() === preset.name"
+            (click)="loadPreset(preset.name)"
+            matTooltip="{{ preset.description }}">
+            {{ preset.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Direction & Utility Control Bar -->
+  <div class="conversion-controls-bar">
+    <div class="mode-toggle-group">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="mode() === 'json-to-yaml'"
+        (click)="setMode('json-to-yaml')"
+        matTooltip="Convert JSON input into YAML">
+        <mat-icon>data_object</mat-icon>
+        <span>JSON &rarr; YAML</span>
+      </button>
+
+      <button
+        type="button"
+        class="swap-btn"
+        (click)="swapDirection()"
+        matTooltip="Swap conversion direction and flip input/output">
+        <mat-icon>swap_horiz</mat-icon>
+      </button>
+
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="mode() === 'yaml-to-json'"
+        (click)="setMode('yaml-to-json')"
+        matTooltip="Convert YAML input into JSON">
+        <mat-icon>description</mat-icon>
+        <span>YAML &rarr; JSON</span>
+      </button>
+    </div>
+
+    <div class="quick-actions-group">
+      <label class="action-btn upload-btn" matTooltip="Upload a JSON or YAML file">
+        <mat-icon>upload_file</mat-icon>
+        <span>Upload</span>
+        <input type="file" (change)="handleFileUpload($event)" accept=".json,.yaml,.yml,.txt" hidden />
+      </label>
+
+      <button
+        type="button"
+        mat-stroked-button
+        class="action-btn"
+        (click)="formatInput()"
+        [disabled]="!input()"
+        matTooltip="Format / Beautify input">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Beautify</span>
+      </button>
+
+      @if (mode() === 'json-to-yaml') {
+        <button
+          type="button"
+          mat-stroked-button
+          class="action-btn"
+          (click)="minifyInput()"
+          [disabled]="!input()"
+          matTooltip="Minify JSON input into a single line">
+          <mat-icon>compress</mat-icon>
+          <span>Minify</span>
+        </button>
+      }
+
+      <button
+        type="button"
+        mat-stroked-button
+        class="action-btn"
+        (click)="clear()"
+        [disabled]="!input() && !result()"
+        matTooltip="Clear input and result">
+        <mat-icon>clear</mat-icon>
+        <span>Clear</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Banner -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <div class="error-content">
+        <span class="error-title">Syntax / Parse Error:</span>
+        <span class="error-text">{{ errorMessage() }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Dual-Pane Editors Layout -->
+  <div class="editors-grid">
+    <!-- Left Pane: Input Editor -->
+    <div class="editor-pane input-pane">
+      <div class="pane-header">
+        <div class="pane-title">
+          <mat-icon>{{ mode() === 'json-to-yaml' ? 'data_object' : 'description' }}</mat-icon>
+          <span>{{ mode() === 'json-to-yaml' ? 'JSON Input' : 'YAML Input' }}</span>
+        </div>
+        @if (stats(); as s) {
+          <div class="pane-stats">
+            <span class="stat-pill">{{ s.inLines }} lines</span>
+            <span class="stat-pill">{{ formatBytes(s.inBytes) }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="editor-wrapper">
+        <app-code-editor
+          [value]="input()"
+          [language]="inputLanguage()"
+          [ariaLabel]="mode() === 'json-to-yaml' ? 'JSON input editor' : 'YAML input editor'"
+          (valueChange)="onInputChange($event)">
+        </app-code-editor>
+      </div>
+    </div>
+
+    <!-- Right Pane: Output Editor -->
+    <div class="editor-pane output-pane">
+      <div class="pane-header">
+        <div class="pane-title">
+          <mat-icon>{{ mode() === 'json-to-yaml' ? 'description' : 'data_object' }}</mat-icon>
+          <span>{{ mode() === 'json-to-yaml' ? 'YAML Output' : 'JSON Output' }}</span>
+        </div>
+
+        <div class="pane-actions">
+          @if (stats(); as s) {
+            <div class="pane-stats">
+              <span class="stat-pill">{{ s.outLines }} lines</span>
+              <span class="stat-pill">{{ formatBytes(s.outBytes) }}</span>
+              @if (s.inBytes > 0 && s.outBytes > 0) {
+                <span class="stat-pill ratio-pill" [class.reduced]="s.diffPct < 0">
+                  {{ s.diffPct > 0 ? '+' + s.diffPct + '%' : s.diffPct + '%' }}
+                </span>
+              }
+            </div>
+          }
+
+          <button
+            type="button"
+            mat-stroked-button
+            class="action-btn download-btn"
+            (click)="downloadResult()"
+            [disabled]="!result()"
+            matTooltip="Download output file">
+            <mat-icon>download</mat-icon>
+            <span>Download</span>
+          </button>
+
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            class="copy-btn"
+            [class.copied]="copied()"
+            (click)="copyResult()"
+            [disabled]="!result()"
+            matTooltip="Copy output to clipboard">
+            <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+            <span>{{ copied() ? 'Copied!' : 'Copy' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="editor-wrapper">
+        <app-code-editor
+          [value]="result()"
+          [language]="outputLanguage()"
+          [ariaLabel]="mode() === 'json-to-yaml' ? 'YAML output editor' : 'JSON output editor'"
+          [readOnly]="true">
+        </app-code-editor>
+      </div>
+    </div>
+  </div>
+</div>

@@ -169,6 +169,44 @@
       </mat-select>
     </div>
   }
+  @case ('json-to-yaml') {
+    <div class="field">
+      <label>Indentation</label>
+      <mat-select [value]="instance.config['indent'] || '2 spaces'" (selectionChange)="update('indent', $event.value)">
+        <mat-option value="2 spaces">2 spaces (Standard)</mat-option>
+        <mat-option value="4 spaces">4 spaces</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>YAML Quoting Style</label>
+      <mat-select [value]="instance.config['quotingType'] || 'none'" (selectionChange)="update('quotingType', $event.value)">
+        <mat-option value="none">Plain / Auto-select</mat-option>
+        <mat-option value="single">Single Quotes (')</mat-option>
+        <mat-option value="double">Double Quotes (")</mat-option>
+      </mat-select>
+    </div>
+    <div class="toggle-row">
+      <span>Force quotes on all strings</span>
+      <mat-slide-toggle
+        [checked]="instance.config['forceQuotes'] ?? false"
+        (change)="update('forceQuotes', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>Sort object keys alphabetically</span>
+      <mat-slide-toggle
+        [checked]="instance.config['sortKeys'] ?? false"
+        (change)="update('sortKeys', $event.checked)"
+      />
+    </div>
+    <div class="toggle-row">
+      <span>Minify JSON output (YAML &rarr; JSON)</span>
+      <mat-slide-toggle
+        [checked]="instance.config['compactJson'] ?? false"
+        (change)="update('compactJson', $event.checked)"
+      />
+    </div>
+  }
   @case ('sql-to-csharp') {
     <div class="field">
       <label>Output type</label>

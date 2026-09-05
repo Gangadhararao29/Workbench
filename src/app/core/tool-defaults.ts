@@ -4,6 +4,7 @@ const DEFAULT_CONFIGS: Record<string, Record<string, any>> = {
   'csharp-to-typescript': { outputType: 'interface', naming: 'camel', nullable: 'null', enumOutput: 'enum' },
   'json-to-typescript': { rootName: 'Root', outputType: 'interface' },
   'json-to-csharp': { rootName: 'Root' },
+  'json-to-yaml': { mode: 'json-to-yaml', indent: '2 spaces', sortKeys: false, quotingType: 'none', flowLevel: -1, forceQuotes: false, compactJson: false },
   'sql-to-csharp': { outputType: 'class', className: 'QueryResult' },
   'feature-generator': {
     includeEntity: true,
