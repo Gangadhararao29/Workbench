@@ -1,16 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ToolPage } from './tool-page';
-import { InstanceService } from '../core/instance-service';
+import { InstanceService } from '../core/tool/tool-instance';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
-import { ShellStateService } from '../core/shell-state.service';
 
 describe('ToolPage', () => {
   let component: ToolPage;
   let fixture: ComponentFixture<ToolPage>;
   let instanceService: InstanceService;
   let router: Router;
-  let shellState: ShellStateService;
 
   beforeEach(async () => {
     try { window?.localStorage?.clear(); } catch {}
@@ -19,7 +17,6 @@ describe('ToolPage', () => {
       imports: [ToolPage],
       providers: [
         InstanceService,
-        ShellStateService,
         {
           provide: ActivatedRoute,
           useValue: {
@@ -29,7 +26,8 @@ describe('ToolPage', () => {
         {
           provide: Router,
           useValue: {
-            navigate: vi.fn()
+            navigate: vi.fn(),
+            url: '/tools/json-formatter'
           }
         }
       ]
@@ -37,7 +35,6 @@ describe('ToolPage', () => {
 
     instanceService = TestBed.inject(InstanceService);
     router = TestBed.inject(Router);
-    shellState = TestBed.inject(ShellStateService);
     fixture = TestBed.createComponent(ToolPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -48,7 +45,7 @@ describe('ToolPage', () => {
     expect(component).toBeTruthy();
     expect(component.scopedInstances()).toHaveLength(1);
     expect(component.selectedInstance()?.toolType).toBe('json-formatter');
-    expect(shellState.selectedInstance()?.toolType).toBe('json-formatter');
+    expect(instanceService.activeInstance()?.toolType).toBe('json-formatter');
   });
 
   it('should filter instances scoped only to this tool', () => {
@@ -87,10 +84,10 @@ describe('ToolPage', () => {
     const secondId = instances[1].id;
 
     component.selectInstance(firstId);
-    expect(component.selectedInstanceId()).toBe(firstId);
+    expect(component.selectedInstance()?.id).toBe(firstId);
 
     component.selectInstance(secondId);
-    expect(component.selectedInstanceId()).toBe(secondId);
+    expect(component.selectedInstance()?.id).toBe(secondId);
   });
 
   it('should navigate to / when the last instance is closed', () => {

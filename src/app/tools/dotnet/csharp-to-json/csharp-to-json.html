@@ -1,11 +1,28 @@
 <div class="tool-surface-inner">
+
   <div class="field">
-    <label>C# input</label>
-    <app-code-editor [value]="input()" language="csharp" ariaLabel="C# input" (valueChange)="input.set($event)"></app-code-editor>
+    <div class="field-header"><label>C# Input</label></div>
+    <app-code-editor [value]="input()" language="csharp" ariaLabel="C# input"
+      (valueChange)="input.set($event)"></app-code-editor>
   </div>
-  <button mat-raised-button color="primary" (click)="convert()">Generate JSON example</button>
+
+  <div class="toolbar-row">
+    <div class="result-header">
+      <span class="result-label">JSON Output</span>
+      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()" title="Copy result">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+      </button>
+    </div>
+    <div class="format-actions">
+      <button mat-flat-button color="primary" (click)="convert()">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Generate JSON</span>
+      </button>
+    </div>
+  </div>
+
   <div class="field grow">
-    <label>JSON output</label>
     <app-code-editor [value]="result()" language="json" ariaLabel="JSON output" [readOnly]="true"></app-code-editor>
   </div>
+
 </div>

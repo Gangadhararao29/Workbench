@@ -47,9 +47,11 @@
 .scoped-tab {
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   height: 30px;
-  padding: 0 10px;
+  padding-left: 6px;
+  padding-right: 4px;
   border-radius: 6px;
   font-size: 0.82rem;
   font-weight: 500;
@@ -82,20 +84,18 @@
 }
 
 .tab-close-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 18px;
   height: 18px;
   padding: 0;
-  margin-left: 2px;
   border: none;
   background: transparent;
   border-radius: 4px;
   color: inherit;
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .tab-close-btn:hover {
@@ -142,7 +142,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
+  padding: 12px;
   box-sizing: border-box;
 }
 
@@ -171,3 +171,5 @@
     padding: 12px;
   }
 }
+
+

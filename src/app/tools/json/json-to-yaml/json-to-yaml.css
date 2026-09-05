@@ -1,3 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 1300px;
   gap: 14px;
@@ -8,8 +15,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 6px 10px;
   border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.08));
   border-radius: 8px;
   background: var(--mat-sys-surface-container-low, rgba(255, 255, 255, 0.02));
@@ -83,8 +90,8 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 14px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 6px 10px;
   border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.08));
   border-radius: 8px;
   background: var(--mat-sys-surface-container-low, rgba(255, 255, 255, 0.02));
@@ -103,13 +110,13 @@
 .mode-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
+  gap: 6px;
+  padding: 5px 12px;
   border: none;
   background: transparent;
   color: var(--mat-sys-on-surface-variant, #94a3b8);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease-in-out;
@@ -226,25 +233,26 @@
 .editors-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  flex: 1;
-  min-height: 480px;
+  gap: 10px;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .editor-pane {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  min-height: 0;
 }
 
 .pane-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 8px;
   min-height: 34px;
+  flex-shrink: 0;
 }
 
 .pane-title {
@@ -255,6 +263,7 @@
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .pane-title mat-icon {
@@ -267,24 +276,25 @@
 .pane-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .pane-stats {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .stat-pill {
   font-size: 11px;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 4px;
   background: var(--mat-sys-surface-container, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.08));
   color: var(--mat-sys-on-surface-variant, #94a3b8);
   font-family: var(--font-mono, monospace);
+  white-space: nowrap;
 }
 
 .stat-pill.ratio-pill {
@@ -297,17 +307,18 @@
 }
 
 .copy-btn {
-  height: 32px;
-  padding: 0 14px;
-  font-size: 12.5px;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
   font-weight: 600;
-  gap: 6px;
+  gap: 5px;
+  border-radius: 6px;
 }
 
 .copy-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
 }
 
 .copy-btn.copied {
@@ -316,23 +327,24 @@
 }
 
 .download-btn {
-  height: 32px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 10px;
   font-size: 12px;
   gap: 5px;
+  border-radius: 6px;
 }
 
 .download-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
 }
 
 .editor-wrapper {
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
-  min-height: 440px;
   border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.1));
   border-radius: 8px;
   overflow: hidden;
@@ -340,9 +352,10 @@
 }
 
 .editor-wrapper app-code-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1 1 0;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
 }
 
 /* Responsive adjustments */
@@ -351,3 +364,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 1100px) {
+  .stat-pill.ratio-pill {
+    display: none;
+  }
+}
+

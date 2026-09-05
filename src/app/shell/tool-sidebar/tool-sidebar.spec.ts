@@ -48,5 +48,30 @@ describe('ToolSidebar', () => {
     expect(component.isGroupExpanded(sqlGroup)).toBe(true);
     expect(component.isGroupExpanded(jsonGroup)).toBe(false);
   });
+
+  it('should auto-expand matching groups when search query is present', () => {
+    component.searchQuery = 'curl';
+    const apiGroup = component.groups.find((g) => g.id === 'api')!;
+    expect(component.isGroupExpanded(apiGroup)).toBe(true);
+  });
+
+  it('should filter groups and tools by keywords and descriptions', () => {
+    component.searchQuery = 'curl';
+    const filtered = component.filteredGroups;
+    const allMatchingToolTypes = filtered.flatMap((g) => g.tools).map((t) => t.type);
+
+    expect(allMatchingToolTypes).toContain('curl-converter');
+    expect(allMatchingToolTypes).toContain('http-request-builder');
+    expect(allMatchingToolTypes).toContain('openapi-inspector');
+    expect(allMatchingToolTypes).toContain('terminal');
+
+    expect(allMatchingToolTypes).not.toContain('guid-generator');
+    expect(allMatchingToolTypes).not.toContain('json-formatter');
+  });
+
+  it('should return empty list when no tool matches search query', () => {
+    component.searchQuery = 'xyznonexistenttoolterm123';
+    expect(component.filteredGroups.length).toBe(0);
+  });
 });
 

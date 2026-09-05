@@ -5,8 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { InstanceService } from '../../../core/instance-service';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 type CliAction = 'add' | 'update' | 'script' | 'remove' | 'scaffold' | 'bundle' | 'custom-cs';
 type CliMode = 'dotnet' | 'pmc';

@@ -37,6 +37,15 @@ describe('Home', () => {
     expect(compiled.querySelector('.home-groups')).toBeTruthy();
   });
 
+  it('renders beta badge and version badge in header', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const betaBadge = compiled.querySelector('.badge-beta');
+    const versionBadge = compiled.querySelector('.badge-version');
+
+    expect(betaBadge?.textContent).toContain('Beta');
+    expect(versionBadge?.textContent).toContain('v0.1.0');
+  });
+
   it('navigates to tool page when openTool is called', () => {
     component.openTool('json-formatter');
     expect(router.navigate).toHaveBeenCalledWith(['/tools', 'json-formatter']);
@@ -46,5 +55,35 @@ describe('Home', () => {
     component.activeHomeTab.set('upcoming');
     fixture.detectChanges();
     expect(component.activeHomeTab()).toBe('upcoming');
+  });
+
+  it('switches tabs to feedback and renders app-feedback', () => {
+    component.activeHomeTab.set('feedback');
+    fixture.detectChanges();
+    expect(component.activeHomeTab()).toBe('feedback');
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-feedback')).toBeTruthy();
+  });
+
+  it('filters tool groups when search query is present', () => {
+    component.searchQuery.set('curl');
+    fixture.detectChanges();
+
+    const filtered = component.filteredToolGroups();
+    const allMatching = filtered.flatMap((g) => g.tools).map((t) => t.type);
+
+    expect(allMatching).toContain('curl-converter');
+    expect(allMatching).toContain('http-request-builder');
+    expect(allMatching).toContain('openapi-inspector');
+    expect(allMatching).toContain('terminal');
+    expect(allMatching).not.toContain('guid-generator');
+  });
+
+  it('clears search when clearSearch is called', () => {
+    component.searchQuery.set('curl');
+    expect(component.searchQuery()).toBe('curl');
+
+    component.clearSearch();
+    expect(component.searchQuery()).toBe('');
   });
 });

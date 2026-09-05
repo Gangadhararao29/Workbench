@@ -23,7 +23,9 @@ describe('SqlFormatter', () => {
   });
 
   it('should support compact mode placing major clauses on separate lines with inline columns', () => {
-    component.input.set('select id, name, email from users left join orders on orders.user_id = users.id where active = 1 and role = \'admin\' order by name;');
+    component.input.set(
+      "select id, name, email from users left join orders on orders.user_id = users.id where active = 1 and role = 'admin' order by name;",
+    );
     component.compact();
     expect(component.mode()).toBe('compact');
     const result = component.result();
@@ -39,11 +41,5 @@ describe('SqlFormatter', () => {
     component.minify();
     expect(component.mode()).toBe('minified');
     expect(component.result()).toBe('SELECT id, name, email FROM users WHERE active = 1;');
-  });
-
-  it('should load sample query', () => {
-    component.loadSample();
-    expect(component.input()).toContain('SELECT u.id');
-    expect(component.result()).toContain('SELECT');
   });
 });

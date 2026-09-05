@@ -10,13 +10,27 @@
     </div>
 
     <div class="toolbar-right">
-      <input
-        type="text"
-        placeholder="Search tools…"
-        class="search-input"
-        [value]="shellState.searchQuery()"
-        (input)="shellState.searchQuery.set($any($event.target).value)"
-      />
+      <div class="search-box">
+        <mat-icon class="search-box-icon">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Search tools by name, description, keywords…"
+          class="search-input"
+          [value]="instanceService.searchQuery()"
+          (input)="instanceService.searchQuery.set($any($event.target).value)"
+        />
+        @if (instanceService.searchQuery()) {
+          <button
+            type="button"
+            class="search-clear-btn"
+            (click)="instanceService.searchQuery.set('')"
+            matTooltip="Clear search"
+            aria-label="Clear search"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
 
       <button mat-icon-button (click)="toggleLeft()" matTooltip="Toggle tools panel" aria-label="Toggle tools panel">
         <mat-icon>dock_to_right</mat-icon>
@@ -24,7 +38,7 @@
       <button
         mat-icon-button
         (click)="toggleRight()"
-        [disabled]="!shellState.hasOptions()"
+        [disabled]="!instanceService.hasOptions()"
         matTooltip="Toggle options panel"
         aria-label="Toggle options panel"
       >
@@ -42,7 +56,7 @@
     <!-- Left Drawer (Sidebar) -->
     <mat-sidenav #leftDrawer mode="side" opened class="left-panel">
       <app-tool-sidebar
-        [searchQuery]="shellState.searchQuery()"
+        [searchQuery]="instanceService.searchQuery()"
         [hasOpenTools]="instanceService.instances().length > 0"
         (openTool)="openTool($event.toolType, $event.groupId)"
         (closeAll)="closeAllTools()"
@@ -59,13 +73,13 @@
     <mat-sidenav
       #rightDrawer
       mode="side"
-      [opened]="shellState.rightDrawerOpened()"
-      (openedChange)="shellState.setRightDrawer($event)"
+      [opened]="instanceService.rightDrawerOpened()"
+      (openedChange)="instanceService.setRightDrawer($event)"
       position="end"
       class="right-panel"
     >
-      @if (shellState.selectedInstance()) {
-        <app-options-panel [instance]="shellState.selectedInstance()!" />
+      @if (instanceService.selectedInstance()) {
+        <app-options-panel [instance]="instanceService.selectedInstance()!" />
       }
     </mat-sidenav>
 

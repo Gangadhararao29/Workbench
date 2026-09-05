@@ -21,17 +21,23 @@
         <div
           class="tool-row"
           [class.active]="isToolActive(tool.type)"
+          [class.search-mode]="!!searchQuery.trim()"
           [attr.aria-current]="isToolActive(tool.type) ? 'page' : null"
           (click)="descTip.hide(0); emit(tool.type, group.id)"
         >
-          <span
-            class="tool-label"
-            #descTip="matTooltip"
-            [matTooltip]="tool.description"
-            matTooltipPosition="right"
-            matTooltipShowDelay="300"
-            matTooltipHideDelay="0"
-          >{{ tool.label }}</span>
+          <div class="tool-text-container">
+            <span
+              class="tool-label"
+              #descTip="matTooltip"
+              [matTooltip]="tool.description"
+              matTooltipPosition="right"
+              matTooltipShowDelay="300"
+              matTooltipHideDelay="0"
+            >{{ tool.label }}</span>
+            @if (searchQuery.trim()) {
+              <span class="tool-search-hint" [title]="getSearchHint(tool)">{{ getSearchHint(tool) }}</span>
+            }
+          </div>
           <button
             mat-icon-button
             class="favorite-btn"
@@ -51,3 +57,11 @@
     </mat-expansion-panel>
   }
 </mat-accordion>
+
+@if (searchQuery.trim() && filteredGroups.length === 0) {
+  <div class="sidebar-no-results">
+    <mat-icon class="no-results-icon">search_off</mat-icon>
+    <div class="no-results-title">No tools found</div>
+    <div class="no-results-subtitle">Nothing matches "{{ searchQuery.trim() }}"</div>
+  </div>
+}

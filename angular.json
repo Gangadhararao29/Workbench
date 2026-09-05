@@ -55,6 +55,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "serviceWorker": "ngsw-config.json",
               "allowedCommonJsDependencies": ["nearley", "@apidevtools/swagger-parser", "@apidevtools/json-schema-ref-parser", "@jsdevtools/ono", "js-yaml", "call-me-maybe", "ts-morph", "@ts-morph/common"],
               "budgets": [

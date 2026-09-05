@@ -1,12 +1,34 @@
 <div class="tool-surface-inner">
-	<div class="form-grid">
-		<label>Feature name<input [(ngModel)]="feature" (ngModelChange)="generate()" /></label>
-		<label>Namespace<input [(ngModel)]="namespace" (ngModelChange)="generate()" /></label>
-	</div>
 
-	<div class="field grow">
-		<label>Generated code</label>
-		<app-code-editor [value]="result()" language="csharp" ariaLabel="Generated feature code" [readOnly]="true"></app-code-editor>
-	</div>
+  <!-- Feature config row -->
+  <div class="form-grid">
+    <div class="field">
+      <div class="field-header"><label>Feature Name</label></div>
+      <input class="text-input" [(ngModel)]="feature" (ngModelChange)="generate()" placeholder="e.g. CreateOrder" />
+    </div>
+    <div class="field">
+      <div class="field-header"><label>Namespace</label></div>
+      <input class="text-input" [(ngModel)]="namespace" (ngModelChange)="generate()" placeholder="e.g. MyApp.Features" />
+    </div>
+  </div>
+
+  <div class="toolbar-row">
+    <div class="result-header">
+      <span class="result-label">Generated Feature Code</span>
+      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()" title="Copy result">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+      </button>
+    </div>
+    <div class="format-actions">
+      <button mat-flat-button color="primary" (click)="generate()">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Generate</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="field grow">
+    <app-code-editor [value]="result()" language="csharp" ariaLabel="Generated feature code" [readOnly]="true"></app-code-editor>
+  </div>
+
 </div>
-

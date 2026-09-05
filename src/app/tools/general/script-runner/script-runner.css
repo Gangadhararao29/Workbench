@@ -123,14 +123,14 @@
 }
 
 .card-body {
-  padding: 16px;
+  padding: 8px;
   background: var(--mat-sys-surface-container-low);
 }
 
 /* Code Editor sizing inside Card Body */
 .card-body app-code-editor {
   display: block;
-  height: 410px;
+  height: 420px;
   min-height: 250px;
 }
 
@@ -175,6 +175,11 @@
   color: var(--mat-sys-error);
 }
 
+.running-badge {
+  background: color-mix(in srgb, var(--mat-sys-tertiary, #e09f3e) 15%, transparent);
+  color: var(--mat-sys-tertiary, #e09f3e);
+}
+
 .console-body {
   min-height: 150px;
   background: var(--mat-sys-surface-container-lowest);
@@ -196,8 +201,9 @@
   white-space: pre-wrap;
   word-break: break-all;
   overflow: auto;
-  flex: 1;
-  max-height: 300px;
+  resize: vertical;
+  min-height: 160px;
+  box-sizing: border-box;
 }
 
 .console-placeholder {

@@ -1,3 +1,10 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .ef-linq-container {
   max-width: 100vw;
 }
@@ -369,3 +376,4 @@ app-code-editor {
     grid-template-columns: 1fr;
   }
 }
+

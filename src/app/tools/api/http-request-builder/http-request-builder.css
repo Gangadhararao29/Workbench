@@ -1,10 +1,16 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .http-builder-root {
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
   max-width: 100%;
-  padding: 8px 4px 32px;
   box-sizing: border-box;
   font-family: inherit;
   color: var(--mat-sys-on-surface);
@@ -143,7 +149,9 @@
   border: 1px solid var(--mat-sys-outline);
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
-  font: 13px/1.4 'Roboto Mono', monospace;
+  font:
+    13px/1.4 'Roboto Mono',
+    monospace;
   resize: vertical;
 }
 
@@ -263,13 +271,27 @@
   color: #059669;
 }
 
-.method-select-wrapper[data-method="GET"] .method-select { color: #16a34a; }
-.method-select-wrapper[data-method="POST"] .method-select { color: #2563eb; }
-.method-select-wrapper[data-method="PUT"] .method-select { color: #d97706; }
-.method-select-wrapper[data-method="PATCH"] .method-select { color: #9333ea; }
-.method-select-wrapper[data-method="DELETE"] .method-select { color: #dc2626; }
-.method-select-wrapper[data-method="HEAD"] .method-select { color: #0891b2; }
-.method-select-wrapper[data-method="OPTIONS"] .method-select { color: #475569; }
+.method-select-wrapper[data-method='GET'] .method-select {
+  color: #16a34a;
+}
+.method-select-wrapper[data-method='POST'] .method-select {
+  color: #2563eb;
+}
+.method-select-wrapper[data-method='PUT'] .method-select {
+  color: #d97706;
+}
+.method-select-wrapper[data-method='PATCH'] .method-select {
+  color: #9333ea;
+}
+.method-select-wrapper[data-method='DELETE'] .method-select {
+  color: #dc2626;
+}
+.method-select-wrapper[data-method='HEAD'] .method-select {
+  color: #0891b2;
+}
+.method-select-wrapper[data-method='OPTIONS'] .method-select {
+  color: #475569;
+}
 
 .url-input-wrapper {
   flex: 1;
@@ -706,7 +728,9 @@
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   color: var(--mat-sys-on-surface);
-  font: 12px/1.5 'Roboto Mono', monospace;
+  font:
+    12px/1.5 'Roboto Mono',
+    monospace;
   white-space: pre-wrap;
   word-break: break-all;
   max-height: 350px;

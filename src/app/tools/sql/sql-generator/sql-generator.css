@@ -263,31 +263,6 @@
   color: var(--mat-sys-on-surface-variant, #919499);
 }
 
-.action-link-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  color: var(--mat-sys-primary, #a8c7fa);
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 3px 6px;
-  border-radius: 4px;
-  transition: background 0.15s;
-}
-
-.action-link-btn:hover {
-  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-}
-
-.action-link-btn mat-icon {
-  font-size: 15px;
-  width: 15px;
-  height: 15px;
-}
-
 .editor-wrap {
   border: 1px solid var(--mat-sys-outline-variant, #33383f);
   border-radius: 6px;

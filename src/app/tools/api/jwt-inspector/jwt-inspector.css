@@ -1,3 +1,10 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .jwt-tab-nav {
   display: flex;
   gap: 8px;
@@ -346,3 +353,4 @@
     flex-direction: column;
   }
 }
+

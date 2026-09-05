@@ -131,6 +131,7 @@
 					<button
 						type="button"
 						class="btn-copy-sql"
+						[class.copied]="copiedTitle() === pattern.title"
 						(click)="copySql(pattern, $event)"
 						matTooltip="Copy SQL to clipboard">
 						<mat-icon>{{ copiedTitle() === pattern.title ? 'check' : 'content_copy' }}</mat-icon>

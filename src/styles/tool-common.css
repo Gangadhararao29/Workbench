@@ -2,12 +2,181 @@
 .tool-surface-inner {
   display: flex;
   width: 100%;
-  max-width: 1000px;
-  min-height: 100%;
-  flex: 1 0 auto;
+  /* max-width: 1000px; */
+  height: 100%;
+  flex: 1 1 0;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   box-sizing: border-box;
+}
+
+/* ── Compact toolbar row: result header (title + copy) LEFT, action buttons RIGHT ──────── */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 38px;
+}
+
+.result-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.result-label {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* Copy result button inside toolbar-row */
+.btn-copy-result {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+  padding: 0 !important;
+  margin-left: 2px;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.btn-copy-result mat-icon {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+}
+
+.btn-copy-result:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+  border-color: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.1));
+}
+
+.btn-copy-result.copied {
+  color: #10b981;
+}
+
+.format-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.format-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  margin: 0 2px;
+  transition: all 0.15s ease;
+}
+
+.format-actions button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* Active mode highlight (for formatter-style toggles) */
+.format-actions button.active-mode {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: var(--mat-sys-secondary-container);
+}
+
+/* ── Inline text action link buttons (Sample, Clear, etc.) ────────────── */
+.action-link-btn {
+  display: inline-flex;
+  gap: 3px;
+  border: none;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.action-link-btn:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+}
+
+.action-link-btn mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Field header: label row above code editor ────────────────────────── */
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-header label {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Copy icon button (small, used in toolbar-row) ────────────────────── */
+.btn-icon-copy {
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--mat-sys-on-surface-variant);
+  transition: all 0.18s ease;
+}
+
+.btn-icon-copy mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.btn-icon-copy:hover {
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+}
+
+.btn-icon-copy.copied {
+  color: #16a34a;
 }
 
 /* Fields & Code Editor Containers */
@@ -26,8 +195,8 @@
 .field.grow {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1 1 auto;
+  gap: 4px;
+  flex: 1 1 0;
   min-height: 0;
 }
 
@@ -36,7 +205,7 @@ app-code-editor.result-editor {
   display: flex;
   flex-direction: column;
   width: 100%;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 180px;
   height: 100%;
   box-sizing: border-box;
@@ -53,7 +222,9 @@ app-code-editor.result-editor {
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
-  font: 14px/1.5 'Roboto Mono', monospace;
+  font:
+    14px/1.5 'Roboto Mono',
+    monospace;
 }
 
 .code-input {
@@ -79,7 +250,9 @@ app-code-editor.result-editor {
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
-  font: 14px/1.5 'Roboto Mono', monospace;
+  font:
+    14px/1.5 'Roboto Mono',
+    monospace;
   outline: none;
 }
 
@@ -126,21 +299,78 @@ app-code-editor.result-editor {
 }
 
 /* HTTP Method Colors & Badges */
-.badge-get, .method-get { background: rgba(34, 197, 94, 0.15); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.3); }
-.badge-post, .method-post { background: rgba(59, 130, 246, 0.15); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
-.badge-put, .method-put { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
-.badge-patch, .method-patch { background: rgba(147, 51, 234, 0.15); color: #9333ea; border: 1px solid rgba(147, 51, 234, 0.3); }
-.badge-delete, .method-delete { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
-.badge-head, .method-head { background: rgba(8, 145, 178, 0.15); color: #0891b2; border: 1px solid rgba(8, 145, 178, 0.3); }
-.badge-options, .method-options, .method-default { background: rgba(124, 58, 237, 0.15); color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.3); }
+.badge-get,
+.method-get {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.badge-post,
+.method-post {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.badge-put,
+.method-put {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.badge-patch,
+.method-patch {
+  background: rgba(147, 51, 234, 0.15);
+  color: #9333ea;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+}
+.badge-delete,
+.method-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.badge-head,
+.method-head {
+  background: rgba(8, 145, 178, 0.15);
+  color: #0891b2;
+  border: 1px solid rgba(8, 145, 178, 0.3);
+}
+.badge-options,
+.method-options,
+.method-default {
+  background: rgba(124, 58, 237, 0.15);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
 
-body.dark-theme .badge-options, body.dark-theme .method-options, body.dark-theme .method-default { color: #c084fc; }
+body.dark-theme .badge-options,
+body.dark-theme .method-options,
+body.dark-theme .method-default {
+  color: #c084fc;
+}
 
 /* HTTP Status Code Badges */
-.status-2xx, .status-pill.status-2xx { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
-.status-3xx, .status-pill.status-3xx { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
-.status-4xx, .status-pill.status-4xx { background: rgba(245, 158, 11, 0.15); color: #d97706; }
-.status-5xx, .status-pill.status-5xx, .status-error { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+.status-2xx,
+.status-pill.status-2xx {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+.status-3xx,
+.status-pill.status-3xx {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+.status-4xx,
+.status-pill.status-4xx {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.status-5xx,
+.status-pill.status-5xx,
+.status-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
 
 /* Parameter In-Badges */
 .in-badge {
@@ -151,15 +381,35 @@ body.dark-theme .badge-options, body.dark-theme .method-options, body.dark-theme
   border-radius: 4px;
   text-transform: uppercase;
 }
-.in-path { background: rgba(245, 158, 11, 0.15); color: #b45309; }
-.in-query { background: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
-.in-header { background: rgba(168, 85, 247, 0.15); color: #7e22ce; }
-.in-cookie { background: rgba(20, 184, 166, 0.15); color: #0f766e; }
+.in-path {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+.in-query {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1d4ed8;
+}
+.in-header {
+  background: rgba(168, 85, 247, 0.15);
+  color: #7e22ce;
+}
+.in-cookie {
+  background: rgba(20, 184, 166, 0.15);
+  color: #0f766e;
+}
 
-body.dark-theme .in-path { color: #fbbf24; }
-body.dark-theme .in-query { color: #60a5fa; }
-body.dark-theme .in-header { color: #c084fc; }
-body.dark-theme .in-cookie { color: #2dd4bf; }
+body.dark-theme .in-path {
+  color: #fbbf24;
+}
+body.dark-theme .in-query {
+  color: #60a5fa;
+}
+body.dark-theme .in-header {
+  color: #c084fc;
+}
+body.dark-theme .in-cookie {
+  color: #2dd4bf;
+}
 
 /* Type & Tag Badges */
 .type-badge {
@@ -217,8 +467,12 @@ body.dark-theme .required-badge {
 
 /* Animations */
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin-icon {

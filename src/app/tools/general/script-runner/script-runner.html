@@ -6,10 +6,10 @@
       <input id="script-name-input" [(ngModel)]="scriptName" class="text-input" placeholder="My Script" />
     </div>
     <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="execute()" class="btn-execute">
+      <button mat-raised-button color="primary" (click)="execute()" [disabled]="status() === 'running'" class="btn-execute">
         <mat-icon>play_arrow</mat-icon> Run Script
       </button>
-      <button mat-stroked-button (click)="reset()" matTooltip="Reset to default script and inputs">
+      <button mat-stroked-button (click)="reset()" [disabled]="status() === 'running'" matTooltip="Reset to default script and inputs">
         <mat-icon>restart_alt</mat-icon> Reset
       </button>
     </div>
@@ -65,25 +65,38 @@
             <span>Execution Console</span>
           </div>
           <div class="status-indicators">
-            @if (result().startsWith('Script failed:') || result() === 'Invalid script definition JSON.') {
-            <span class="status-badge error-badge">Error</span>
-            } @else if (result().startsWith('Script imported.')) {
-            <span class="status-badge success-badge">Imported</span>
-            } @else if (result()) {
-            <span class="status-badge success-badge">Success</span>
-            } @else {
-            <span class="status-badge idle-badge">Idle</span>
+            @switch (status()) {
+              @case ('running') {
+                <span class="status-badge running-badge">Running...</span>
+              }
+              @case ('error') {
+                <span class="status-badge error-badge">Error</span>
+              }
+              @case ('imported') {
+                <span class="status-badge success-badge">Imported</span>
+              }
+              @case ('success') {
+                <span class="status-badge success-badge">Success</span>
+              }
+              @default {
+                <span class="status-badge idle-badge">Idle</span>
+              }
             }
           </div>
         </div>
         <div class="card-body console-body">
-          @if (result()) {
-          <pre class="code-result">{{ result() }}</pre>
+          @if (status() === 'running') {
+            <div class="console-placeholder">
+              <mat-icon>hourglass_top</mat-icon>
+              <p>Executing script in isolated sandbox...</p>
+            </div>
+          } @else if (result()) {
+            <pre class="code-result">{{ result() }}</pre>
           } @else {
-          <div class="console-placeholder">
-            <mat-icon>play_circle</mat-icon>
-            <p>Click "Run Script" above to see the output here.</p>
-          </div>
+            <div class="console-placeholder">
+              <mat-icon>play_circle</mat-icon>
+              <p>Click "Run Script" above to see the output here.</p>
+            </div>
           }
         </div>
       </div>

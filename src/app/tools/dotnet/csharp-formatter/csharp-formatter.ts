@@ -1,15 +1,23 @@
-import { Component, Input, signal } from '@angular/core';
+﻿import { Component, Input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 
 @Component({
-  selector: 'app-csharp-formatter', standalone: true, imports: [MatButtonModule, CodeEditor],
+  selector: 'app-csharp-formatter', standalone: true, imports: [MatIconModule, MatButtonModule, CodeEditor],
   templateUrl: './csharp-formatter.html', styleUrls: ['./csharp-formatter.css']
 })
 export class CsharpFormatter {
   @Input({ required: true }) instanceId!: string;
   input = signal('public class User { public int Id { get; set; } public string Name { get; set; } }');
   result = signal('');
+  copied = signal(false);
+  copyResult() {
+    navigator.clipboard.writeText(this.result()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1500);
+    });
+  }
   format() {
     this.result.set(formatCsharp(this.input()));
   }
