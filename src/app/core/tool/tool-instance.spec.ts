@@ -102,6 +102,36 @@ describe('ToolInstanceService', () => {
     expect(updatedCloned?.config['indent']).toBe('tab');
   });
 
+  it('updates and retrieves instance state', () => {
+    const inst = service.open('sql-formatter', 'sql');
+    service.updateState(inst.id, { query: 'SELECT * FROM users', cursorPosition: 12 });
+
+    const state = service.getState<{ query: string; cursorPosition: number }>(inst.id);
+    expect(state).toBeDefined();
+    expect(state?.query).toBe('SELECT * FROM users');
+    expect(state?.cursorPosition).toBe(12);
+
+    // Partial update merges into state
+    service.updateState(inst.id, { cursorPosition: 20 });
+    const updatedState = service.getState<{ query: string; cursorPosition: number }>(inst.id);
+    expect(updatedState?.query).toBe('SELECT * FROM users');
+    expect(updatedState?.cursorPosition).toBe(20);
+  });
+
+  it('clones an instance with copied state', () => {
+    const original = service.open('sql-formatter', 'sql');
+    service.updateState(original.id, { editorText: 'SELECT 1;', mode: 'pretty' });
+
+    const cloned = service.clone(original.id);
+    expect(cloned).not.toBeNull();
+    expect(cloned!.state).toEqual({ editorText: 'SELECT 1;', mode: 'pretty' });
+
+    // Mutating cloned state does not affect original state
+    service.updateState(cloned!.id, { editorText: 'SELECT 2;' });
+    expect(service.getState(original.id)?.['editorText']).toBe('SELECT 1;');
+    expect(service.getState(cloned!.id)?.['editorText']).toBe('SELECT 2;');
+  });
+
   it('returns null when cloning a non-existent instance', () => {
     const result = service.clone('non-existent-id');
     expect(result).toBeNull();

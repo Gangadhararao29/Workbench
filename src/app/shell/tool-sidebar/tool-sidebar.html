@@ -23,7 +23,6 @@
           [class.active]="isToolActive(tool.type)"
           [class.search-mode]="!!searchQuery.trim()"
           [attr.aria-current]="isToolActive(tool.type) ? 'page' : null"
-          (mouseenter)="preloadTool(tool.type)"
           (click)="descTip.hide(0); emit(tool.type, group.id)"
         >
           <div class="tool-text-container">

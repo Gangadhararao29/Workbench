@@ -22,7 +22,6 @@ import {
   matchesToolSearch,
   ToolDefinition,
   getToolSearchSnippet,
-  resolveToolComponent,
 } from '../../core/tool/tool-registry';
 
 @Component({
@@ -117,9 +116,6 @@ export class ToolSidebar implements OnInit, OnDestroy {
     this.openTool.emit({ toolType, groupId });
   }
 
-  preloadTool(toolType: string): void {
-    resolveToolComponent(toolType).catch(() => {});
-  }
 
   toggleFavorite(toolType: string) {
     if (this.favoriteTools.has(toolType)) this.favoriteTools.delete(toolType);

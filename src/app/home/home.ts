@@ -7,7 +7,6 @@ import {
   TOOL_GROUPS,
   UPCOMING_GROUPS,
   matchesToolSearch,
-  resolveToolComponent,
 } from '../core/tool/tool-registry';
 import { FeedbackComponent } from './feedback/feedback';
 import { InstanceService } from '../core/tool/tool-instance';
@@ -45,9 +44,6 @@ export class Home {
     this.router.navigate(['/tools', toolType]);
   }
 
-  preloadTool(toolType: string): void {
-    resolveToolComponent(toolType).catch(() => {});
-  }
 
   clearSearch(): void {
     this.searchQuery.set('');

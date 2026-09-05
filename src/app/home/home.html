@@ -55,7 +55,7 @@
       </h2>
       <div class="home-tool-grid">
         @for (tool of group.tools; track tool.type) {
-        <button class="home-tool-card" (mouseenter)="preloadTool(tool.type)" (click)="openTool(tool.type)"
+        <button class="home-tool-card" (click)="openTool(tool.type)"
           [attr.aria-label]="'Open ' + tool.label">
           <span class="home-tool-name">{{ tool.label }}</span>
           <span class="home-tool-desc">{{ tool.description }}</span>

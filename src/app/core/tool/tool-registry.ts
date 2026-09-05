@@ -1,5 +1,50 @@
 import { Type } from '@angular/core';
 
+// JSON Tools
+import { JsonFormatter } from '../../tools/json/json-formatter/json-formatter';
+import { JsonDiff } from '../../tools/json/json-diff/json-diff';
+import { JsonPath } from '../../tools/json/json-path/json-path';
+import { JsonToTypescript } from '../../tools/json/json-to-typescript/json-to-typescript';
+import { JsonToCsharp } from '../../tools/json/json-to-csharp/json-to-csharp';
+import { JsonToYaml } from '../../tools/json/json-to-yaml/json-to-yaml';
+
+// .NET Tools
+import { CsharpToTypescript } from '../../tools/dotnet/csharp-to-typescript/csharp-to-typescript';
+import { CsharpToJson } from '../../tools/dotnet/csharp-to-json/csharp-to-json';
+import { CsharpFormatter } from '../../tools/dotnet/csharp-formatter/csharp-formatter';
+import { FeatureGenerator } from '../../tools/dotnet/feature-generator/feature-generator';
+
+// EF Core Tools
+import { EfConfiguration } from '../../tools/ef/ef-configuration/ef-configuration';
+import { EfMigrations } from '../../tools/ef/ef-migrations/ef-migrations';
+import { EfLinq } from '../../tools/ef/ef-linq/ef-linq';
+import { EfDbContext } from '../../tools/ef/ef-dbcontext/ef-dbcontext';
+
+// SQL Tools
+import { SqlFormatter } from '../../tools/sql/sql-formatter/sql-formatter';
+import { SqlToCsharp } from '../../tools/sql/sql-to-csharp/sql-to-csharp';
+import { SqlGenerator } from '../../tools/sql/sql-generator/sql-generator';
+import { SqlSearch } from '../../tools/sql/sql-search/sql-search';
+import { SqlQueryBuilder } from '../../tools/sql/sql-query-builder/sql-query-builder';
+
+// API Tools
+import { OpenapiInspector } from '../../tools/api/openapi-inspector/openapi-inspector';
+import { HttpRequestBuilder } from '../../tools/api/http-request-builder/http-request-builder';
+import { JwtInspector } from '../../tools/api/jwt-inspector/jwt-inspector';
+import { CurlConverter } from '../../tools/api/curl-converter/curl-converter';
+
+// Frontend Tools
+import { ApiGenerator } from '../../tools/frontend/api-generator/api-generator';
+
+// General Tools
+import { GuidGenerator } from '../../tools/general/guid-generator/guid-generator';
+import { TimestampConverter } from '../../tools/general/timestamp-converter/timestamp-converter';
+import { RegexTester } from '../../tools/general/regex-tester/regex-tester';
+import { ScriptRunner } from '../../tools/general/script-runner/script-runner';
+import { DocumentationHub } from '../../tools/general/documentation-hub/documentation-hub';
+import { TerminalTool } from '../../tools/general/terminal/terminal';
+import { LogViewer } from '../../tools/general/log-viewer/log-viewer';
+
 export interface ToolDefinition<TConfig = Record<string, any>> {
   type: string;
   name: string;
@@ -11,7 +56,7 @@ export interface ToolDefinition<TConfig = Record<string, any>> {
   defaultConfig?: TConfig;
   hasSidebarOptions?: boolean;
   defaultSidebarOpen?: boolean;
-  loadComponent: () => Promise<Type<any>> | Type<any>;
+  component: Type<any>;
 }
 
 export interface ToolGroup {
@@ -34,7 +79,6 @@ export interface UpcomingGroup {
 }
 
 const TOOL_REGISTRY = new Map<string, ToolDefinition>();
-const COMPONENT_CACHE = new Map<string, Type<any>>();
 
 export const GROUP_METADATA: Record<string, { label: string; icon: string; order: number }> = {
   json: { label: 'JSON', icon: 'data_object', order: 1 },
@@ -60,24 +104,23 @@ export function getAllTools(): ToolDefinition[] {
   return Array.from(TOOL_REGISTRY.values());
 }
 
+export function getToolComponent(toolType: string): Type<any> | undefined {
+  return TOOL_REGISTRY.get(toolType)?.component;
+}
+
 export function getLoadedComponent(toolType: string): Type<any> | undefined {
-  return COMPONENT_CACHE.get(toolType);
+  return getToolComponent(toolType);
 }
 
 export function setLoadedComponent(toolType: string, component: Type<any>): void {
-  COMPONENT_CACHE.set(toolType, component);
+  const tool = TOOL_REGISTRY.get(toolType);
+  if (tool) {
+    tool.component = component;
+  }
 }
 
 export async function resolveToolComponent(toolType: string): Promise<Type<any> | null> {
-  if (COMPONENT_CACHE.has(toolType)) {
-    return COMPONENT_CACHE.get(toolType)!;
-  }
-  const tool = TOOL_REGISTRY.get(toolType);
-  if (!tool) return null;
-
-  const resolved = await tool.loadComponent();
-  COMPONENT_CACHE.set(toolType, resolved);
-  return resolved;
+  return getToolComponent(toolType) ?? null;
 }
 
 export function defaultConfigFor(toolType: string): Record<string, any> {
@@ -94,7 +137,7 @@ export function isSidebarOpenByDefault(toolType: string): boolean {
   return getToolDefinition(toolType)?.defaultSidebarOpen ?? false;
 }
 
-// Pre-register all workbench tools with complete definitions in one place
+// Pre-register all workbench tools with direct eager component references
 const INITIAL_TOOLS: ToolDefinition[] = [
   // JSON Group
   {
@@ -107,8 +150,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     defaultConfig: { indent: '2 spaces', sortKeys: false },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/json/json-formatter/json-formatter').then((m) => m.JsonFormatter),
+    component: JsonFormatter,
   },
   {
     type: 'json-diff',
@@ -119,7 +161,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['json', 'diff', 'compare', 'difference', 'patch', 'changes', 'merge'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () => import('../../tools/json/json-diff/json-diff').then((m) => m.JsonDiff),
+    component: JsonDiff,
   },
   {
     type: 'json-path',
@@ -130,7 +172,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['json', 'path', 'jsonpath', 'query', 'filter', 'extract', 'tester', 'expression'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () => import('../../tools/json/json-path/json-path').then((m) => m.JsonPath),
+    component: JsonPath,
   },
   {
     type: 'json-to-typescript',
@@ -142,8 +184,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     defaultConfig: { rootName: 'Root', outputType: 'interface' },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/json/json-to-typescript/json-to-typescript').then((m) => m.JsonToTypescript),
+    component: JsonToTypescript,
   },
   {
     type: 'json-to-csharp',
@@ -155,8 +196,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     defaultConfig: { rootName: 'Root' },
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/json/json-to-csharp/json-to-csharp').then((m) => m.JsonToCsharp),
+    component: JsonToCsharp,
   },
   {
     type: 'json-to-yaml',
@@ -176,8 +216,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/json/json-to-yaml/json-to-yaml').then((m) => m.JsonToYaml),
+    component: JsonToYaml,
   },
 
   // .NET / C# Group
@@ -196,10 +235,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/dotnet/csharp-to-typescript/csharp-to-typescript').then(
-        (m) => m.CsharpToTypescript,
-      ),
+    component: CsharpToTypescript,
   },
   {
     type: 'csharp-to-json',
@@ -210,8 +246,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['c#', 'csharp', 'json', 'mock', 'sample', 'example', 'generator', 'dto', 'model', 'dummy data'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/dotnet/csharp-to-json/csharp-to-json').then((m) => m.CsharpToJson),
+    component: CsharpToJson,
   },
   {
     type: 'csharp-formatter',
@@ -222,8 +257,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['c#', 'csharp', 'format', 'tidy', 'beautify', 'indent', 'clean', 'source code', 'style'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/dotnet/csharp-formatter/csharp-formatter').then((m) => m.CsharpFormatter),
+    component: CsharpFormatter,
   },
   {
     type: 'feature-generator',
@@ -244,8 +278,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/dotnet/feature-generator/feature-generator').then((m) => m.FeatureGenerator),
+    component: FeatureGenerator,
   },
 
   // EF Core Group
@@ -267,8 +300,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/ef/ef-configuration/ef-configuration').then((m) => m.EfConfiguration),
+    component: EfConfiguration,
   },
   {
     type: 'ef-migrations',
@@ -285,8 +317,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/ef/ef-migrations/ef-migrations').then((m) => m.EfMigrations),
+    component: EfMigrations,
   },
   {
     type: 'ef-linq',
@@ -297,7 +328,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['linq', 'ef core', 'query', 'sql', 'expression', 'assistant', 'orm', 'c#', 'csharp', 'performance', 'include'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () => import('../../tools/ef/ef-linq/ef-linq').then((m) => m.EfLinq),
+    component: EfLinq,
   },
   {
     type: 'ef-dbcontext',
@@ -313,7 +344,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () => import('../../tools/ef/ef-dbcontext/ef-dbcontext').then((m) => m.EfDbContext),
+    component: EfDbContext,
   },
 
   // SQL Group
@@ -339,8 +370,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/sql/sql-formatter/sql-formatter').then((m) => m.SqlFormatter),
+    component: SqlFormatter,
   },
   {
     type: 'sql-to-csharp',
@@ -352,8 +382,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     defaultConfig: { outputType: 'class', className: 'QueryResult' },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/sql/sql-to-csharp/sql-to-csharp').then((m) => m.SqlToCsharp),
+    component: SqlToCsharp,
   },
   {
     type: 'sql-generator',
@@ -364,8 +393,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['sql', 'ddl', 'crud', 'insert', 'update', 'select', 'table', 'ssms', 'generate', 'batch', 'grid', 'values'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/sql/sql-generator/sql-generator').then((m) => m.SqlGenerator),
+    component: SqlGenerator,
   },
   {
     type: 'sql-search',
@@ -376,7 +404,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['sql', 'search', 'snippets', 'stored procedures', 'indexes', 'queries', 'cheat sheet', 'foreign keys', 'metadata', 'find'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () => import('../../tools/sql/sql-search/sql-search').then((m) => m.SqlSearch),
+    component: SqlSearch,
   },
   {
     type: 'sql-query-builder',
@@ -387,8 +415,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['sql', 'query builder', 'visual', 'interactive', 'join', 'filter', 'group by', 'select', 'insert', 'update'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/sql/sql-query-builder/sql-query-builder').then((m) => m.SqlQueryBuilder),
+    component: SqlQueryBuilder,
   },
 
   // API Group
@@ -401,8 +428,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['openapi', 'swagger', 'api', 'endpoints', 'spec', 'documentation', 'curl', 'schema', 'rest', 'json'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/api/openapi-inspector/openapi-inspector').then((m) => m.OpenapiInspector),
+    component: OpenapiInspector,
   },
   {
     type: 'http-request-builder',
@@ -413,10 +439,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['http', 'api', 'request', 'postman', 'rest', 'curl', 'fetch', 'client', 'webhook', 'headers', 'params', 'import curl', 'export curl'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/api/http-request-builder/http-request-builder').then(
-        (m) => m.HttpRequestBuilder,
-      ),
+    component: HttpRequestBuilder,
   },
   {
     type: 'jwt-inspector',
@@ -427,8 +450,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['jwt', 'token', 'bearer', 'auth', 'authentication', 'decode', 'claims', 'base64', 'header', 'payload', 'signature', 'expiry'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/api/jwt-inspector/jwt-inspector').then((m) => m.JwtInspector),
+    component: JwtInspector,
   },
   {
     type: 'curl-converter',
@@ -439,8 +461,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['curl', 'bash', 'convert', 'http', 'fetch', 'c#', 'csharp', 'python', 'javascript', 'typescript', 'request', 'api'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/api/curl-converter/curl-converter').then((m) => m.CurlConverter),
+    component: CurlConverter,
   },
 
   // Frontend Group
@@ -453,8 +474,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['api', 'client', 'frontend', 'fetch', 'axios', 'angular', 'react', 'service', 'http', 'rest', 'sdk'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/frontend/api-generator/api-generator').then((m) => m.ApiGenerator),
+    component: ApiGenerator,
   },
 
   // General Group
@@ -467,8 +487,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['guid', 'uuid', 'v4', 'random', 'unique', 'identifier', 'generate', 'id'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/general/guid-generator/guid-generator').then((m) => m.GuidGenerator),
+    component: GuidGenerator,
   },
   {
     type: 'timestamp-converter',
@@ -480,10 +499,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     defaultConfig: { defaultUnit: 'auto', hourFormat: '12h', autoTicker: true },
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
-    loadComponent: () =>
-      import('../../tools/general/timestamp-converter/timestamp-converter').then(
-        (m) => m.TimestampConverter,
-      ),
+    component: TimestampConverter,
   },
   {
     type: 'regex-tester',
@@ -492,10 +508,10 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'Regex tester',
     description: 'Test regular expressions against sample text.',
     keywords: ['regex', 'regular expression', 'pattern', 'test', 'matcher', 'match', 'extract', 'replace', 'groups'],
+    defaultConfig: { flags: 'g', delimiter: '/' },
     hasSidebarOptions: true,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/general/regex-tester/regex-tester').then((m) => m.RegexTester),
+    component: RegexTester,
   },
   {
     type: 'script-runner',
@@ -506,8 +522,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['script', 'runner', 'code', 'javascript', 'transform', 'eval', 'snippet', 'utility', 'automation', 'process'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/general/script-runner/script-runner').then((m) => m.ScriptRunner),
+    component: ScriptRunner,
   },
   {
     type: 'documentation-hub',
@@ -518,10 +533,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['docs', 'documentation', 'cheatsheet', 'reference', 'markdown', 'links', 'guide', 'manual', 'handbook'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () =>
-      import('../../tools/general/documentation-hub/documentation-hub').then(
-        (m) => m.DocumentationHub,
-      ),
+    component: DocumentationHub,
   },
   {
     type: 'terminal',
@@ -532,7 +544,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['terminal', 'console', 'cli', 'bash', 'shell', 'commands', 'curl', 'git', 'docker', 'powershell', 'snippets'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () => import('../../tools/general/terminal/terminal').then((m) => m.TerminalTool),
+    component: TerminalTool,
   },
   {
     type: 'log-viewer',
@@ -543,7 +555,7 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     keywords: ['logs', 'viewer', 'filter', 'parse', 'json logs', 'tail', 'trace', 'debug', 'grep', 'events'],
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
-    loadComponent: () => import('../../tools/general/log-viewer/log-viewer').then((m) => m.LogViewer),
+    component: LogViewer,
   },
 ];
 

@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InstanceService, ToolInstance } from '../core/tool/tool-instance';
-import { findToolDefinition, getLoadedComponent, resolveToolComponent } from '../core/tool/tool-registry';
+import { findToolDefinition, getToolComponent } from '../core/tool/tool-registry';
 
 @Component({
   selector: 'app-tool-page',
@@ -27,7 +27,6 @@ export class ToolPage implements OnInit, OnDestroy {
 
   toolType = signal<string>('');
   groupId = signal<string>('general');
-  loadedComponents = signal<Record<string, Type<any>>>({});
 
   scopedInstances = computed(() =>
     this.instanceService.instances().filter((i) => i.toolType === this.toolType()),
@@ -57,8 +56,6 @@ export class ToolPage implements OnInit, OnDestroy {
         this.groupId.set(def.group.id);
       }
 
-      this.ensureComponentLoaded(type);
-
       const existing = this.scopedInstances();
       if (existing.length === 0 && type) {
         this.instanceService.open(type, this.groupId());
@@ -79,21 +76,8 @@ export class ToolPage implements OnInit, OnDestroy {
     }
   }
 
-  ensureComponentLoaded(type: string): void {
-    if (!type) return;
-    const cached = getLoadedComponent(type);
-    if (cached) {
-      if (this.loadedComponents()[type] !== cached) {
-        this.loadedComponents.update((map) => ({ ...map, [type]: cached }));
-      }
-      return;
-    }
-
-    resolveToolComponent(type).then((comp) => {
-      if (comp) {
-        this.loadedComponents.update((map) => ({ ...map, [type]: comp }));
-      }
-    });
+  getToolComponent(type: string): Type<any> | undefined {
+    return getToolComponent(type);
   }
 
   selectInstance(id: string): void {

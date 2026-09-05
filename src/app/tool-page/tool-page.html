@@ -48,55 +48,16 @@
     </div>
   </div>
 
-  <!-- Active Tool Rendering -->
+  <!-- Active Tool Rendering: Keep-alive for all open instances, display only selected tab -->
   <div class="tool-surface">
-    @for (inst of scopedInstances(); track inst.id) {
-      <div class="instance-container" [class.active-instance]="inst.id === selectedInstance()?.id" [hidden]="inst.id !== selectedInstance()?.id">
-        @if (loadedComponents()[inst.toolType]; as comp) {
+    @for (inst of instanceService.instances(); track inst.id) {
+      <div
+        class="instance-container"
+        [class.active-instance]="inst.id === selectedInstance()?.id"
+        [hidden]="inst.id !== selectedInstance()?.id"
+      >
+        @if (getToolComponent(inst.toolType); as comp) {
           <ng-container *ngComponentOutlet="comp; inputs: { instanceId: inst.id }" />
-        } @else {
-          <div class="tool-skeleton-container" role="status" aria-live="polite">
-            <div class="tool-skeleton-header">
-              <div class="skeleton-pill shimmer"></div>
-              <div class="skeleton-actions">
-                <div class="skeleton-btn shimmer"></div>
-                <div class="skeleton-btn shimmer"></div>
-              </div>
-            </div>
-
-            <div class="tool-skeleton-grid">
-              <div class="tool-skeleton-panel shimmer">
-                <div class="skeleton-panel-header">
-                  <div class="skeleton-bar sm shimmer"></div>
-                </div>
-                <div class="skeleton-panel-body">
-                  <div class="skeleton-bar lg shimmer"></div>
-                  <div class="skeleton-bar md shimmer"></div>
-                  <div class="skeleton-bar sm shimmer"></div>
-                  <div class="skeleton-bar md shimmer"></div>
-                  <div class="skeleton-bar lg shimmer"></div>
-                </div>
-              </div>
-
-              <div class="tool-skeleton-panel shimmer">
-                <div class="skeleton-panel-header">
-                  <div class="skeleton-bar sm shimmer"></div>
-                </div>
-                <div class="skeleton-panel-body">
-                  <div class="skeleton-bar md shimmer"></div>
-                  <div class="skeleton-bar lg shimmer"></div>
-                  <div class="skeleton-bar sm shimmer"></div>
-                  <div class="skeleton-bar md shimmer"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="tool-loading-overlay">
-              <div class="tool-loading-spinner"></div>
-              <span class="tool-loading-text">Loading {{ currentToolDef()?.tool?.label || 'Tool' }}...</span>
-              <span class="tool-loading-subtext">Initializing editor workspace</span>
-            </div>
-          </div>
         }
       </div>
     }

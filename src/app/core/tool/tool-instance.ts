@@ -9,12 +9,13 @@ import {
 } from './tool-registry';
 import { WorkspaceStorage } from '../workspace-storage';
 
-export interface ToolInstance<TConfig = Record<string, any>> {
+export interface ToolInstance<TConfig = Record<string, any>, TState = Record<string, any>> {
   id: string;
   toolType: string;
   label: string;
   groupId: string;
   config: TConfig;
+  state?: TState;
   version?: number;
   createdAt?: number;
   closedAt?: number;
@@ -82,6 +83,7 @@ export class ToolInstanceService {
       groupId: resolvedGroup,
       label: `${toolLabelFor(toolType)} ${count + 1}`,
       config: defaultConfigFor(toolType),
+      state: {},
       version: 1,
       createdAt: Date.now(),
     };
@@ -101,6 +103,7 @@ export class ToolInstanceService {
       groupId: target.groupId,
       label: `${toolLabelFor(target.toolType)} ${count}`,
       config: JSON.parse(JSON.stringify(target.config || {})),
+      state: target.state ? JSON.parse(JSON.stringify(target.state)) : {},
       version: target.version ?? 1,
       createdAt: Date.now(),
     };
@@ -179,6 +182,16 @@ export class ToolInstanceService {
     this._instances.update((list) =>
       list.map((i) => (i.id === id ? { ...i, config: { ...i.config, ...patch } } : i)),
     );
+  }
+
+  updateState(id: string, patch: Record<string, any>) {
+    this._instances.update((list) =>
+      list.map((i) => (i.id === id ? { ...i, state: { ...(i.state || {}), ...patch } } : i)),
+    );
+  }
+
+  getState<T = Record<string, any>>(id: string): T | undefined {
+    return this._instances().find((i) => i.id === id)?.state as T | undefined;
   }
 
   setRightDrawer(opened: boolean): void {

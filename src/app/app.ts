@@ -1,4 +1,4 @@
-import { Component, signal, effect, ViewChild, inject, OnInit } from '@angular/core';
+import { Component, signal, effect, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -30,7 +30,7 @@ const THEME_KEY = 'workbench.theme';
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })
-export class App implements OnInit {
+export class App {
   @ViewChild('leftDrawer') leftDrawer!: MatSidenav;
   @ViewChild('rightDrawer') rightDrawer!: MatSidenav;
 
@@ -38,21 +38,6 @@ export class App implements OnInit {
   private router = inject(Router);
 
   isDark = signal(this.loadTheme());
-
-  ngOnInit(): void {
-    // Pre-warm the heavy CodeEditor (Monaco Editor) in the background during idle time
-    // so Vite pre-bundles it and browser preloads it before user opens any tool.
-    if (typeof window !== 'undefined') {
-      const prewarm = () => {
-        import('./shared/code-editor/code-editor').catch(() => {});
-      };
-      if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(prewarm, { timeout: 1500 });
-      } else {
-        setTimeout(prewarm, 1000);
-      }
-    }
-  }
 
   constructor() {
     effect(() => {
