@@ -5,11 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { TOOL_GROUPS, UPCOMING_GROUPS, matchesToolSearch } from '../core/tool-registry';
 import { ShellStateService } from '../core/shell-state.service';
+import { FeedbackComponent } from './feedback/feedback';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule, FeedbackComponent],
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })
@@ -19,7 +20,7 @@ export class Home {
 
   readonly toolGroups = TOOL_GROUPS;
   readonly upcomingGroups = UPCOMING_GROUPS;
-  activeHomeTab = signal<'tools' | 'upcoming'>('tools');
+  activeHomeTab = signal<'tools' | 'upcoming' | 'feedback'>('tools');
 
   searchQuery = this.shellState.searchQuery;
 

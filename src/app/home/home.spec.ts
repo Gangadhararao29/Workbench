@@ -48,6 +48,14 @@ describe('Home', () => {
     expect(component.activeHomeTab()).toBe('upcoming');
   });
 
+  it('switches tabs to feedback and renders app-feedback', () => {
+    component.activeHomeTab.set('feedback');
+    fixture.detectChanges();
+    expect(component.activeHomeTab()).toBe('feedback');
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-feedback')).toBeTruthy();
+  });
+
   it('filters tool groups when search query is present', () => {
     component.searchQuery.set('curl');
     fixture.detectChanges();
