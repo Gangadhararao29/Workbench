@@ -3,12 +3,14 @@ import { defaultConfigFor } from './tool-defaults';
 import { toolLabelFor } from './tool-registry';
 import { WorkspaceStorage } from './workspace-storage';
 
-export interface ToolInstance {
+export interface ToolInstance<TConfig = Record<string, any>> {
   id: string;
   toolType: string;
   label: string;
   groupId: string;
-  config: Record<string, any>;
+  config: TConfig;
+  version?: number;
+  createdAt?: number;
   closedAt?: number;
 }
 
@@ -49,8 +51,10 @@ export class InstanceService {
       id: crypto.randomUUID(),
       toolType,
       groupId,
-      label: `${toolLabelFor(toolType)} ${count > 0 ? count : ''}`,
+      label: `${toolLabelFor(toolType)} ${count + 1}`,
       config: defaultConfigFor(toolType),
+      version: 1,
+      createdAt: Date.now(),
     };
     this._instances.update((list) => [...list, instance]);
     this._activeId.set(instance.id);
@@ -67,6 +71,8 @@ export class InstanceService {
       groupId: target.groupId,
       label: `${toolLabelFor(target.toolType)} ${count}`,
       config: JSON.parse(JSON.stringify(target.config || {})),
+      version: target.version ?? 1,
+      createdAt: Date.now(),
     };
     this._instances.update((list) => [...list, cloned]);
     return cloned;

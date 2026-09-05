@@ -1,84 +1,22 @@
-import { Component, OnInit, OnDestroy, computed, signal, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, computed, signal, effect, inject, Type } from '@angular/core';
+import { CommonModule, NgComponentOutlet } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InstanceService, ToolInstance } from '../core/instance-service';
-import { findToolDefinition } from '../core/tool-registry';
+import { findToolDefinition, getLoadedComponent, resolveToolComponent } from '../core/tool-registry';
 import { ShellStateService } from '../core/shell-state.service';
-
-import { SqlFormatter } from '../tools/sql/sql-formatter/sql-formatter';
-import { JsonFormatter } from '../tools/json/json-formatter/json-formatter';
-import { CsharpToTypescript } from '../tools/dotnet/csharp-to-typescript/csharp-to-typescript';
-import { CsharpToJson } from '../tools/dotnet/csharp-to-json/csharp-to-json';
-import { CsharpFormatter } from '../tools/dotnet/csharp-formatter/csharp-formatter';
-import { SqlSearch } from '../tools/sql/sql-search/sql-search';
-import { JsonPath } from '../tools/json/json-path/json-path';
-import { JwtInspector } from '../tools/api/jwt-inspector/jwt-inspector';
-import { GuidGenerator } from '../tools/general/guid-generator/guid-generator';
-import { JsonToTypescript } from '../tools/json/json-to-typescript/json-to-typescript';
-import { JsonToCsharp } from '../tools/json/json-to-csharp/json-to-csharp';
-import { JsonToYaml } from '../tools/json/json-to-yaml/json-to-yaml';
-import { SqlToCsharp } from '../tools/sql/sql-to-csharp/sql-to-csharp';
-import { SqlGenerator } from '../tools/sql/sql-generator/sql-generator';
-import { JsonDiff } from '../tools/json/json-diff/json-diff';
-import { CurlConverter } from '../tools/api/curl-converter/curl-converter';
-import { TimestampConverter } from '../tools/general/timestamp-converter/timestamp-converter';
-import { RegexTester } from '../tools/general/regex-tester/regex-tester';
-import { ScriptRunner } from '../tools/general/script-runner/script-runner';
-import { HttpRequestBuilder } from '../tools/api/http-request-builder/http-request-builder';
-import { OpenapiInspector } from '../tools/api/openapi-inspector/openapi-inspector';
-import { EfConfiguration } from '../tools/ef/ef-configuration/ef-configuration';
-import { EfMigrations } from '../tools/ef/ef-migrations/ef-migrations';
-import { EfLinq } from '../tools/ef/ef-linq/ef-linq';
-import { EfDbContext } from '../tools/ef/ef-dbcontext/ef-dbcontext';
-import { ApiGenerator } from '../tools/frontend/api-generator/api-generator';
-import { FeatureGenerator } from '../tools/dotnet/feature-generator/feature-generator';
-import { DocumentationHub } from '../tools/general/documentation-hub/documentation-hub';
-import { TerminalTool } from '../tools/general/terminal/terminal';
-import { LogViewer } from '../tools/general/log-viewer/log-viewer';
-import { SqlQueryBuilder } from '../tools/sql/sql-query-builder/sql-query-builder';
 
 @Component({
   selector: 'app-tool-page',
   standalone: true,
   imports: [
     CommonModule,
+    NgComponentOutlet,
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    SqlFormatter,
-    JsonFormatter,
-    CsharpToTypescript,
-    CsharpToJson,
-    CsharpFormatter,
-    SqlSearch,
-    JsonPath,
-    JwtInspector,
-    GuidGenerator,
-    JsonToTypescript,
-    JsonToCsharp,
-    JsonToYaml,
-    SqlToCsharp,
-    SqlGenerator,
-    JsonDiff,
-    CurlConverter,
-    TimestampConverter,
-    RegexTester,
-    ScriptRunner,
-    HttpRequestBuilder,
-    OpenapiInspector,
-    EfConfiguration,
-    EfMigrations,
-    EfLinq,
-    EfDbContext,
-    ApiGenerator,
-    FeatureGenerator,
-    DocumentationHub,
-    TerminalTool,
-    LogViewer,
-    SqlQueryBuilder,
   ],
   templateUrl: './tool-page.html',
   styleUrls: ['./tool-page.css'],
@@ -92,6 +30,7 @@ export class ToolPage implements OnInit, OnDestroy {
   toolType = signal<string>('');
   groupId = signal<string>('general');
   selectedInstanceId = signal<string | null>(null);
+  loadedComponents = signal<Record<string, Type<any>>>({});
 
   scopedInstances = computed(() =>
     this.instanceService.instances().filter((i) => i.toolType === this.toolType())
@@ -121,6 +60,8 @@ export class ToolPage implements OnInit, OnDestroy {
         this.groupId.set(def.group.id);
       }
 
+      this.ensureComponentLoaded(type);
+
       const existing = this.scopedInstances();
       if (existing.length === 0 && type) {
         const created = this.instanceService.open(type, this.groupId());
@@ -135,6 +76,23 @@ export class ToolPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.shellState.selectedInstance.set(null);
+  }
+
+  ensureComponentLoaded(type: string): void {
+    if (!type) return;
+    const cached = getLoadedComponent(type);
+    if (cached) {
+      if (this.loadedComponents()[type] !== cached) {
+        this.loadedComponents.update((map) => ({ ...map, [type]: cached }));
+      }
+      return;
+    }
+
+    resolveToolComponent(type).then((comp) => {
+      if (comp) {
+        this.loadedComponents.update((map) => ({ ...map, [type]: comp }));
+      }
+    });
   }
 
   selectInstance(id: string): void {
