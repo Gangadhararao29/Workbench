@@ -119,6 +119,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   private editor?: monaco.editor.IStandaloneCodeEditor;
   private changeSubscription?: monaco.IDisposable;
   private resizeObserver?: ResizeObserver;
+  private layoutRafId: number | null = null;
   // Track the value we last pushed INTO the editor so we can avoid
   // re-setting it when the change originated from the editor itself,
   // which would otherwise create an infinite update loop.
@@ -129,6 +130,16 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   private startHeight = 0;
 
   constructor(private elementRef: ElementRef<HTMLElement>) {}
+
+  private scheduleLayout() {
+    if (this.layoutRafId !== null) {
+      cancelAnimationFrame(this.layoutRafId);
+    }
+    this.layoutRafId = requestAnimationFrame(() => {
+      this.layoutRafId = null;
+      this.editor?.layout();
+    });
+  }
 
   ngAfterViewInit() {
     configureMonacoWorkers();
@@ -150,12 +161,12 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       ariaLabel: this.ariaLabel,
     });
 
-    this.resizeObserver = new ResizeObserver(() => this.editor?.layout());
+    this.resizeObserver = new ResizeObserver(() => this.scheduleLayout());
     this.resizeObserver.observe(this.editorHost.nativeElement);
-    requestAnimationFrame(() => this.editor?.layout());
-    setTimeout(() => this.editor?.layout(), 50);
-    setTimeout(() => this.editor?.layout(), 150);
-    setTimeout(() => this.editor?.layout(), 400);
+    this.scheduleLayout();
+    setTimeout(() => this.scheduleLayout(), 50);
+    setTimeout(() => this.scheduleLayout(), 150);
+    setTimeout(() => this.scheduleLayout(), 400);
 
     this.lastPushedValue = this.value;
 
@@ -192,7 +203,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
     const hostEl = this.elementRef.nativeElement;
     hostEl.style.height = `${newHeight}px`;
     hostEl.style.flex = 'none';
-    this.editor?.layout();
+    this.scheduleLayout();
   }
 
   onResizeEnd(event: PointerEvent) {
@@ -204,7 +215,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
         target.releasePointerCapture(event.pointerId);
       } catch {}
     }
-    this.editor?.layout();
+    this.scheduleLayout();
   }
 
   onResizeKeydown(event: KeyboardEvent) {
@@ -216,13 +227,13 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       const newHeight = currentHeight + 24;
       hostEl.style.height = `${newHeight}px`;
       hostEl.style.flex = 'none';
-      this.editor?.layout();
+      this.scheduleLayout();
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       const newHeight = Math.max(this.minHeight, currentHeight - 24);
       hostEl.style.height = `${newHeight}px`;
       hostEl.style.flex = 'none';
-      this.editor?.layout();
+      this.scheduleLayout();
     }
   }
 
@@ -236,9 +247,9 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       if (incoming !== this.editor.getValue()) {
         this.lastPushedValue = incoming;
         this.editor.setValue(incoming);
-        requestAnimationFrame(() => this.editor?.layout());
-        setTimeout(() => this.editor?.layout(), 50);
-        setTimeout(() => this.editor?.layout(), 150);
+        this.scheduleLayout();
+        setTimeout(() => this.scheduleLayout(), 50);
+        setTimeout(() => this.scheduleLayout(), 150);
       }
     }
 
@@ -263,6 +274,10 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.layoutRafId !== null) {
+      cancelAnimationFrame(this.layoutRafId);
+      this.layoutRafId = null;
+    }
     this.resizeObserver?.disconnect();
     this.changeSubscription?.dispose();
     this.editor?.dispose();

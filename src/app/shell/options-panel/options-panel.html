@@ -583,33 +583,6 @@
     </div>
   }
 
-  @case ('timestamp-converter') {
-    <div class="field">
-      <label>Default Input Format</label>
-      <mat-select [value]="instance.config['defaultUnit'] || 'auto'" (selectionChange)="update('defaultUnit', $event.value)">
-        <mat-option value="auto">Auto-detect (Recommended)</mat-option>
-        <mat-option value="seconds">Unix seconds (10-digits)</mat-option>
-        <mat-option value="milliseconds">Unix milliseconds (13-digits)</mat-option>
-        <mat-option value="iso">ISO 8601 string</mat-option>
-        <mat-option value="relative">Relative offset (e.g. +2h, -1d)</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Time Display Format</label>
-      <mat-select [value]="instance.config['hourFormat'] || '12h'" (selectionChange)="update('hourFormat', $event.value)">
-        <mat-option value="12h">12-Hour (AM/PM)</mat-option>
-        <mat-option value="24h">24-Hour (Military / ISO)</mat-option>
-      </mat-select>
-    </div>
-    <div class="toggle-row">
-      <span>Auto-run live clock ticker</span>
-      <mat-slide-toggle
-        [checked]="instance.config['autoTicker'] !== false"
-        (change)="update('autoTicker', $event.checked)">
-      </mat-slide-toggle>
-    </div>
-  }
-
   @default {
     <div class="empty-state">No options for this tool yet</div>
   }

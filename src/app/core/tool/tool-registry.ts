@@ -496,9 +496,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'Timestamp converter',
     description: 'Convert timestamps between common formats.',
     keywords: ['timestamp', 'unix', 'epoch', 'datetime', 'iso', 'utc', 'timezone', 'date', 'time', 'clock', 'milliseconds'],
-    defaultConfig: { defaultUnit: 'auto', hourFormat: '12h', autoTicker: true },
-    hasSidebarOptions: true,
-    defaultSidebarOpen: true,
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
     component: TimestampConverter,
   },
   {

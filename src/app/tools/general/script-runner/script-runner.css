@@ -123,14 +123,14 @@
 }
 
 .card-body {
-  padding: 16px;
+  padding: 8px;
   background: var(--mat-sys-surface-container-low);
 }
 
 /* Code Editor sizing inside Card Body */
 .card-body app-code-editor {
   display: block;
-  height: 410px;
+  height: 420px;
   min-height: 250px;
 }
 
