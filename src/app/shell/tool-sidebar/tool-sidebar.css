@@ -96,6 +96,11 @@ mat-panel-title {
 	color: var(--mat-sys-primary);
 }
 
+.tool-row.active .favorite-btn,
+.tool-row.active .favorite-icon:not(.favorite-active) {
+	color: var(--mat-sys-primary);
+}
+
 .tool-text-container {
 	flex: 1;
 	min-width: 0;

@@ -6,7 +6,8 @@
       <span class="text-[11px] font-bold uppercase tracking-wide text-[var(--mat-sys-on-surface-variant)]">
         Framework
       </span>
-      <mat-button-toggle-group [value]="framework()" (change)="onFrameworkChange($event.value)" aria-label="Framework">
+      <mat-button-toggle-group [value]="framework()" (change)="onFrameworkChange($event.value)"
+        hideSingleSelectionIndicator="true" aria-label="Framework">
         @for (fw of frameworks; track fw.id) {
         <mat-button-toggle [value]="fw.id" [matTooltip]="fw.label">
           <mat-icon>{{ fw.icon }}</mat-icon>
@@ -16,7 +17,8 @@
       </mat-button-toggle-group>
     </div>
 
-    <mat-button-toggle-group [value]="mode()" (change)="setMode($event.value)" aria-label="Generation mode">
+    <mat-button-toggle-group [value]="mode()" (change)="setMode($event.value)" hideSingleSelectionIndicator="true"
+      aria-label="Generation mode">
       <mat-button-toggle value="crud">
         <mat-icon>view_list</mat-icon>
         <span>Full REST CRUD</span>
@@ -96,7 +98,8 @@
     <div class="flex items-center justify-between gap-3 flex-wrap px-3
                 bg-[var(--mat-sys-surface-container)] border-b border-[var(--mat-sys-outline-variant)] shrink-0">
       <mat-button-toggle-group [value]="activeTab()" (change)="activeTab.set($event.value)"
-        class="output-tabs-toggle !border-0 !bg-transparent" aria-label="Output tab">
+        hideSingleSelectionIndicator="true" class="output-tabs-toggle !border-0 !bg-transparent"
+        aria-label="Output tab">
         @for (tab of outputTabs; track tab.id) {
         <mat-button-toggle [value]="tab.id">
           <mat-icon>{{ tab.icon }}</mat-icon>

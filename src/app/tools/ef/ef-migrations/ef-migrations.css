@@ -57,8 +57,8 @@
 }
 
 .action-tab.custom-cs-tab.active {
-  background: var(--mat-sys-tertiary-container, #7b1fa2) !important;
-  color: var(--mat-sys-on-tertiary-container, #ffffff) !important;
+  background: var(--mat-sys-tertiary-container) !important;
+  color: var(--mat-sys-on-tertiary-container) !important;
 }
 
 .mode-toggle-group {

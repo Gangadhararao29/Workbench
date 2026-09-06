@@ -13,6 +13,8 @@
   min-height: 0;
   height: 100%;
   overflow: hidden;
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
 }
 
 /* ── Scoped Instance Tabs Bar ─────────────────────────────────────────── */
@@ -144,6 +146,7 @@
   overflow-x: hidden;
   padding: 12px;
   box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low);
 }
 
 .instance-container {

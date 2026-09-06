@@ -5,8 +5,4 @@
   min-height: 0;
 }
 
-.field:not(.grow) app-code-editor {
-  height: 160px;
-  min-height: 80px;
-}
 

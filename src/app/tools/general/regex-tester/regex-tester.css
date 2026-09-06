@@ -14,8 +14,8 @@
    ========================================================================== */
 
 .regex-config-card {
-  background: var(--mat-sys-surface-container-lowest, #ffffff);
-  border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
+  background: var(--mat-sys-surface-container-lowest);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 10px;
   padding: 14px 16px;
   display: flex;
@@ -31,8 +31,8 @@
 :host-context(body.dark-theme) .regex-config-card,
 :host-context(.dark-theme) .regex-config-card,
 body.dark-theme .regex-config-card {
-  background: var(--mat-sys-surface-container-low, #191c20);
-  border-color: var(--mat-sys-outline-variant, #33383f);
+  background: var(--mat-sys-surface-container-low);
+  border-color: var(--mat-sys-outline-variant);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
@@ -47,13 +47,13 @@ body.dark-theme .regex-config-card {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--mat-sys-on-surface, #0f172a);
+  color: var(--mat-sys-on-surface);
 }
 
 :host-context(body.dark-theme) .config-title,
 :host-context(.dark-theme) .config-title,
 body.dark-theme .config-title {
-  color: var(--mat-sys-on-surface, #e2e2e9);
+  color: var(--mat-sys-on-surface);
 }
 
 .count-badge {
@@ -87,8 +87,8 @@ body.dark-theme .count-badge {
 .regex-input-wrapper {
   display: flex;
   align-items: center;
-  background: var(--mat-sys-surface-container-low, #f8fafc);
-  border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   padding: 0 10px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -100,25 +100,25 @@ body.dark-theme .count-badge {
 :host-context(body.dark-theme) .regex-input-wrapper,
 :host-context(.dark-theme) .regex-input-wrapper,
 body.dark-theme .regex-input-wrapper {
-  background: var(--mat-sys-surface-container, #191c20);
-  border-color: var(--mat-sys-outline-variant, #44474e);
+  background: var(--mat-sys-surface-container);
+  border-color: var(--mat-sys-outline-variant);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .regex-input-wrapper:focus-within {
-  border-color: var(--mat-sys-primary, #005cbb);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary, #005cbb) 20%, transparent);
+  border-color: var(--mat-sys-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
 }
 
 :host-context(body.dark-theme) .regex-input-wrapper:focus-within,
 :host-context(.dark-theme) .regex-input-wrapper:focus-within,
 body.dark-theme .regex-input-wrapper:focus-within {
-  border-color: var(--mat-sys-primary, #abc7ff);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary, #abc7ff) 25%, transparent);
+  border-color: var(--mat-sys-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 25%, transparent);
 }
 
 .regex-delimiter {
-  color: var(--mat-sys-primary, #005cbb);
+  color: var(--mat-sys-primary);
   font-family: Consolas, Monaco, 'Roboto Mono', monospace;
   font-size: 16px;
   font-weight: 700;
@@ -128,7 +128,7 @@ body.dark-theme .regex-input-wrapper:focus-within {
 :host-context(body.dark-theme) .regex-delimiter,
 :host-context(.dark-theme) .regex-delimiter,
 body.dark-theme .regex-delimiter {
-  color: var(--mat-sys-primary, #abc7ff);
+  color: var(--mat-sys-primary);
 }
 
 .regex-code-input {

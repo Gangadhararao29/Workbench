@@ -8,8 +8,10 @@
   min-height: 0;
 }
 
-/* Input editor: fixed shorter height; result editor (.field.grow) fills remaining */
-.field:not(.grow) app-code-editor {
-  height: 160px;
-  min-height: 80px;
+/* Input editor sizing is shared; result editor (.field.grow) fills remaining. */
+
+.format-actions button[mat-stroked-button].active-mode {
+  background: var(--mat-sys-primary);
+  border-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
 }

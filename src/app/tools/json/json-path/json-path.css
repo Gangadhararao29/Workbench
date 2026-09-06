@@ -7,10 +7,6 @@
   min-height: 0;
 }
 
-/* .tool-surface-inner {
-  max-width: 900px;
-} */
-
 .path-actions {
   flex: 1;
   gap: 8px;
@@ -35,7 +31,3 @@
   border-color: var(--mat-sys-primary);
 }
 
-.field:not(.grow) app-code-editor {
-  height: 160px;
-  min-height: 80px;
-}

@@ -254,7 +254,7 @@
 }
 
 .req-star {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
 }
 
 .label-with-actions {
@@ -473,7 +473,7 @@
 }
 
 .warn-text {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
   font-style: normal;
   font-weight: 600;
 }
@@ -649,7 +649,7 @@
 }
 
 .safety-warning-banner mat-icon {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
   font-size: 20px;
   width: 20px;
   height: 20px;
@@ -665,7 +665,7 @@
 }
 
 .safety-text strong {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
   font-size: 12px;
 }
 

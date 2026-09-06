@@ -29,8 +29,8 @@
   align-items: center;
   gap: 12px;
   padding: 8px 14px;
-  background: var(--mat-sys-surface-container, #1a1c1e);
-  border: 1px solid var(--mat-sys-outline-variant, #33383f);
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 10px;
 }
 
@@ -51,14 +51,14 @@
 .ctrl-label {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--mat-sys-on-surface-variant, #919499);
+  color: var(--mat-sys-on-surface-variant);
   white-space: nowrap;
 }
 
 .custom-select {
-  background: var(--mat-sys-surface-container-high, #22252a);
-  color: var(--mat-sys-on-surface, #e2e2e6);
-  border: 1px solid var(--mat-sys-outline-variant, #44474e);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   padding: 5px 10px;
   font-size: 12.5px;
@@ -69,15 +69,15 @@
 }
 
 .custom-select:focus {
-  border-color: var(--mat-sys-primary, #a8c7fa);
+  border-color: var(--mat-sys-primary);
 }
 
 .preset-btn {
   font-size: 12px !important;
   height: 32px !important;
   line-height: 32px !important;
-  border-color: var(--mat-sys-outline-variant, #33383f) !important;
-  color: var(--mat-sys-on-surface, #e2e2e6) !important;
+  border-color: var(--mat-sys-outline-variant) !important;
+  color: var(--mat-sys-on-surface) !important;
 }
 
 .preset-btn:hover {
@@ -96,12 +96,12 @@
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
-  background: var(--mat-sys-surface-container-high, #22252a);
-  border: 1px dashed var(--mat-sys-primary, #a8c7fa);
+  background: var(--mat-sys-surface-container-high);
+  border: 1px dashed var(--mat-sys-primary);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--mat-sys-primary, #a8c7fa);
+  color: var(--mat-sys-primary);
   cursor: pointer;
   transition: background 0.2s ease;
   flex-shrink: 0;

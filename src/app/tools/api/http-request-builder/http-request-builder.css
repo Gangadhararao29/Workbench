@@ -268,7 +268,7 @@
   font-size: 13px;
   cursor: pointer;
   outline: none;
-  color: #059669;
+  color: #2563eb;
 }
 
 .method-select-wrapper[data-method='GET'] .method-select {
@@ -290,7 +290,40 @@
   color: #0891b2;
 }
 .method-select-wrapper[data-method='OPTIONS'] .method-select {
-  color: #475569;
+  color: #64748b;
+}
+
+.method-select option {
+  background: var(--mat-sys-surface-container-high);
+  color: #334155;
+}
+
+.method-select option[value='GET'] {
+  color: #16a34a;
+}
+
+.method-select option[value='POST'] {
+  color: #2563eb;
+}
+
+.method-select option[value='PUT'] {
+  color: #d97706;
+}
+
+.method-select option[value='PATCH'] {
+  color: #9333ea;
+}
+
+.method-select option[value='DELETE'] {
+  color: #dc2626;
+}
+
+.method-select option[value='HEAD'] {
+  color: #0891b2;
+}
+
+.method-select option[value='OPTIONS'] {
+  color: #64748b;
 }
 
 .url-input-wrapper {

@@ -1,0 +1,120 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$light-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  typography: (
+    brand-family: 'Roboto',
+    plain-family: 'Roboto',
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+$dark-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$cyan-palette,
+    tertiary: mat.$orange-palette,
+  ),
+  typography: (
+    brand-family: 'Roboto',
+    plain-family: 'Roboto',
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+html {
+  @include mat.all-component-themes($light-theme);
+  height: 100%;
+  background: var(--mat-sys-background);
+  --mat-sys-background: #f9f9ff;
+  --mat-sys-surface: #f9f9ff;
+  --mat-sys-surface-container-lowest: #ffffff;
+  --mat-sys-surface-container-low: #f3f3fa;
+  --mat-sys-surface-container: #ededf4;
+  --mat-sys-surface-container-high: #e7e7ee;
+  --mat-sys-surface-container-highest: #e1e2e9;
+  --mat-sys-primary: #005cbb;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #d7e3ff;
+  --mat-sys-on-primary-container: #001b3f;
+  --mat-sys-tertiary: #345fa8;
+  --mat-sys-on-tertiary: #ffffff;
+  --mat-sys-tertiary-container: #d9e2ff;
+  --mat-sys-on-tertiary-container: #001a41;
+  --mat-sys-error: #ba1a1a;
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: #ffdad6;
+  --mat-sys-on-error-container: #410002;
+  --mat-sys-on-surface: #1a1b20;
+  --mat-sys-on-surface-variant: #44474f;
+  --mat-sys-outline: #74777f;
+  --mat-sys-outline-variant: #c4c6cf;
+  --mat-sys-shadow: #000000;
+}
+
+body {
+  color-scheme: light;
+  background: var(--mat-sys-background);
+  background-color: var(--mat-sys-surface, #faf9fd);
+  color: var(--mat-sys-on-surface, #1a1b1f);
+  font: var(--mat-sys-body-medium, 400 0.875rem / 1.25rem 'Roboto', sans-serif);
+  margin: 0;
+  height: 100%;
+}
+
+body .mat-icon {
+  font-family: 'Material Symbols Outlined' !important;
+}
+
+body.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+
+  color-scheme: dark;
+  --mat-sys-background: #111318;
+  --mat-sys-surface: #111318;
+  --mat-sys-surface-container-lowest: #0c0e13;
+  --mat-sys-surface-container-low: #191c20;
+  --mat-sys-surface-container: #1d2024;
+  --mat-sys-surface-container-high: #282a2f;
+  --mat-sys-surface-container-highest: #33353a;
+  --mat-sys-primary: #4fd8eb;
+  --mat-sys-on-primary: #00363d;
+  --mat-sys-primary-container: #004f58;
+  --mat-sys-on-primary-container: #97f0ff;
+  --mat-sys-tertiary: #ffb95f;
+  --mat-sys-on-tertiary: #482900;
+  --mat-sys-tertiary-container: #683d00;
+  --mat-sys-on-tertiary-container: #ffddb5;
+  --mat-sys-error: #ffb4ab;
+  --mat-sys-on-error: #690005;
+  --mat-sys-error-container: #93000a;
+  --mat-sys-on-error-container: #ffdad6;
+  --mat-sys-on-surface: #e2e2e9;
+  --mat-sys-on-surface-variant: #c4c6d0;
+  --mat-sys-outline: #8e9099;
+  --mat-sys-outline-variant: #44474e;
+  --mat-sys-shadow: #000000;
+  background: var(--mat-sys-background);
+  background-color: var(--mat-sys-surface);
+}
+
+app-root,
+mat-sidenav-container,
+mat-sidenav-content {
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+}
+
+.app-icon {
+  color: var(--mat-sys-primary) !important;
+}

@@ -1,5 +1,5 @@
 const RESULT_SOURCE = 'workbench-script-result';
-const DEFAULT_TIMEOUT_MS = 5000;
+const DEFAULT_TIMEOUT_MS = 30000;
 const PARENT_ORIGIN = typeof window !== 'undefined' ? window.location.origin : '';
 
 export interface ScriptRunOutput {

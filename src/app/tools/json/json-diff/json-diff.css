@@ -42,6 +42,25 @@
   gap: 4px;
 }
 
+.compare-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.compare-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
 .key-field-inline {
   display: flex;
   align-items: center;

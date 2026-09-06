@@ -63,7 +63,7 @@
 .btn-copy-result:hover {
   background: var(--mat-sys-surface-container-highest);
   color: var(--mat-sys-on-surface);
-  border-color: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.1));
+  border-color: var(--mat-sys-outline-variant);
 }
 
 .btn-copy-result.copied {
@@ -94,6 +94,27 @@
   width: 18px;
   height: 18px;
   margin: 0;
+}
+
+.format-actions button[mat-stroked-button] {
+  border-color: var(--mat-sys-outline);
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.format-actions button[mat-stroked-button]:hover {
+  background: var(--mat-sys-surface-container-high);
+  border-color: var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+}
+
+.format-actions button[mat-flat-button][color='primary'] {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+.format-actions button[mat-flat-button][color='primary']:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 88%, var(--mat-sys-on-primary));
 }
 
 /* Active mode highlight (for formatter-style toggles) */
@@ -213,6 +234,11 @@ app-code-editor.result-editor {
   overflow: hidden;
 }
 
+.field:not(.grow) app-code-editor {
+  height: 160px;
+  min-height: 80px;
+}
+
 /* Fallback / Textarea & Pre formatting */
 .code-input,
 .code-result {
@@ -299,6 +325,14 @@ app-code-editor.result-editor {
 }
 
 /* HTTP Method Colors & Badges */
+.status-badge {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
 .badge-get,
 .method-get {
   background: rgba(34, 197, 94, 0.15);
@@ -415,13 +449,13 @@ body.dark-theme .in-cookie {
 .type-badge {
   font-family: monospace;
   font-size: 11px;
-  color: var(--mat-sys-primary, #2563eb);
+  color: var(--mat-sys-primary);
 }
 
 .format-badge {
   font-family: monospace;
   font-size: 10px;
-  color: var(--mat-sys-on-surface-variant, #64748b);
+  color: var(--mat-sys-on-surface-variant);
   margin-left: 4px;
 }
 
@@ -439,8 +473,8 @@ body.dark-theme .sec-badge {
 }
 
 .tag-pill {
-  background: var(--mat-sys-surface-container-high, #e2e8f0);
-  color: var(--mat-sys-on-surface-variant, #475569);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 12px;
@@ -461,7 +495,7 @@ body.dark-theme .required-badge {
 }
 
 .optional-badge {
-  color: var(--mat-sys-on-surface-variant, #64748b);
+  color: var(--mat-sys-on-surface-variant);
   font-size: 11px;
 }
 
@@ -502,7 +536,7 @@ body.dark-theme .required-badge {
 
 .error-banner mat-icon,
 .error-banner .error-icon {
-  color: var(--mat-sys-error, #ef4444);
+  color: var(--mat-sys-error);
   font-size: 20px;
   width: 20px;
   height: 20px;
@@ -512,7 +546,7 @@ body.dark-theme .required-badge {
 .error-banner .error-text strong {
   display: block;
   font-size: 13px;
-  color: var(--mat-sys-error, #ef4444);
+  color: var(--mat-sys-error);
 }
 
 .error-banner .error-text p {
@@ -725,7 +759,7 @@ body.dark-theme .required-badge {
 /* Detail Table */
 .table-wrapper {
   overflow-x: auto;
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
 }
 

@@ -33,7 +33,7 @@
 .search-icon {
   position: absolute;
   left: 12px;
-  color: var(--mat-sys-on-surface-variant, #64748b);
+  color: var(--mat-sys-on-surface-variant);
   pointer-events: none;
   font-size: 20px;
   width: 20px;
@@ -44,10 +44,10 @@
   box-sizing: border-box;
   width: 100%;
   padding: 10px 36px 10px 40px;
-  border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
-  background: var(--mat-sys-surface-container-lowest, #ffffff);
-  color: var(--mat-sys-on-surface, #0f172a);
+  background: var(--mat-sys-surface-container-lowest);
+  color: var(--mat-sys-on-surface);
   font: inherit;
   font-size: 14px;
   outline: none;
@@ -60,33 +60,33 @@
 :host-context(body.dark-theme) .search-input-wrapper input,
 :host-context(.dark-theme) .search-input-wrapper input,
 body.dark-theme .search-input-wrapper input {
-  background: var(--mat-sys-surface-container, #191c20);
-  border-color: var(--mat-sys-outline-variant, #44474e);
-  color: var(--mat-sys-on-surface, #e2e2e9);
+  background: var(--mat-sys-surface-container);
+  border-color: var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .search-input-wrapper input::placeholder {
-  color: var(--mat-sys-on-surface-variant, #64748b);
+  color: var(--mat-sys-on-surface-variant);
   opacity: 0.75;
 }
 
 :host-context(body.dark-theme) .search-input-wrapper input::placeholder,
 :host-context(.dark-theme) .search-input-wrapper input::placeholder,
 body.dark-theme .search-input-wrapper input::placeholder {
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .search-input-wrapper input:focus {
-  border-color: var(--mat-sys-primary, #005cbb);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary, #005cbb) 20%, transparent);
+  border-color: var(--mat-sys-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
 }
 
 :host-context(body.dark-theme) .search-input-wrapper input:focus,
 :host-context(.dark-theme) .search-input-wrapper input:focus,
 body.dark-theme .search-input-wrapper input:focus {
-  border-color: var(--mat-sys-primary, #abc7ff);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary, #abc7ff) 25%, transparent);
+  border-color: var(--mat-sys-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 25%, transparent);
 }
 
 .btn-clear-search {
@@ -206,6 +206,18 @@ body.dark-theme .filter-fav-btn.active mat-icon {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  background: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.btn-add-snippet:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 88%, var(--mat-sys-on-primary)) !important;
+}
+
+.btn-add-snippet mat-icon {
+  color: var(--mat-sys-on-primary);
 }
 
 /* ==========================================================================

@@ -41,10 +41,14 @@
 }
 
 .tab-btn.active {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
   border-color: var(--mat-sys-primary);
   font-weight: 600;
+}
+
+.tab-btn.active mat-icon {
+  color: var(--mat-sys-on-primary);
 }
 
 .tab-pane {
@@ -149,11 +153,11 @@
 }
 
 .status-badge.status-valid {
-  color: var(--mat-sys-primary, #4caf50);
+  color: var(--mat-sys-tertiary);
 }
 
 .status-badge.status-expired {
-  color: var(--mat-sys-error, #f44336);
+  color: var(--mat-sys-error);
 }
 
 .expiry-text {
