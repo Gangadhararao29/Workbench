@@ -140,7 +140,7 @@
   align-items: center;
   gap: 6px;
   height: 36px;
-  padding: 0 8px;
+  padding: 0 14px;
   border-radius: 6px;
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container);
@@ -169,7 +169,7 @@
   justify-content: center !important;
   height: 36px !important;
   line-height: 36px !important;
-  padding: 0 10px !important;
+  padding: 0 20px !important;
   border-radius: 6px !important;
   font-size: 13px !important;
   font-weight: 600 !important;

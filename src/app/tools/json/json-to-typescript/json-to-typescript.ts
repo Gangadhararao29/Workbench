@@ -32,12 +32,13 @@ export class JsonToTypescript {
 
   async convert() {
     try {
-      const value: unknown = JSON.parse(this.input());
-      if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        this.result.set('The root JSON value must be an object.');
+      const raw = this.input().trim();
+      const value: unknown = JSON.parse(raw);
+      if (!value || typeof value !== 'object') {
+        this.result.set('The root JSON value must be an object or array.');
         return;
       }
-      this.result.set(await convertJsonToTypescript(this.config()['rootName'] || 'Root', value as Record<string, unknown>, this.config()['outputType'] === 'type'));
+      this.result.set(await convertJsonToTypescript(this.config()['rootName'] || 'Root', raw, this.config()['outputType'] === 'type'));
     } catch (error) {
       this.result.set(`Invalid JSON: ${(error as Error).message}`);
     }

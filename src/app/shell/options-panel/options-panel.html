@@ -288,6 +288,23 @@
       </mat-select>
     </div>
   }
+  @case ('json-to-csharp') {
+    <div class="field">
+      <label>Root class name</label>
+      <input [value]="instance.config['rootName']" (input)="update('rootName', $any($event.target).value)" />
+    </div>
+    <div class="field">
+      <label>Namespace</label>
+      <input [value]="instance.config['namespace'] || 'Workbench.Models'" (input)="update('namespace', $any($event.target).value)" />
+    </div>
+    <div class="field">
+      <label>Array collection type</label>
+      <mat-select [value]="instance.config['arrayType'] || 'list'" (selectionChange)="update('arrayType', $event.value)">
+        <mat-option value="list">List&lt;T&gt;</mat-option>
+        <mat-option value="array">T[]</mat-option>
+      </mat-select>
+    </div>
+  }
   @case ('json-to-yaml') {
     <div class="field">
       <label>Indentation</label>

@@ -141,7 +141,7 @@ body.dark-theme .btn-clear-search:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 8px 14px;
   background: var(--mat-sys-surface-container-lowest, #ffffff);
   border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
   border-radius: 8px;

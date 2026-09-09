@@ -579,7 +579,7 @@ body.dark-theme .breakdown-label {
   background: var(--mat-sys-surface-container-low, #f8fafc);
   border: 1px solid var(--mat-sys-outline-variant, #e2e8f0);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;

@@ -193,9 +193,9 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'JSON → C#',
     description: 'Generate C# models from JSON data.',
     keywords: ['json', 'c#', 'csharp', 'dotnet', 'class', 'record', 'dto', 'convert', 'generate', 'model', 'poco'],
-    defaultConfig: { rootName: 'Root' },
-    hasSidebarOptions: false,
-    defaultSidebarOpen: false,
+    defaultConfig: { rootName: 'Root', namespace: 'Workbench.Models', arrayType: 'list' },
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     component: JsonToCsharp,
   },
   {
