@@ -21,103 +21,6 @@
 }
 
 /* =============================================
-   TOP TOOLBAR
-   ============================================= */
-.gen-toolbar {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 10px;
-  background: var(--mat-sys-surface-container);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 10px;
-}
-
-.toolbar-dialect {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.toolbar-presets {
-  display: flex;
-  gap: 6px;
-  flex: 1;
-  justify-content: center;
-}
-
-.ctrl-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface-variant);
-  white-space: nowrap;
-}
-
-.custom-select {
-  background: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-on-surface);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 12.5px;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.custom-select:focus {
-  border-color: var(--mat-sys-primary);
-}
-
-.preset-btn {
-  font-size: 12px !important;
-  height: 32px !important;
-  line-height: 32px !important;
-  border-color: var(--mat-sys-outline-variant) !important;
-  color: var(--mat-sys-on-surface) !important;
-}
-
-.preset-btn:hover {
-  background: var(--mat-sys-surface-container-highest) !important;
-}
-
-.preset-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-}
-
-.upload-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: var(--mat-sys-surface-container-high);
-  border: 1px dashed var(--mat-sys-primary);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--mat-sys-primary);
-  cursor: pointer;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-}
-
-.upload-btn:hover {
-  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-}
-
-.upload-btn mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-/* =============================================
    SPLIT WORKSPACE
    ============================================= */
 .gen-workspace {
@@ -692,14 +595,27 @@
   height: 15px;
 }
 
-/* Output Toolbar */
-.output-toolbar {
-  flex: 0 0 auto;
+/* Inline dialect select — sits between format pills and copy button */
+.toolbar-dialect-inline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
+}
+
+.custom-select {
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.custom-select:focus {
+  border-color: var(--mat-sys-primary);
 }
 
 .format-pill-group {

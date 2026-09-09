@@ -1,38 +1,5 @@
 <div class="sql-gen-container">
 
-  <!-- Toolbar: Dialect | Presets | Upload -->
-  <div class="gen-toolbar">
-    <!-- Left: Dialect -->
-    <div class="toolbar-dialect">
-      <label class="ctrl-label">Dialect</label>
-      <select class="custom-select" [ngModel]="dialect()" (ngModelChange)="setDialect($event)">
-        <option value="tsql">T-SQL (SQL Server)</option>
-        <option value="postgres">PostgreSQL</option>
-        <option value="mysql">MySQL</option>
-        <option value="sqlite">SQLite</option>
-      </select>
-    </div>
-
-    <!-- Center: Table Preset Buttons -->
-    <div class="toolbar-presets">
-      <button mat-stroked-button class="preset-btn" (click)="loadPreset('users')">
-        <mat-icon>group</mat-icon> Users Table
-      </button>
-      <button mat-stroked-button class="preset-btn" (click)="loadPreset('orders')">
-        <mat-icon>receipt_long</mat-icon> Orders Table
-      </button>
-      <button mat-stroked-button class="preset-btn" (click)="loadPreset('ssms')">
-        <mat-icon>grid_on</mat-icon> SSMS Paste
-      </button>
-    </div>
-
-    <!-- Right: Upload -->
-    <label class="upload-btn" matTooltip="Upload .sql or .txt schema definition">
-      <input type="file" accept=".sql,.txt,.ddl" (change)="onFileUpload($event)" hidden />
-      <mat-icon>upload_file</mat-icon> Upload DDL
-    </label>
-  </div>
-
   <!-- Main Split Layout -->
   <div class="gen-workspace">
 
@@ -49,88 +16,81 @@
           <mat-icon>content_paste_go</mat-icon>
           <span>SSMS Grid Paste</span>
           @if (parsedSsmsData().rows.length > 0) {
-            <span class="badge badge-accent">{{ parsedSsmsData().rows.length }} rows</span>
+          <span class="badge badge-accent">{{ parsedSsmsData().rows.length }} rows</span>
           }
         </button>
       </div>
 
       <!-- DDL INPUT PANEL -->
       @if (activeInputTab() === 'ddl') {
-        <div class="panel-section">
-          <div class="section-header">
-            <span class="section-title">Table Definition (DDL)</span>
-            <div class="section-actions">
-              @if (columns().length > 0) {
-                <span class="parse-status-badge">
-                  <mat-icon class="status-ok-icon">check_circle</mat-icon>
-                  {{ columns().length }} columns parsed
-                </span>
-              }
-              <button class="action-link-btn" (click)="parseDdl()">
-                <mat-icon>sync</mat-icon> Parse &amp; Sync
-              </button>
-            </div>
+      <div class="panel-section">
+        <div class="section-header">
+          <span class="section-title">Table Definition (DDL)</span>
+          <div class="section-actions">
+            @if (columns().length > 0) {
+            <span class="parse-status-badge">
+              <mat-icon class="status-ok-icon">check_circle</mat-icon>
+              {{ columns().length }} columns parsed
+            </span>
+            }
+            <button class="action-link-btn" (click)="parseDdl()">
+              <mat-icon>sync</mat-icon> Parse &amp; Sync
+            </button>
           </div>
-          <div class="editor-wrap">
-            <app-code-editor
-              [value]="ddlInput()"
-              (valueChange)="ddlInput.set($event); parseDdlDebounced()"
-              language="sql"
-              ariaLabel="CREATE TABLE DDL Input"
-              style="height: 180px;">
-            </app-code-editor>
-          </div>
-          @if (columns().length === 0 && ddlInput().trim().length > 0) {
-            <div class="parse-error-hint">
-              <mat-icon>warning_amber</mat-icon>
-              Could not parse columns. Check the DDL syntax or click <strong>Parse &amp; Sync</strong> manually.
-            </div>
-          }
         </div>
+        <div class="editor-wrap">
+          <app-code-editor [value]="ddlInput()" (valueChange)="ddlInput.set($event); parseDdlDebounced()" language="sql"
+            ariaLabel="CREATE TABLE DDL Input" style="height: 180px;">
+          </app-code-editor>
+        </div>
+        @if (columns().length === 0 && ddlInput().trim().length > 0) {
+        <div class="parse-error-hint">
+          <mat-icon>warning_amber</mat-icon>
+          Could not parse columns. Check the DDL syntax or click <strong>Parse &amp; Sync</strong> manually.
+        </div>
+        }
+      </div>
       }
 
       <!-- SSMS DATA PASTE PANEL -->
       @if (activeInputTab() === 'ssms') {
-        <div class="panel-section">
-          <div class="section-header">
-            <span class="section-title">SSMS Grid Data (Copy with Headers)</span>
-            <div class="section-actions">
-              @if (parsedSsmsData().rows.length > 0) {
-                <button class="action-link-btn action-link-btn--primary" (click)="setOutputTab('ssms_batch')">
-                  <mat-icon>bolt</mat-icon> View Batch SQL
-                </button>
-              }
-            </div>
-          </div>
-          <div class="ssms-hint-bar">
-            <mat-icon class="hint-icon">info_outline</mat-icon>
-            <span>In SSMS: select rows &rarr; right-click &rarr; <strong>Copy with Headers</strong>, then paste below</span>
-          </div>
-          <div class="textarea-wrap">
-            <textarea
-              class="ssms-textarea"
-              [ngModel]="ssmsInput()"
-              (ngModelChange)="onSsmsInputChange($event)"
-              placeholder="Paste SSMS grid results here (e.g. Id&#9;Username&#9;Email...)"
-              rows="7"></textarea>
-          </div>
-          <div class="ssms-status-bar">
-            <div class="status-item">
-              <mat-icon class="status-icon">view_column</mat-icon>
-              <span><strong>{{ parsedSsmsData().headers.length }}</strong> Columns detected</span>
-            </div>
-            <div class="status-item">
-              <mat-icon class="status-icon">data_array</mat-icon>
-              <span><strong>{{ parsedSsmsData().rows.length }}</strong> Rows parsed</span>
-            </div>
+      <div class="panel-section">
+        <div class="section-header">
+          <span class="section-title">SSMS Grid Data (Copy with Headers)</span>
+          <div class="section-actions">
             @if (parsedSsmsData().rows.length > 0) {
-              <div class="status-item status-item--success">
-                <mat-icon class="status-icon">check_circle</mat-icon>
-                <span>Ready — switch to <strong>SSMS Batch</strong> output tab</span>
-              </div>
+            <button class="action-link-btn action-link-btn--primary" (click)="setOutputTab('ssms_batch')">
+              <mat-icon>bolt</mat-icon> View Batch SQL
+            </button>
             }
           </div>
         </div>
+        <div class="ssms-hint-bar">
+          <mat-icon class="hint-icon">info_outline</mat-icon>
+          <span>In SSMS: select rows &rarr; right-click &rarr; <strong>Copy with Headers</strong>, then paste
+            below</span>
+        </div>
+        <div class="textarea-wrap">
+          <textarea class="ssms-textarea" [ngModel]="ssmsInput()" (ngModelChange)="onSsmsInputChange($event)"
+            placeholder="Paste SSMS grid results here (e.g. Id&#9;Username&#9;Email...)" rows="7"></textarea>
+        </div>
+        <div class="ssms-status-bar">
+          <div class="status-item">
+            <mat-icon class="status-icon">view_column</mat-icon>
+            <span><strong>{{ parsedSsmsData().headers.length }}</strong> Columns detected</span>
+          </div>
+          <div class="status-item">
+            <mat-icon class="status-icon">data_array</mat-icon>
+            <span><strong>{{ parsedSsmsData().rows.length }}</strong> Rows parsed</span>
+          </div>
+          @if (parsedSsmsData().rows.length > 0) {
+          <div class="status-item status-item--success">
+            <mat-icon class="status-icon">check_circle</mat-icon>
+            <span>Ready — switch to <strong>SSMS Batch</strong> output tab</span>
+          </div>
+          }
+        </div>
+      </div>
       }
 
       <!-- TABLE INFO STRIP -->
@@ -162,25 +122,29 @@
                 <th class="th-check" matTooltip="Include column in SELECT queries">
                   <div class="th-check-wrap">
                     <span>SELECT</span>
-                    <input type="checkbox" (change)="toggleAllSelect($any($event.target).checked)" checked />
+                    <input type="checkbox" [checked]="allSelectedInSelect()"
+                      (change)="toggleAllSelect($any($event.target).checked)" />
                   </div>
                 </th>
                 <th class="th-check" matTooltip="Include column in INSERT statements">
                   <div class="th-check-wrap">
                     <span>INSERT</span>
-                    <input type="checkbox" (change)="toggleAllInsert($any($event.target).checked)" checked />
+                    <input type="checkbox" [checked]="allSelectedInInsert()"
+                      (change)="toggleAllInsert($any($event.target).checked)" />
                   </div>
                 </th>
                 <th class="th-check" matTooltip="Include column in UPDATE SET clauses">
                   <div class="th-check-wrap">
                     <span>UPDATE</span>
-                    <input type="checkbox" (change)="toggleAllUpdate($any($event.target).checked)" checked />
+                    <input type="checkbox" [checked]="allSelectedInUpdate()"
+                      (change)="toggleAllUpdate($any($event.target).checked)" />
                   </div>
                 </th>
                 <th class="th-check" matTooltip="Include column in WHERE / Match conditions">
                   <div class="th-check-wrap">
                     <span>WHERE</span>
-                    <input type="checkbox" (change)="toggleAllWhere($any($event.target).checked)" />
+                    <input type="checkbox" [checked]="allSelectedInWhere()"
+                      (change)="toggleAllWhere($any($event.target).checked)" />
                   </div>
                 </th>
                 <th class="th-sample">Sample / Var Value</th>
@@ -188,73 +152,66 @@
             </thead>
             <tbody>
               @for (col of columns(); track col.name; let i = $index) {
-                <tr [class.highlight-pk]="col.isPrimaryKey" [class.highlight-identity]="col.isIdentity">
-                  <!-- Column Meta -->
-                  <td class="td-col-meta">
-                    <div class="col-name-row">
-                      <span class="col-name">{{ col.name }}</span>
-                      @if (col.isPrimaryKey) {
-                        <span class="badge badge-pk" matTooltip="Primary Key">PK</span>
-                      }
-                      @if (col.isIdentity) {
-                        <span class="badge badge-identity" matTooltip="Identity / Auto-increment">IDENTITY</span>
-                      }
-                    </div>
-                    <div class="col-type-row">
-                      <span class="col-type">{{ col.fullType }}</span>
-                      <span class="col-nullability" [class.not-null]="!col.nullable">
-                        {{ col.nullable ? 'NULL' : 'NOT NULL' }}
-                      </span>
-                      @if (col.defaultValue) {
-                        <span class="col-default" [matTooltip]="'Default: ' + col.defaultValue">DF</span>
-                      }
-                    </div>
-                  </td>
+              <tr [class.highlight-pk]="col.isPrimaryKey" [class.highlight-identity]="col.isIdentity">
+                <!-- Column Meta -->
+                <td class="td-col-meta">
+                  <div class="col-name-row">
+                    <span class="col-name">{{ col.name }}</span>
+                    @if (col.isPrimaryKey) {
+                    <span class="badge badge-pk" matTooltip="Primary Key">PK</span>
+                    }
+                    @if (col.isIdentity) {
+                    <span class="badge badge-identity" matTooltip="Identity / Auto-increment">IDENTITY</span>
+                    }
+                  </div>
+                  <div class="col-type-row">
+                    <span class="col-type">{{ col.fullType }}</span>
+                    <span class="col-nullability" [class.not-null]="!col.nullable">
+                      {{ col.nullable ? 'NULL' : 'NOT NULL' }}
+                    </span>
+                    @if (col.defaultValue) {
+                    <span class="col-default" [matTooltip]="'Default: ' + col.defaultValue">DF</span>
+                    }
+                  </div>
+                </td>
 
-                  <!-- SELECT Checkbox -->
-                  <td class="td-check">
-                    <input type="checkbox"
-                           [checked]="col.selectedInSelect"
-                           (change)="updateColumnValue(i, 'selectedInSelect', $any($event.target).checked)" />
-                  </td>
+                <!-- SELECT Checkbox -->
+                <td class="td-check">
+                  <input type="checkbox" [checked]="col.selectedInSelect"
+                    (change)="updateColumnValue(i, 'selectedInSelect', $any($event.target).checked)" />
+                </td>
 
-                  <!-- INSERT Checkbox -->
-                  <td class="td-check">
-                    <input type="checkbox"
-                           [checked]="col.selectedInInsert"
-                           (change)="updateColumnValue(i, 'selectedInInsert', $any($event.target).checked)" />
-                  </td>
+                <!-- INSERT Checkbox -->
+                <td class="td-check">
+                  <input type="checkbox" [checked]="col.selectedInInsert"
+                    (change)="updateColumnValue(i, 'selectedInInsert', $any($event.target).checked)" />
+                </td>
 
-                  <!-- UPDATE Checkbox -->
-                  <td class="td-check">
-                    <input type="checkbox"
-                           [checked]="col.selectedInUpdate"
-                           (change)="updateColumnValue(i, 'selectedInUpdate', $any($event.target).checked)" />
-                  </td>
+                <!-- UPDATE Checkbox -->
+                <td class="td-check">
+                  <input type="checkbox" [checked]="col.selectedInUpdate"
+                    (change)="updateColumnValue(i, 'selectedInUpdate', $any($event.target).checked)" />
+                </td>
 
-                  <!-- WHERE Checkbox -->
-                  <td class="td-check">
-                    <input type="checkbox"
-                           [checked]="col.isWhereKey"
-                           (change)="updateColumnValue(i, 'isWhereKey', $any($event.target).checked)" />
-                  </td>
+                <!-- WHERE Checkbox -->
+                <td class="td-check">
+                  <input type="checkbox" [checked]="col.isWhereKey"
+                    (change)="updateColumnValue(i, 'isWhereKey', $any($event.target).checked)" />
+                </td>
 
-                  <!-- Sample Value Input -->
-                  <td class="td-sample">
-                    <input type="text"
-                           class="sample-input"
-                           [value]="col.sampleValue || ''"
-                           (input)="updateColumnValue(i, 'sampleValue', $any($event.target).value)"
-                           placeholder="value..." />
-                  </td>
-                </tr>
+                <!-- Sample Value Input -->
+                <td class="td-sample">
+                  <input type="text" class="sample-input" [value]="col.sampleValue || ''"
+                    (input)="updateColumnValue(i, 'sampleValue', $any($event.target).value)" placeholder="value..." />
+                </td>
+              </tr>
               }
               @if (columns().length === 0) {
-                <tr>
-                  <td colspan="6" class="empty-state-cell">
-                    No columns found. Paste a valid CREATE TABLE statement above and click Parse.
-                  </td>
-                </tr>
+              <tr>
+                <td colspan="6" class="empty-state-cell">
+                  No columns found. Paste a valid CREATE TABLE statement above and click Parse.
+                </td>
+              </tr>
               }
             </tbody>
           </table>
@@ -269,9 +226,11 @@
 
         <div class="options-grid">
           <!-- Declare Variables on Top -->
-          <div class="option-card" [class.active]="declareVarsAtTop()" (click)="declareVarsAtTop.set(!declareVarsAtTop())">
+          <div class="option-card" [class.active]="declareVarsAtTop()"
+            (click)="declareVarsAtTop.set(!declareVarsAtTop())">
             <div class="option-check">
-              <input type="checkbox" [checked]="declareVarsAtTop()" (click)="$event.stopPropagation()" (change)="declareVarsAtTop.set($any($event.target).checked)" />
+              <input type="checkbox" [checked]="declareVarsAtTop()" (click)="$event.stopPropagation()"
+                (change)="declareVarsAtTop.set($any($event.target).checked)" />
             </div>
             <div class="option-info">
               <span class="option-title">Declare Variables on Top</span>
@@ -293,7 +252,8 @@
           <!-- NOLOCK Hint -->
           <div class="option-card" [class.active]="includeNolock()" (click)="includeNolock.set(!includeNolock())">
             <div class="option-check">
-              <input type="checkbox" [checked]="includeNolock()" (click)="$event.stopPropagation()" (change)="includeNolock.set($any($event.target).checked)" />
+              <input type="checkbox" [checked]="includeNolock()" (click)="$event.stopPropagation()"
+                (change)="includeNolock.set($any($event.target).checked)" />
             </div>
             <div class="option-info">
               <span class="option-title">Include WITH (NOLOCK)</span>
@@ -304,7 +264,8 @@
           <!-- ORDER BY -->
           <div class="option-card" [class.active]="includeOrderBy()" (click)="includeOrderBy.set(!includeOrderBy())">
             <div class="option-check">
-              <input type="checkbox" [checked]="includeOrderBy()" (click)="$event.stopPropagation()" (change)="includeOrderBy.set($any($event.target).checked)" />
+              <input type="checkbox" [checked]="includeOrderBy()" (click)="$event.stopPropagation()"
+                (change)="includeOrderBy.set($any($event.target).checked)" />
             </div>
             <div class="option-info">
               <span class="option-title">Include ORDER BY</span>
@@ -313,9 +274,11 @@
           </div>
 
           <!-- Square Brackets -->
-          <div class="option-card" [class.active]="useSquareBrackets()" (click)="useSquareBrackets.set(!useSquareBrackets())">
+          <div class="option-card" [class.active]="useSquareBrackets()"
+            (click)="useSquareBrackets.set(!useSquareBrackets())">
             <div class="option-check">
-              <input type="checkbox" [checked]="useSquareBrackets()" (click)="$event.stopPropagation()" (change)="useSquareBrackets.set($any($event.target).checked)" />
+              <input type="checkbox" [checked]="useSquareBrackets()" (click)="$event.stopPropagation()"
+                (change)="useSquareBrackets.set($any($event.target).checked)" />
             </div>
             <div class="option-info">
               <span class="option-title">Enclose Identifiers in [ ]</span>
@@ -324,9 +287,11 @@
           </div>
 
           <!-- Pagination -->
-          <div class="option-card" [class.active]="includePagination()" (click)="includePagination.set(!includePagination())">
+          <div class="option-card" [class.active]="includePagination()"
+            (click)="includePagination.set(!includePagination())">
             <div class="option-check">
-              <input type="checkbox" [checked]="includePagination()" (click)="$event.stopPropagation()" (change)="includePagination.set($any($event.target).checked)" />
+              <input type="checkbox" [checked]="includePagination()" (click)="$event.stopPropagation()"
+                (change)="includePagination.set($any($event.target).checked)" />
             </div>
             <div class="option-info">
               <span class="option-title">Enable Pagination</span>
@@ -335,9 +300,11 @@
           </div>
 
           <!-- Soft Delete -->
-          <div class="option-card" [class.active]="enableSoftDelete()" (click)="enableSoftDelete.set(!enableSoftDelete())">
+          <div class="option-card" [class.active]="enableSoftDelete()"
+            (click)="enableSoftDelete.set(!enableSoftDelete())">
             <div class="option-check">
-              <input type="checkbox" [checked]="enableSoftDelete()" (click)="$event.stopPropagation()" (change)="enableSoftDelete.set($any($event.target).checked)" />
+              <input type="checkbox" [checked]="enableSoftDelete()" (click)="$event.stopPropagation()"
+                (change)="enableSoftDelete.set($any($event.target).checked)" />
             </div>
             <div class="option-info">
               <span class="option-title">Soft Delete (UPDATE IsActive=0)</span>
@@ -354,9 +321,6 @@
       <!-- Output Tabs -->
       <div class="output-nav-bar">
         <div class="output-tabs">
-          <button class="out-tab" [class.active]="activeOutputTab() === 'all'" (click)="setOutputTab('all')">
-            <mat-icon>auto_stories</mat-icon> All CRUD
-          </button>
           <button class="out-tab" [class.active]="activeOutputTab() === 'select'" (click)="setOutputTab('select')">
             <mat-icon>search</mat-icon> SELECT
           </button>
@@ -372,37 +336,44 @@
           <button class="out-tab" [class.active]="activeOutputTab() === 'upsert'" (click)="setOutputTab('upsert')">
             <mat-icon>merge_type</mat-icon> UPSERT / MERGE
           </button>
-          <button class="out-tab" [class.active]="activeOutputTab() === 'ssms_batch'" (click)="setOutputTab('ssms_batch')">
+          <button class="out-tab" [class.active]="activeOutputTab() === 'ssms_batch'"
+            (click)="setOutputTab('ssms_batch')">
             <mat-icon>dataset</mat-icon> SSMS Batch
           </button>
         </div>
       </div>
 
-      <!-- Output Toolbar -->
-      <div class="output-toolbar">
+      <!-- Output Toolbar: [Format Pills] [Dialect] [Copy] -->
+      <div class="flex justify-between items-center">
         <div class="format-pill-group">
-          <button class="format-pill" [class.active]="outputFormat() === 'formatted'" (click)="setOutputFormat('formatted')">Formatted</button>
-          <button class="format-pill" [class.active]="outputFormat() === 'compact'" (click)="setOutputFormat('compact')">Compact</button>
-          <button class="format-pill" [class.active]="outputFormat() === 'minified'" (click)="setOutputFormat('minified')">Minified</button>
+          <button class="format-pill" [class.active]="outputFormat() === 'formatted'"
+            (click)="setOutputFormat('formatted')">Formatted</button>
+          <button class="format-pill" [class.active]="outputFormat() === 'compact'"
+            (click)="setOutputFormat('compact')">Compact</button>
+          <button class="format-pill" [class.active]="outputFormat() === 'minified'"
+            (click)="setOutputFormat('minified')">Minified</button>
         </div>
+
+        <div class="toolbar-dialect-inline">
+          <select class="custom-select" [ngModel]="dialect()" (ngModelChange)="setDialect($event)">
+            <option value="tsql">T-SQL</option>
+            <option value="postgres">PostgreSQL</option>
+            <option value="mysql">MySQL</option>
+            <option value="sqlite">SQLite</option>
+          </select>
+        </div>
+
         <div class="out-toolbar-right">
-          <button mat-stroked-button class="tool-btn" (click)="downloadSql()" matTooltip="Download SQL file">
-            <mat-icon>download</mat-icon> Download
-          </button>
           <button mat-flat-button color="primary" class="copy-btn" (click)="copySql()">
             <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-            {{ copied() ? 'Copied!' : 'Copy SQL' }}
+            {{ copied() ? 'Copied!' : 'SQL' }}
           </button>
         </div>
       </div>
 
       <!-- Code Editor Output (fills remaining height, scrollable inside) -->
       <div class="output-editor-container">
-        <app-code-editor
-          [value]="generatedSql()"
-          language="sql"
-          ariaLabel="Generated SQL output"
-          [readOnly]="true">
+        <app-code-editor [value]="generatedSql()" language="sql" ariaLabel="Generated SQL output" [readOnly]="true">
         </app-code-editor>
       </div>
 
