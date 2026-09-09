@@ -33,7 +33,7 @@
               {{ columns().length }} columns parsed
             </span>
             }
-            <button class="action-link-btn" (click)="parseDdl()">
+            <button class="mini-btn mini-btn--primary" (click)="parseDdl()">
               <mat-icon>sync</mat-icon> Parse &amp; Sync
             </button>
           </div>
@@ -59,7 +59,7 @@
           <span class="section-title">SSMS Grid Data (Copy with Headers)</span>
           <div class="section-actions">
             @if (parsedSsmsData().rows.length > 0) {
-            <button class="action-link-btn action-link-btn--primary" (click)="setOutputTab('ssms_batch')">
+            <button class="mini-btn mini-btn--primary" (click)="setOutputTab('ssms_batch')">
               <mat-icon>bolt</mat-icon> View Batch SQL
             </button>
             }
@@ -100,7 +100,7 @@
           <span class="table-name-tag">{{ fullTableName }}</span>
           <span class="count-tag">{{ columns().length }} columns</span>
         </div>
-        <div class="strip-actions">
+        <div class="">
           <button class="mini-btn" (click)="resetColumnDefaults()" matTooltip="Reset default column selections">
             <mat-icon>restart_alt</mat-icon> Reset Defaults
           </button>
@@ -238,17 +238,6 @@
             </div>
           </div>
 
-          <!-- Guard Condition -->
-          <div class="option-group-card">
-            <label class="ctrl-label">Data Checking / Guard Condition</label>
-            <select class="custom-select" [ngModel]="guardCondition()" (ngModelChange)="guardCondition.set($event)">
-              <option value="none">None (Standard INSERT / UPDATE)</option>
-              <option value="if_not_exists">IF NOT EXISTS (Guard on Insert)</option>
-              <option value="if_exists_else">IF EXISTS ... UPDATE ... ELSE ... INSERT (UPSERT)</option>
-              <option value="merge">MERGE INTO (ANSI / T-SQL MERGE)</option>
-            </select>
-          </div>
-
           <!-- NOLOCK Hint -->
           <div class="option-card" [class.active]="includeNolock()" (click)="includeNolock.set(!includeNolock())">
             <div class="option-check">
@@ -260,6 +249,19 @@
               <span class="option-desc">Adds uncommitted read hint to SELECT queries</span>
             </div>
           </div>
+
+          <!-- Guard Condition -->
+          <div class="option-group-card">
+            <label class="ctrl-label">Data Checking / Guard Condition</label>
+            <select class="custom-select" [ngModel]="guardCondition()" (ngModelChange)="guardCondition.set($event)">
+              <option value="none">None (Standard INSERT / UPDATE)</option>
+              <option value="if_not_exists">IF NOT EXISTS (Guard on Insert)</option>
+              <option value="if_exists_else">IF EXISTS ... UPDATE ... ELSE ... INSERT (UPSERT)</option>
+              <option value="merge">MERGE INTO (ANSI / T-SQL MERGE)</option>
+            </select>
+          </div>
+
+
 
           <!-- ORDER BY -->
           <div class="option-card" [class.active]="includeOrderBy()" (click)="includeOrderBy.set(!includeOrderBy())">

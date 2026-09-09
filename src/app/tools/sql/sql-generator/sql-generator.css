@@ -287,7 +287,7 @@
 .mini-btn mat-icon {
   font-size: 13px;
   width: 13px;
-  height: 13px;
+  height: auto;
 }
 
 /* =============================================
@@ -559,7 +559,7 @@
 
 .output-tabs {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .out-tab {
@@ -592,7 +592,7 @@
 .out-tab mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
 }
 
 /* Inline dialect select — sits between format pills and copy button */
@@ -717,18 +717,13 @@
   gap: 8px;
 }
 
-/* Primary accent variant for the "View Batch SQL" button
-   (base .action-link-btn is in tool-common.css) */
-.action-link-btn--primary {
+.mini-btn--primary {
   border: 1px solid var(--mat-sys-primary, #a8c7fa);
   color: var(--mat-sys-primary, #a8c7fa);
   background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
-  border-radius: 5px;
-  padding: 3px 9px;
-  white-space: nowrap;
 }
 
-.action-link-btn--primary:hover {
+.mini-btn--primay:hover {
   background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
   color: var(--mat-sys-primary, #a8c7fa);
   border-color: var(--mat-sys-primary, #a8c7fa);
@@ -753,7 +748,7 @@
 .status-ok-icon {
   font-size: 13px;
   width: 13px;
-  height: 13px;
+  height: auto;
   color: var(--mat-sys-tertiary);
 }
 

@@ -130,7 +130,7 @@
 /* Code Editor sizing inside Card Body */
 .card-body app-code-editor {
   display: block;
-  height: 420px;
+  height: 405px;
   min-height: 250px;
 }
 
