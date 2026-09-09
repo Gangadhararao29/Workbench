@@ -6,17 +6,17 @@
 
       <div class="form-row">
         <label>DbContext Class Name</label>
-        <input [(ngModel)]="contextName" (ngModelChange)="generate()" placeholder="AppDbContext" />
+        <input [(ngModel)]="contextName" (ngModelChange)="onParamChange()" placeholder="AppDbContext" />
       </div>
 
       <div class="form-row">
         <label>Namespace</label>
-        <input [(ngModel)]="namespace" (ngModelChange)="generate()" placeholder="MyApp.Infrastructure.Data" />
+        <input [(ngModel)]="namespace" (ngModelChange)="onParamChange()" placeholder="MyApp.Infrastructure.Data" />
       </div>
 
       <div class="form-row">
         <label>Database Provider</label>
-        <mat-select [(value)]="provider" (selectionChange)="generate()">
+        <mat-select [(value)]="provider" (selectionChange)="onParamChange()">
           <mat-option value="SqlServer">Microsoft SQL Server</mat-option>
           <mat-option value="PostgreSql">PostgreSQL (Npgsql)</mat-option>
           <mat-option value="MySql">MySQL / MariaDB (Pomelo)</mat-option>
@@ -72,8 +72,19 @@
     <!-- Right Generated DbContext -->
     <div class="output-panel field grow">
       <div class="pane-header">
-        <label>Generated EF Core DbContext</label>
-        <span class="pane-subtitle">Production-ready DbContext with DbSets, audit tracking & DI extension</span>
+        <div>
+          <label>Generated EF Core DbContext</label>
+          <span class="pane-subtitle">Production-ready DbContext with DbSets, audit tracking & DI extension</span>
+        </div>
+        <button
+          class="btn-copy-result"
+          [class.copied]="copied()"
+          (click)="copyResult()"
+          [matTooltip]="copied() ? 'Copied!' : 'Copy result'"
+          aria-label="Copy result"
+        >
+          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
       </div>
       <app-code-editor
         [value]="result()"

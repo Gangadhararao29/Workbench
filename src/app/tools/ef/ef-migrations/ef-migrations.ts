@@ -63,10 +63,26 @@ export class EfMigrations implements OnInit {
   customType = 'int';
 
   result = signal('');
+  copied = signal(false);
 
   constructor(private instanceService: InstanceService) {
     effect(() => {
-      this.config();
+      const conf = this.config();
+      if (conf['project'] !== undefined && conf['project'] !== this.project) {
+        this.project = conf['project'];
+      }
+      if (conf['startupProject'] !== undefined && conf['startupProject'] !== this.startupProject) {
+        this.startupProject = conf['startupProject'];
+      }
+      if (conf['contextName'] !== undefined && conf['contextName'] !== this.contextName) {
+        this.contextName = conf['contextName'];
+      }
+      if (conf['provider'] !== undefined && conf['provider'] !== this.provider) {
+        this.provider = conf['provider'];
+      }
+      if (conf['connectionString'] !== undefined && conf['connectionString'] !== this.connectionString) {
+        this.connectionString = conf['connectionString'];
+      }
       this.generate();
     });
   }
@@ -85,6 +101,27 @@ export class EfMigrations implements OnInit {
     if (conf['connectionString']) this.connectionString = conf['connectionString'];
 
     this.generate();
+  }
+
+  syncConfig(): void {
+    this.instanceService.updateConfig(this.instanceId, {
+      project: this.project,
+      startupProject: this.startupProject,
+      contextName: this.contextName,
+      provider: this.provider,
+      connectionString: this.connectionString,
+    });
+    this.generate();
+  }
+
+  copyResult(): void {
+    const text = this.result();
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.copied.set(true);
+        setTimeout(() => this.copied.set(false), 1500);
+      });
+    }
   }
 
   setAction(action: CliAction) {
@@ -152,7 +189,7 @@ export class EfMigrations implements OnInit {
         const idemp = this.idempotent ? '--idempotent' : '';
         const from = this.fromMigration.trim() ? this.fromMigration.trim() : '';
         const to = this.toMigration.trim() ? this.toMigration.trim() : '';
-        const range = from && to ? `${from} ${to}` : from ? `${from}` : '';
+        const range = from && to ? `${from} ${to}` : from ? from : to ? `0 ${to}` : '';
 
         commands.push(`# Generate idempotent SQL deployment script for CI/CD or DBA review`);
         commands.push(`dotnet ef migrations script ${range ? range + ' ' : ''}${[idemp, out, common].filter(Boolean).join(' ')}`);
@@ -237,13 +274,20 @@ export class EfMigrations implements OnInit {
         const prov = `"${this.provider.trim() || 'Microsoft.EntityFrameworkCore.SqlServer'}"`;
         const o = this.outputDir.trim() ? `-OutputDir "${this.outputDir.trim()}"` : '-OutputDir "Models"';
         const da = this.useDataAnnotations ? '-DataAnnotations' : '';
+        const f = this.force ? '-Force' : '';
         commands.push(`# Package Manager Console (PMC) - Scaffold DbContext`);
-        commands.push(`Scaffold-DbContext ${conn} ${prov} ${[o, c, p, s, da].filter(Boolean).join(' ')}`);
+        commands.push(`Scaffold-DbContext ${conn} ${prov} ${[o, c, p, s, da, f].filter(Boolean).join(' ')}`);
         break;
       }
       case 'bundle': {
-        commands.push(`# Note: Migration bundles are created via dotnet CLI.`);
-        commands.push(`dotnet ef migrations bundle -p "${this.project}" -s "${this.startupProject}" -c ${this.contextName}`);
+        const out = this.bundleOutputFile.trim() ? `-o "${this.bundleOutputFile.trim()}"` : '';
+        const r = this.runtime.trim() ? `-r ${this.runtime.trim()}` : '';
+        const f = this.force ? '--force' : '';
+        const pCli = this.project.trim() ? `-p "${this.project.trim()}"` : '';
+        const sCli = this.startupProject.trim() ? `-s "${this.startupProject.trim()}"` : '';
+        const cCli = this.contextName.trim() ? `-c ${this.contextName.trim()}` : '';
+        commands.push(`# Note: Migration bundles are created via the dotnet CLI tool:`);
+        commands.push(`dotnet ef migrations bundle ${[out, r, f, pCli, sCli, cCli].filter(Boolean).join(' ')}`);
         break;
       }
     }
@@ -252,12 +296,13 @@ export class EfMigrations implements OnInit {
   }
 
   private generateCustomCs() {
+    const className = (this.migrationName.trim() || 'CustomOperation').replace(/[^a-zA-Z0-9_]/g, '') || 'CustomOperation';
     const lines: string[] = [
       'using Microsoft.EntityFrameworkCore.Migrations;',
       '',
       '#nullable disable',
       '',
-      `public partial class CustomOperations_${Date.now()} : Migration`,
+      `public partial class ${className} : Migration`,
       '{',
       '    protected override void Up(MigrationBuilder migrationBuilder)',
       '    {'
@@ -287,6 +332,15 @@ export class EfMigrations implements OnInit {
       lines.push(`            FROM Customers`);
       lines.push(`            WHERE IsDeleted = 0;`);
       lines.push('        ");');
+    } else if (this.customSnippetType === 'seed') {
+      lines.push(`        migrationBuilder.InsertData(`);
+      lines.push(`            table: "${this.customTable}",`);
+      lines.push(`            columns: new[] { "Id", "${this.customColumn}" },`);
+      lines.push(`            values: new object[,]`);
+      lines.push(`            {`);
+      lines.push(`                { 1, "DefaultValue1" },`);
+      lines.push(`                { 2, "DefaultValue2" }`);
+      lines.push(`            });`);
     }
 
     lines.push('    }');
@@ -310,6 +364,11 @@ export class EfMigrations implements OnInit {
       lines.push(`        migrationBuilder.Sql(@"`);
       lines.push(`            DROP VIEW IF EXISTS Vw_ActiveCustomers;`);
       lines.push('        ");');
+    } else if (this.customSnippetType === 'seed') {
+      lines.push(`        migrationBuilder.DeleteData(`);
+      lines.push(`            table: "${this.customTable}",`);
+      lines.push(`            keyColumn: "Id",`);
+      lines.push(`            keyValues: new object[] { 1, 2 });`);
     }
 
     lines.push('    }');

@@ -32,7 +32,7 @@ export interface EfConfigurationOptions {
   tableNaming?: 'plural' | 'singular' | 'exact';
   schema?: string;
   defaultStringLength?: number;
-  deleteBehavior?: 'Restrict' | 'Cascade' | 'SetNull' | 'NoAction';
+  deleteBehavior?: 'Restrict' | 'Cascade' | 'SetNull' | 'NoAction' | 'ClientSetNull';
   enableSoftDelete?: boolean;
   enablePrecision?: boolean;
   enableEnumConversion?: boolean;
@@ -122,7 +122,7 @@ export function parseCSharpEntities(
 
   // Extract classes / records
   const classRegex =
-    /(?:\[([^\]]+)\]\s*)*(?:public\s+|internal\s+|sealed\s+)*(?:class|record)\s+(\w+)(?:<[^>]+>)?(?:\s*:\s*[^{]+)?\s*\{([\s\S]*?)\n\s*\}/g;
+    /(?:\[([^\]]+)\]\s*)*(?:public\s+|internal\s+|sealed\s+)*(?:class|record)\s+(\w+)(?:<[^>]+>)?(?:\s*:\s*[^{]+)?\s*\{([\s\S]*?)(?:\n\s*\}|\s*\}\s*$)/g;
   let match: RegExpExecArray | null;
 
   const tableNaming = options.tableNaming || 'plural';

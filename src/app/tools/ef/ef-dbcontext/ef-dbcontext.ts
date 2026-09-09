@@ -45,10 +45,20 @@ export class EfDbContext implements OnInit {
   useDbContextPool = true;
 
   result = signal('');
+  copied = signal(false);
 
   constructor(private instanceService: InstanceService) {
     effect(() => {
-      this.config();
+      const conf = this.config();
+      if (conf.contextName !== undefined && conf.contextName !== this.contextName) {
+        this.contextName = conf.contextName;
+      }
+      if (conf.namespace !== undefined && conf.namespace !== this.namespace) {
+        this.namespace = conf.namespace;
+      }
+      if (conf.provider !== undefined && conf.provider !== this.provider) {
+        this.provider = conf.provider;
+      }
       this.generate();
     });
   }
@@ -66,6 +76,25 @@ export class EfDbContext implements OnInit {
     if (conf.provider) this.provider = conf.provider;
 
     this.generate();
+  }
+
+  onParamChange(): void {
+    this.instanceService.updateConfig(this.instanceId, {
+      contextName: this.contextName,
+      namespace: this.namespace,
+      provider: this.provider,
+    });
+    this.generate();
+  }
+
+  copyResult(): void {
+    const text = this.result();
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.copied.set(true);
+        setTimeout(() => this.copied.set(false), 1500);
+      });
+    }
   }
 
   generate(): void {

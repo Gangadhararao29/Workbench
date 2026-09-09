@@ -1,4 +1,4 @@
-﻿:host {
+:host {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -7,6 +7,7 @@
 
 .ef-config-container {
   max-width: 100vw;
+  box-sizing: border-box;
 }
 
 .top-toolbar {
@@ -15,10 +16,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 8px;
+  padding: 6px 10px;
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 6px;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .preset-group,
@@ -30,8 +32,8 @@
 }
 
 .toolbar-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--mat-sys-on-surface-variant);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -42,12 +44,15 @@
   height: 28px !important;
   line-height: 28px !important;
   padding: 0 10px !important;
+  border-radius: 6px !important;
   color: var(--mat-sys-on-surface) !important;
   border-color: var(--mat-sys-outline-variant) !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .preset-btn:hover {
   background: var(--mat-sys-surface-container-highest) !important;
+  border-color: var(--mat-sys-outline) !important;
 }
 
 .mode-btn {
@@ -55,9 +60,10 @@
   height: 28px !important;
   line-height: 28px !important;
   padding: 0 12px !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   background: transparent;
   color: var(--mat-sys-on-surface-variant);
+  transition: all 0.15s ease;
 }
 
 .mode-btn:hover {
@@ -69,6 +75,7 @@
   background: var(--mat-sys-primary) !important;
   color: var(--mat-sys-on-primary) !important;
   font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .editor-split {
@@ -89,24 +96,29 @@
 .pane-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   margin-bottom: 6px;
+  min-height: 28px;
 }
 
 .pane-header label {
   font-weight: 600;
   font-size: 13px;
   color: var(--mat-sys-on-surface);
+  display: block;
 }
 
 .pane-subtitle {
   font-size: 11px;
   color: var(--mat-sys-on-surface-variant);
+  margin-top: 1px;
 }
 
 app-code-editor {
   flex: 1;
   min-height: 0;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -114,4 +126,5 @@ app-code-editor {
     flex-direction: column;
   }
 }
+
 

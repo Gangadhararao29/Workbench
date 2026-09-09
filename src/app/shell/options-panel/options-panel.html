@@ -1,742 +1,743 @@
 <div class="panel-header">
   <div class="panel-title">{{ instance.label }} options</div>
   @if (!editingName) {
-    <button mat-icon-button matTooltip="Edit tab name" aria-label="Edit tab name" (click)="startEditingName()">
-      <mat-icon>edit</mat-icon>
-    </button>
+  <button mat-icon-button matTooltip="Edit tab name" aria-label="Edit tab name" (click)="startEditingName()">
+    <mat-icon>edit</mat-icon>
+  </button>
   }
 </div>
 
 @if (editingName) {
-  <div class="name-editor">
-    <label for="tab-name">Tab name</label>
-    <input id="tab-name" [(ngModel)]="nameDraft" (keydown.enter)="saveName()" (keydown.escape)="cancelNameEdit()" />
-    <div class="name-actions">
-      <button mat-stroked-button type="button" (click)="cancelNameEdit()">Cancel</button>
-      <button mat-flat-button type="button" [disabled]="!nameDraft.trim()" (click)="saveName()">Save</button>
-    </div>
+<div class="name-editor">
+  <label for="tab-name">Tab name</label>
+  <input id="tab-name" [(ngModel)]="nameDraft" (keydown.enter)="saveName()" (keydown.escape)="cancelNameEdit()" />
+  <div class="name-actions">
+    <button mat-stroked-button type="button" (click)="cancelNameEdit()">Cancel</button>
+    <button mat-flat-button type="button" [disabled]="!nameDraft.trim()" (click)="saveName()">Save</button>
   </div>
+</div>
 }
 
 @switch (instance.toolType) {
-  @case ('csharp-formatter') {
-    <div class="field">
-      <label>Brace style</label>
-      <mat-select [value]="instance.config['braceStyle'] || 'allman'" (selectionChange)="update('braceStyle', $event.value)">
-        <mat-option value="allman">Allman (New line)</mat-option>
-        <mat-option value="kr">K&amp;R (Same line)</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Indent size</label>
-      <mat-select [value]="instance.config['indent'] || '4 spaces'" (selectionChange)="update('indent', $event.value)">
-        <mat-option value="4 spaces">4 spaces</mat-option>
-        <mat-option value="2 spaces">2 spaces</mat-option>
-      </mat-select>
-    </div>
-  }
+@case ('csharp-formatter') {
+<div class="field">
+  <label>Brace style</label>
+  <mat-select [value]="instance.config['braceStyle'] || 'allman'"
+    (selectionChange)="update('braceStyle', $event.value)">
+    <mat-option value="allman">Allman (New line)</mat-option>
+    <mat-option value="kr">K&amp;R (Same line)</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Indent size</label>
+  <mat-select [value]="instance.config['indent'] || '4 spaces'" (selectionChange)="update('indent', $event.value)">
+    <mat-option value="4 spaces">4 spaces</mat-option>
+    <mat-option value="2 spaces">2 spaces</mat-option>
+  </mat-select>
+</div>
+}
 
-  @case ('sql-formatter') {
-    <div class="field">
-      <label>Dialect</label>
-      <mat-select [value]="instance.config['dialect']" (selectionChange)="update('dialect', $event.value)">
-        <mat-option value="Standard SQL">Standard SQL</mat-option>
-        <mat-option value="SQL Server">SQL Server</mat-option>
-        <mat-option value="PostgreSQL">PostgreSQL</mat-option>
-        <mat-option value="MySQL">MySQL</mat-option>
-        <mat-option value="SQLite">SQLite</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Indent size</label>
-      <mat-select [value]="instance.config['indent']" (selectionChange)="update('indent', $event.value)">
-        <mat-option value="2 spaces">2 spaces</mat-option>
-        <mat-option value="4 spaces">4 spaces</mat-option>
-        <mat-option value="Tab">Tab</mat-option>
-      </mat-select>
-    </div>
-    <div class="toggle-row">
-      <span>Keyword case</span>
-      <mat-select [value]="instance.config['keywordCase']" (selectionChange)="update('keywordCase', $event.value)">
-        <mat-option value="upper">Uppercase</mat-option>
-        <mat-option value="lower">Lowercase</mat-option>
-        <mat-option value="preserve">Preserve</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Data type case</label>
-      <mat-select [value]="instance.config['dataTypeCase']" (selectionChange)="update('dataTypeCase', $event.value)">
-        <mat-option value="upper">Uppercase</mat-option>
-        <mat-option value="lower">Lowercase</mat-option>
-        <mat-option value="preserve">Preserve</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Function case</label>
-      <mat-select [value]="instance.config['functionCase']" (selectionChange)="update('functionCase', $event.value)">
-        <mat-option value="upper">Uppercase</mat-option>
-        <mat-option value="lower">Lowercase</mat-option>
-        <mat-option value="preserve">Preserve</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Identifier case</label>
-      <mat-select [value]="instance.config['identifierCase']" (selectionChange)="update('identifierCase', $event.value)">
-        <mat-option value="upper">Uppercase</mat-option>
-        <mat-option value="lower">Lowercase</mat-option>
-        <mat-option value="preserve">Preserve</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Logical operator newline</label>
-      <mat-select [value]="instance.config['logicalOperatorNewline']" (selectionChange)="update('logicalOperatorNewline', $event.value)">
-        <mat-option value="before">Before AND / OR</mat-option>
-        <mat-option value="after">After AND / OR</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Expression width</label>
-      <mat-select [value]="instance.config['expressionWidth']" (selectionChange)="update('expressionWidth', $event.value)">
-        <mat-option [value]="30">30 characters</mat-option>
-        <mat-option [value]="50">50 characters</mat-option>
-        <mat-option [value]="80">80 characters</mat-option>
-        <mat-option [value]="1000">Unlimited</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Blank lines between queries</label>
-      <mat-select [value]="instance.config['linesBetweenQueries']" (selectionChange)="update('linesBetweenQueries', $event.value)">
-        <mat-option [value]="0">None</mat-option>
-        <mat-option [value]="1">One</mat-option>
-        <mat-option [value]="2">Two</mat-option>
-      </mat-select>
-    </div>
-    <div class="toggle-row">
-      <span>Pack operators</span>
-      <mat-slide-toggle
-        [checked]="instance.config['denseOperators']"
-        (change)="update('denseOperators', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>Put semicolon on new line</span>
-      <mat-slide-toggle
-        [checked]="instance.config['newlineBeforeSemicolon']"
-        (change)="update('newlineBeforeSemicolon', $event.checked)"
-      />
-    </div>
-  }
-  @case ('json-formatter') {
-    <div class="field">
-      <label>Indent size</label>
-      <mat-select [value]="instance.config['indent']" (selectionChange)="update('indent', $event.value)">
-        <mat-option value="2 spaces">2 spaces</mat-option>
-        <mat-option value="4 spaces">4 spaces</mat-option>
-      </mat-select>
-    </div>
-    <div class="toggle-row">
-      <span>Sort keys</span>
-      <mat-slide-toggle
-        [checked]="instance.config['sortKeys']"
-        (change)="update('sortKeys', $event.checked)"
-      />
-    </div>
-  }
-  @case ('json-path') {
-    <div class="cheat-sheet-container">
-      <div class="cheat-search-wrapper">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input
-          type="text"
-          [(ngModel)]="jsonPathFilter"
-          placeholder="Search JSONPath syntax..."
-          class="cheat-search-input" />
-        @if (jsonPathFilter) {
-          <button type="button" class="btn-clear-search" (click)="jsonPathFilter = ''" aria-label="Clear search">
-            <mat-icon>close</mat-icon>
-          </button>
-        }
-      </div>
-
-      <!-- Basic Operators -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>category</mat-icon> Basic Operators
-        </div>
-        <div class="cheat-table">
-          @if (filterJsonPathRow('$', 'Root object or array')) {
-            <div class="cheat-row"><code class="token">$</code><span class="desc">Root object or array</span></div>
-          }
-          @if (filterJsonPathRow('@', 'Current node in filter query')) {
-            <div class="cheat-row"><code class="token">@</code><span class="desc">Current node being evaluated in filter query</span></div>
-          }
-          @if (filterJsonPathRow('. or []', 'Child operator (dot or bracket notation)')) {
-            <div class="cheat-row"><code class="token">.prop / ['prop']</code><span class="desc">Child property access</span></div>
-          }
-          @if (filterJsonPathRow('..', 'Recursive descent: scan entire tree deeply')) {
-            <div class="cheat-row"><code class="token">..</code><span class="desc">Recursive descent (scan all nested descendants)</span></div>
-          }
-          @if (filterJsonPathRow('*', 'Wildcard: all elements or properties')) {
-            <div class="cheat-row"><code class="token">*</code><span class="desc">Wildcard matching any property or array item</span></div>
-          }
-        </div>
-      </div>
-
-      <!-- Array Selectors & Slices -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>data_array</mat-icon> Array & Index Selectors
-        </div>
-        <div class="cheat-table">
-          @if (filterJsonPathRow('[n]', 'Direct array index')) {
-            <div class="cheat-row"><code class="token">[0]</code><span class="desc">First element of array</span></div>
-          }
-          @if (filterJsonPathRow('[-1]', 'Negative index: last element')) {
-            <div class="cheat-row"><code class="token">[-1]</code><span class="desc">Last element of array</span></div>
-          }
-          @if (filterJsonPathRow('[0, 1]', 'Union of indices or property names')) {
-            <div class="cheat-row"><code class="token">[0, 2]</code><span class="desc">Union of multiple indices</span></div>
-          }
-          @if (filterJsonPathRow("['a', 'b']", 'Union of multiple property names')) {
-            <div class="cheat-row"><code class="token">['id', 'name']</code><span class="desc">Union of multiple property keys</span></div>
-          }
-          @if (filterJsonPathRow('[start:end]', 'Array slice')) {
-            <div class="cheat-row"><code class="token">[0:2]</code><span class="desc">Slice elements from index 0 to 1</span></div>
-          }
-          @if (filterJsonPathRow('[-2:]', 'Last n elements')) {
-            <div class="cheat-row"><code class="token">[-2:]</code><span class="desc">Slice last 2 elements</span></div>
-          }
-          @if (filterJsonPathRow('[start:end:step]', 'Array slice with step')) {
-            <div class="cheat-row"><code class="token">[0:5:2]</code><span class="desc">Slice with step (every 2nd element)</span></div>
-          }
-        </div>
-      </div>
-
-      <!-- Filter Expressions -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>filter_alt</mat-icon> Filter Expressions
-        </div>
-        <div class="cheat-table">
-          @if (filterJsonPathRow('[?(...)]', 'Filter expression syntax')) {
-            <div class="cheat-row"><code class="token">[?(&lt;expr&gt;)]</code><span class="desc">Filter query expression</span></div>
-          }
-          @if (filterJsonPathRow('[?(@.price < 10)]', 'Comparison: less than, greater than')) {
-            <div class="cheat-row"><code class="token">[?(@.price &lt; 10)]</code><span class="desc">Numeric comparison (<code>&lt;, &gt;, &lt;=, &gt;=</code>)</span></div>
-          }
-          @if (filterJsonPathRow('[?(@.role == "admin")]', 'Equality filter')) {
-            <div class="cheat-row"><code class="token">[?(@.role == 'admin')]</code><span class="desc">String or value equality</span></div>
-          }
-          @if (filterJsonPathRow('[?(@.role != "guest")]', 'Inequality filter')) {
-            <div class="cheat-row"><code class="token">[?(@.role != 'guest')]</code><span class="desc">Value inequality</span></div>
-          }
-          @if (filterJsonPathRow('[?(@.email)]', 'Existence check')) {
-            <div class="cheat-row"><code class="token">[?(@.email)]</code><span class="desc">Check if property exists and is truthy</span></div>
-          }
-          @if (filterJsonPathRow('[?(@.a && @.b)]', 'Logical AND / OR')) {
-            <div class="cheat-row"><code class="token">&amp;&amp; / ||</code><span class="desc">Logical operators in expressions</span></div>
-          }
-        </div>
-      </div>
-
-      <!-- Extensions & Advanced (jsonpath-plus) -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>auto_awesome</mat-icon> Extensions (jsonpath-plus)
-        </div>
-        <div class="cheat-table">
-          @if (filterJsonPathRow('^', 'Parent operator')) {
-            <div class="cheat-row"><code class="token">^</code><span class="desc">Navigate to parent node (e.g. <code>$..[?(@.id)]^</code>)</span></div>
-          }
-          @if (filterJsonPathRow('~', 'Property names operator')) {
-            <div class="cheat-row"><code class="token">~</code><span class="desc">Extract property keys instead of values</span></div>
-          }
-          @if (filterJsonPathRow('$..*', 'All descendant leaf items')) {
-            <div class="cheat-row"><code class="token">$..*</code><span class="desc">All descendant values in entire document</span></div>
-          }
-          @if (filterJsonPathRow('Click to Path', 'Auto-form path by clicking in editor')) {
-            <div class="cheat-row"><code class="token">Editor Click</code><span class="desc">Click any node in editor to auto-form its path</span></div>
-          }
-        </div>
-      </div>
-    </div>
-  }
-  @case ('csharp-to-typescript') {
-    <div class="field">
-      <label>Output type</label>
-      <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
-        <mat-option value="interface">Interface</mat-option>
-        <mat-option value="type">Type</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Property naming</label>
-      <mat-select [value]="instance.config['naming']" (selectionChange)="update('naming', $event.value)">
-        <mat-option value="camel">camelCase</mat-option>
-        <mat-option value="pascal">PascalCase</mat-option>
-        <mat-option value="preserve">Preserve</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Nullable handling</label>
-      <mat-select [value]="instance.config['nullable']" (selectionChange)="update('nullable', $event.value)">
-        <mat-option value="null">null</mat-option>
-        <mat-option value="optional">Optional</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Enum output</label>
-      <mat-select [value]="instance.config['enumOutput']" (selectionChange)="update('enumOutput', $event.value)">
-        <mat-option value="enum">TypeScript enum</mat-option>
-        <mat-option value="union">String union</mat-option>
-      </mat-select>
-    </div>
-  }
-  @case ('json-to-typescript') {
-    <div class="field">
-      <label>Root type name</label>
-      <input [value]="instance.config['rootName']" (input)="update('rootName', $any($event.target).value)" />
-    </div>
-    <div class="field">
-      <label>Output type</label>
-      <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
-        <mat-option value="interface">Interface</mat-option>
-        <mat-option value="type">Type</mat-option>
-      </mat-select>
-    </div>
-  }
-  @case ('json-to-csharp') {
-    <div class="field">
-      <label>Root class name</label>
-      <input [value]="instance.config['rootName']" (input)="update('rootName', $any($event.target).value)" />
-    </div>
-    <div class="field">
-      <label>Namespace</label>
-      <input [value]="instance.config['namespace'] || 'Workbench.Models'" (input)="update('namespace', $any($event.target).value)" />
-    </div>
-    <div class="field">
-      <label>Array collection type</label>
-      <mat-select [value]="instance.config['arrayType'] || 'list'" (selectionChange)="update('arrayType', $event.value)">
-        <mat-option value="list">List&lt;T&gt;</mat-option>
-        <mat-option value="array">T[]</mat-option>
-      </mat-select>
-    </div>
-  }
-  @case ('json-to-yaml') {
-    <div class="field">
-      <label>Indentation</label>
-      <mat-select [value]="instance.config['indent'] || '2 spaces'" (selectionChange)="update('indent', $event.value)">
-        <mat-option value="2 spaces">2 spaces (Standard)</mat-option>
-        <mat-option value="4 spaces">4 spaces</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>YAML Quoting Style</label>
-      <mat-select [value]="instance.config['quotingType'] || 'none'" (selectionChange)="update('quotingType', $event.value)">
-        <mat-option value="none">Plain / Auto-select</mat-option>
-        <mat-option value="single">Single Quotes (')</mat-option>
-        <mat-option value="double">Double Quotes (")</mat-option>
-      </mat-select>
-    </div>
-    <div class="toggle-row">
-      <span>Force quotes on all strings</span>
-      <mat-slide-toggle
-        [checked]="instance.config['forceQuotes'] ?? false"
-        (change)="update('forceQuotes', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>Sort object keys alphabetically</span>
-      <mat-slide-toggle
-        [checked]="instance.config['sortKeys'] ?? false"
-        (change)="update('sortKeys', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>Minify JSON output (YAML &rarr; JSON)</span>
-      <mat-slide-toggle
-        [checked]="instance.config['compactJson'] ?? false"
-        (change)="update('compactJson', $event.checked)"
-      />
-    </div>
-  }
-  @case ('sql-to-csharp') {
-    <div class="field">
-      <label>Output type</label>
-      <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
-        <mat-option value="class">POCO class</mat-option>
-        <mat-option value="record">Record</mat-option>
-        <mat-option value="ef">EF entity</mat-option>
-      </mat-select>
-    </div>
-  }
-  @case ('feature-generator') {
-    <div class="toggle-row">
-      <span>Entity</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeEntity'] ?? true"
-        (change)="update('includeEntity', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>DTO</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeDto'] ?? true"
-        (change)="update('includeDto', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>Repository</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeRepository'] ?? true"
-        (change)="update('includeRepository', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>Application service</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeService'] ?? true"
-        (change)="update('includeService', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>API controller</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeController'] ?? true"
-        (change)="update('includeController', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>EF Core configuration</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeConfiguration'] ?? true"
-        (change)="update('includeConfiguration', $event.checked)"
-      />
-    </div>
-    <div class="toggle-row">
-      <span>Frontend client & types</span>
-      <mat-slide-toggle
-        [checked]="instance.config['includeFrontend'] ?? true"
-        (change)="update('includeFrontend', $event.checked)"
-      />
-    </div>
-    @if (instance.config['includeFrontend'] ?? true) {
-      <div class="field">
-        <label>Frontend Framework</label>
-        <mat-select
-          [value]="instance.config['frontendFramework'] ?? 'angular'"
-          (selectionChange)="update('frontendFramework', $event.value)">
-          <mat-option value="angular">Angular (HttpClient Service)</mat-option>
-          <mat-option value="react">React (TanStack Query Hooks)</mat-option>
-          <mat-option value="vue">Vue (Pinia Store)</mat-option>
-        </mat-select>
-      </div>
+@case ('sql-formatter') {
+<div class="field">
+  <label>Dialect</label>
+  <mat-select [value]="instance.config['dialect']" (selectionChange)="update('dialect', $event.value)">
+    <mat-option value="Standard SQL">Standard SQL</mat-option>
+    <mat-option value="SQL Server">SQL Server</mat-option>
+    <mat-option value="PostgreSQL">PostgreSQL</mat-option>
+    <mat-option value="MySQL">MySQL</mat-option>
+    <mat-option value="SQLite">SQLite</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Indent size</label>
+  <mat-select [value]="instance.config['indent']" (selectionChange)="update('indent', $event.value)">
+    <mat-option value="2 spaces">2 spaces</mat-option>
+    <mat-option value="4 spaces">4 spaces</mat-option>
+    <mat-option value="Tab">Tab</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Keyword case</label>
+  <mat-select [value]="instance.config['keywordCase']" (selectionChange)="update('keywordCase', $event.value)">
+    <mat-option value="upper">Uppercase</mat-option>
+    <mat-option value="lower">Lowercase</mat-option>
+    <mat-option value="preserve">Preserve</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Data type case</label>
+  <mat-select [value]="instance.config['dataTypeCase']" (selectionChange)="update('dataTypeCase', $event.value)">
+    <mat-option value="upper">Uppercase</mat-option>
+    <mat-option value="lower">Lowercase</mat-option>
+    <mat-option value="preserve">Preserve</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Function case</label>
+  <mat-select [value]="instance.config['functionCase']" (selectionChange)="update('functionCase', $event.value)">
+    <mat-option value="upper">Uppercase</mat-option>
+    <mat-option value="lower">Lowercase</mat-option>
+    <mat-option value="preserve">Preserve</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Identifier case</label>
+  <mat-select [value]="instance.config['identifierCase']" (selectionChange)="update('identifierCase', $event.value)">
+    <mat-option value="upper">Uppercase</mat-option>
+    <mat-option value="lower">Lowercase</mat-option>
+    <mat-option value="preserve">Preserve</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Logical operator newline</label>
+  <mat-select [value]="instance.config['logicalOperatorNewline']"
+    (selectionChange)="update('logicalOperatorNewline', $event.value)">
+    <mat-option value="before">Before AND / OR</mat-option>
+    <mat-option value="after">After AND / OR</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Expression width</label>
+  <mat-select [value]="instance.config['expressionWidth']" (selectionChange)="update('expressionWidth', $event.value)">
+    <mat-option [value]="30">30 characters</mat-option>
+    <mat-option [value]="50">50 characters</mat-option>
+    <mat-option [value]="80">80 characters</mat-option>
+    <mat-option [value]="1000">Unlimited</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Blank lines between queries</label>
+  <mat-select [value]="instance.config['linesBetweenQueries']"
+    (selectionChange)="update('linesBetweenQueries', $event.value)">
+    <mat-option [value]="0">None</mat-option>
+    <mat-option [value]="1">One</mat-option>
+    <mat-option [value]="2">Two</mat-option>
+  </mat-select>
+</div>
+<div class="toggle-row">
+  <span>Pack operators</span>
+  <mat-slide-toggle [checked]="instance.config['denseOperators']" (change)="update('denseOperators', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>Put semicolon on new line</span>
+  <mat-slide-toggle [checked]="instance.config['newlineBeforeSemicolon']"
+    (change)="update('newlineBeforeSemicolon', $event.checked)" />
+</div>
+}
+@case ('json-formatter') {
+<div class="field">
+  <label>Indent size</label>
+  <mat-select [value]="instance.config['indent']" (selectionChange)="update('indent', $event.value)">
+    <mat-option value="2 spaces">2 spaces</mat-option>
+    <mat-option value="4 spaces">4 spaces</mat-option>
+  </mat-select>
+</div>
+<div class="toggle-row">
+  <span>Sort keys</span>
+  <mat-slide-toggle [checked]="instance.config['sortKeys']" (change)="update('sortKeys', $event.checked)" />
+</div>
+}
+@case ('json-path') {
+<div class="cheat-sheet-container">
+  <div class="cheat-search-wrapper">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input type="text" [(ngModel)]="jsonPathFilter" placeholder="Search JSONPath syntax..."
+      class="cheat-search-input" />
+    @if (jsonPathFilter) {
+    <button type="button" class="btn-clear-search" (click)="jsonPathFilter = ''" aria-label="Clear search">
+      <mat-icon>close</mat-icon>
+    </button>
     }
-  }
-  @case ('regex-tester') {
-    <div class="cheat-sheet-container">
-      <div class="cheat-search-wrapper">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input
-          type="text"
-          [(ngModel)]="regexFilter"
-          placeholder="Search regex syntax..."
-          class="cheat-search-input" />
-        @if (regexFilter) {
-          <button type="button" class="btn-clear-search" (click)="regexFilter = ''" aria-label="Clear search">
-            <mat-icon>close</mat-icon>
-          </button>
-        }
-      </div>
+  </div>
 
-      <!-- Character Classes -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>category</mat-icon> Character Classes
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('.', 'Any character except newline')) {
-            <div class="cheat-row"><code class="token">.</code><span class="desc">Any character except newline</span></div>
-          }
-          @if (filterRow('\\d', 'Digit [0-9]')) {
-            <div class="cheat-row"><code class="token">\d</code><span class="desc">Digit <code>[0-9]</code></span></div>
-          }
-          @if (filterRow('\\D', 'Non-digit [^0-9]')) {
-            <div class="cheat-row"><code class="token">\D</code><span class="desc">Non-digit <code>[^0-9]</code></span></div>
-          }
-          @if (filterRow('\\w', 'Word character [a-zA-Z0-9_]')) {
-            <div class="cheat-row"><code class="token">\w</code><span class="desc">Word char <code>[a-zA-Z0-9_]</code></span></div>
-          }
-          @if (filterRow('\\W', 'Non-word character')) {
-            <div class="cheat-row"><code class="token">\W</code><span class="desc">Non-word character</span></div>
-          }
-          @if (filterRow('\\s', 'Whitespace (space, tab, newline)')) {
-            <div class="cheat-row"><code class="token">\s</code><span class="desc">Whitespace (space, tab, \n)</span></div>
-          }
-          @if (filterRow('\\S', 'Non-whitespace character')) {
-            <div class="cheat-row"><code class="token">\S</code><span class="desc">Non-whitespace character</span></div>
-          }
-          @if (filterRow('[abc]', 'Any character in set')) {
-            <div class="cheat-row"><code class="token">[abc]</code><span class="desc">Any character in set</span></div>
-          }
-          @if (filterRow('[^abc]', 'Any character NOT in set')) {
-            <div class="cheat-row"><code class="token">[^abc]</code><span class="desc">Any character NOT in set</span></div>
-          }
-          @if (filterRow('[a-z]', 'Character range from a to z')) {
-            <div class="cheat-row"><code class="token">[a-z]</code><span class="desc">Character range from a to z</span></div>
-          }
-        </div>
+  <!-- Basic Operators -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>category</mat-icon> Basic Operators
+    </div>
+    <div class="cheat-table">
+      @if (filterJsonPathRow('$', 'Root object or array')) {
+      <div class="cheat-row"><code class="token">$</code><span class="desc">Root object or array</span></div>
+      }
+      @if (filterJsonPathRow('@', 'Current node in filter query')) {
+      <div class="cheat-row"><code class="token">@</code><span class="desc">Current node being evaluated in filter
+          query</span></div>
+      }
+      @if (filterJsonPathRow('. or []', 'Child operator (dot or bracket notation)')) {
+      <div class="cheat-row"><code class="token">.prop / ['prop']</code><span class="desc">Child property access</span>
       </div>
+      }
+      @if (filterJsonPathRow('..', 'Recursive descent: scan entire tree deeply')) {
+      <div class="cheat-row"><code class="token">..</code><span class="desc">Recursive descent (scan all nested
+          descendants)</span></div>
+      }
+      @if (filterJsonPathRow('*', 'Wildcard: all elements or properties')) {
+      <div class="cheat-row"><code class="token">*</code><span class="desc">Wildcard matching any property or array
+          item</span></div>
+      }
+    </div>
+  </div>
 
-      <!-- Quantifiers -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>repeat</mat-icon> Quantifiers
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('*', '0 or more times (greedy)')) {
-            <div class="cheat-row"><code class="token">*</code><span class="desc">0 or more times (greedy)</span></div>
-          }
-          @if (filterRow('+', '1 or more times (greedy)')) {
-            <div class="cheat-row"><code class="token">+</code><span class="desc">1 or more times (greedy)</span></div>
-          }
-          @if (filterRow('?', '0 or 1 time (optional)')) {
-            <div class="cheat-row"><code class="token">?</code><span class="desc">0 or 1 time (optional)</span></div>
-          }
-          @if (filterRow('{n}', 'Exactly n times')) {
-            <div class="cheat-row"><code class="token">&#123;n&#125;</code><span class="desc">Exactly <em>n</em> times</span></div>
-          }
-          @if (filterRow('{n,}', 'n or more times')) {
-            <div class="cheat-row"><code class="token">&#123;n,&#125;</code><span class="desc"><em>n</em> or more times</span></div>
-          }
-          @if (filterRow('{n,m}', 'Between n and m times')) {
-            <div class="cheat-row"><code class="token">&#123;n,m&#125;</code><span class="desc">Between <em>n</em> and <em>m</em> times</span></div>
-          }
-          @if (filterRow('*? +?', 'Lazy / non-greedy matching')) {
-            <div class="cheat-row"><code class="token">*? / +?</code><span class="desc">Lazy (match shortest)</span></div>
-          }
-        </div>
+  <!-- Array Selectors & Slices -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>data_array</mat-icon> Array & Index Selectors
+    </div>
+    <div class="cheat-table">
+      @if (filterJsonPathRow('[n]', 'Direct array index')) {
+      <div class="cheat-row"><code class="token">[0]</code><span class="desc">First element of array</span></div>
+      }
+      @if (filterJsonPathRow('[-1]', 'Negative index: last element')) {
+      <div class="cheat-row"><code class="token">[-1]</code><span class="desc">Last element of array</span></div>
+      }
+      @if (filterJsonPathRow('[0, 1]', 'Union of indices or property names')) {
+      <div class="cheat-row"><code class="token">[0, 2]</code><span class="desc">Union of multiple indices</span></div>
+      }
+      @if (filterJsonPathRow("['a', 'b']", 'Union of multiple property names')) {
+      <div class="cheat-row"><code class="token">['id', 'name']</code><span class="desc">Union of multiple property
+          keys</span></div>
+      }
+      @if (filterJsonPathRow('[start:end]', 'Array slice')) {
+      <div class="cheat-row"><code class="token">[0:2]</code><span class="desc">Slice elements from index 0 to 1</span>
       </div>
+      }
+      @if (filterJsonPathRow('[-2:]', 'Last n elements')) {
+      <div class="cheat-row"><code class="token">[-2:]</code><span class="desc">Slice last 2 elements</span></div>
+      }
+      @if (filterJsonPathRow('[start:end:step]', 'Array slice with step')) {
+      <div class="cheat-row"><code class="token">[0:5:2]</code><span class="desc">Slice with step (every 2nd
+          element)</span></div>
+      }
+    </div>
+  </div>
 
-      <!-- Anchors & Boundaries -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>vertical_align_center</mat-icon> Anchors & Boundaries
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('^', 'Start of line or string')) {
-            <div class="cheat-row"><code class="token">^</code><span class="desc">Start of line / string</span></div>
-          }
-          @if (filterRow('$', 'End of line or string')) {
-            <div class="cheat-row"><code class="token">$</code><span class="desc">End of line / string</span></div>
-          }
-          @if (filterRow('\\b', 'Word boundary')) {
-            <div class="cheat-row"><code class="token">\b</code><span class="desc">Word boundary</span></div>
-          }
-          @if (filterRow('\\B', 'Non-word boundary')) {
-            <div class="cheat-row"><code class="token">\B</code><span class="desc">Non-word boundary</span></div>
-          }
-        </div>
+  <!-- Filter Expressions -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>filter_alt</mat-icon> Filter Expressions
+    </div>
+    <div class="cheat-table">
+      @if (filterJsonPathRow('[?(...)]', 'Filter expression syntax')) {
+      <div class="cheat-row"><code class="token">[?(&lt;expr&gt;)]</code><span class="desc">Filter query
+          expression</span></div>
+      }
+      @if (filterJsonPathRow('[?(@.price < 10)]', 'Comparison: less than, greater than' )) { <div class="cheat-row">
+        <code class="token">[?(@.price &lt; 10)]</code><span class="desc">Numeric comparison
+          (<code>&lt;, &gt;, &lt;=, &gt;=</code>)</span>
+    </div>
+    }
+    @if (filterJsonPathRow('[?(@.role == "admin")]', 'Equality filter')) {
+    <div class="cheat-row"><code class="token">[?(@.role == 'admin')]</code><span class="desc">String or value
+        equality</span></div>
+    }
+    @if (filterJsonPathRow('[?(@.role != "guest")]', 'Inequality filter')) {
+    <div class="cheat-row"><code class="token">[?(@.role != 'guest')]</code><span class="desc">Value inequality</span>
+    </div>
+    }
+    @if (filterJsonPathRow('[?(@.email)]', 'Existence check')) {
+    <div class="cheat-row"><code class="token">[?(@.email)]</code><span class="desc">Check if property exists and is
+        truthy</span></div>
+    }
+    @if (filterJsonPathRow('[?(@.a && @.b)]', 'Logical AND / OR')) {
+    <div class="cheat-row"><code class="token">&amp;&amp; / ||</code><span class="desc">Logical operators in
+        expressions</span></div>
+    }
+  </div>
+</div>
+
+<!-- Extensions & Advanced (jsonpath-plus) -->
+<div class="cheat-section">
+  <div class="cheat-section-title">
+    <mat-icon>auto_awesome</mat-icon> Extensions (jsonpath-plus)
+  </div>
+  <div class="cheat-table">
+    @if (filterJsonPathRow('^', 'Parent operator')) {
+    <div class="cheat-row"><code class="token">^</code><span class="desc">Navigate to parent node (e.g.
+        <code>$..[?(@.id)]^</code>)</span></div>
+    }
+    @if (filterJsonPathRow('~', 'Property names operator')) {
+    <div class="cheat-row"><code class="token">~</code><span class="desc">Extract property keys instead of values</span>
+    </div>
+    }
+    @if (filterJsonPathRow('$..*', 'All descendant leaf items')) {
+    <div class="cheat-row"><code class="token">$..*</code><span class="desc">All descendant values in entire
+        document</span></div>
+    }
+    @if (filterJsonPathRow('Click to Path', 'Auto-form path by clicking in editor')) {
+    <div class="cheat-row"><code class="token">Editor Click</code><span class="desc">Click any node in editor to
+        auto-form its path</span></div>
+    }
+  </div>
+</div>
+</div>
+}
+@case ('csharp-to-typescript') {
+<div class="field">
+  <label>Output type</label>
+  <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+    <mat-option value="interface">Interface</mat-option>
+    <mat-option value="type">Type</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Property naming</label>
+  <mat-select [value]="instance.config['naming']" (selectionChange)="update('naming', $event.value)">
+    <mat-option value="camel">camelCase</mat-option>
+    <mat-option value="pascal">PascalCase</mat-option>
+    <mat-option value="preserve">Preserve</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Nullable handling</label>
+  <mat-select [value]="instance.config['nullable']" (selectionChange)="update('nullable', $event.value)">
+    <mat-option value="null">null</mat-option>
+    <mat-option value="optional">Optional</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Enum output</label>
+  <mat-select [value]="instance.config['enumOutput']" (selectionChange)="update('enumOutput', $event.value)">
+    <mat-option value="enum">TypeScript enum</mat-option>
+    <mat-option value="union">String union</mat-option>
+  </mat-select>
+</div>
+}
+@case ('json-to-typescript') {
+<div class="field">
+  <label>Root type name</label>
+  <input [value]="instance.config['rootName']" (input)="update('rootName', $any($event.target).value)" />
+</div>
+<div class="field">
+  <label>Output type</label>
+  <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+    <mat-option value="interface">Interface</mat-option>
+    <mat-option value="type">Type</mat-option>
+  </mat-select>
+</div>
+}
+@case ('json-to-csharp') {
+<div class="field">
+  <label>Root class name</label>
+  <input [value]="instance.config['rootName']" (input)="update('rootName', $any($event.target).value)" />
+</div>
+<div class="field">
+  <label>Namespace</label>
+  <input [value]="instance.config['namespace'] || 'Workbench.Models'"
+    (input)="update('namespace', $any($event.target).value)" />
+</div>
+<div class="field">
+  <label>Array collection type</label>
+  <mat-select [value]="instance.config['arrayType'] || 'list'" (selectionChange)="update('arrayType', $event.value)">
+    <mat-option value="list">List&lt;T&gt;</mat-option>
+    <mat-option value="array">T[]</mat-option>
+  </mat-select>
+</div>
+}
+@case ('json-to-yaml') {
+<div class="field">
+  <label>Indentation</label>
+  <mat-select [value]="instance.config['indent'] || '2 spaces'" (selectionChange)="update('indent', $event.value)">
+    <mat-option value="2 spaces">2 spaces (Standard)</mat-option>
+    <mat-option value="4 spaces">4 spaces</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>YAML Quoting Style</label>
+  <mat-select [value]="instance.config['quotingType'] || 'none'"
+    (selectionChange)="update('quotingType', $event.value)">
+    <mat-option value="none">Plain / Auto-select</mat-option>
+    <mat-option value="single">Single Quotes (')</mat-option>
+    <mat-option value="double">Double Quotes (")</mat-option>
+  </mat-select>
+</div>
+<div class="toggle-row">
+  <span>Force quotes on all strings</span>
+  <mat-slide-toggle [checked]="instance.config['forceQuotes'] ?? false"
+    (change)="update('forceQuotes', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>Sort object keys alphabetically</span>
+  <mat-slide-toggle [checked]="instance.config['sortKeys'] ?? false" (change)="update('sortKeys', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>Minify JSON output (YAML &rarr; JSON)</span>
+  <mat-slide-toggle [checked]="instance.config['compactJson'] ?? false"
+    (change)="update('compactJson', $event.checked)" />
+</div>
+}
+@case ('sql-to-csharp') {
+<div class="field">
+  <label>Output type</label>
+  <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+    <mat-option value="class">POCO class</mat-option>
+    <mat-option value="record">Record</mat-option>
+    <mat-option value="ef">EF entity</mat-option>
+  </mat-select>
+</div>
+}
+@case ('feature-generator') {
+<div class="toggle-row">
+  <span>Entity</span>
+  <mat-slide-toggle [checked]="instance.config['includeEntity'] ?? true"
+    (change)="update('includeEntity', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>DTO</span>
+  <mat-slide-toggle [checked]="instance.config['includeDto'] ?? true" (change)="update('includeDto', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>Repository</span>
+  <mat-slide-toggle [checked]="instance.config['includeRepository'] ?? true"
+    (change)="update('includeRepository', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>Application service</span>
+  <mat-slide-toggle [checked]="instance.config['includeService'] ?? true"
+    (change)="update('includeService', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>API controller</span>
+  <mat-slide-toggle [checked]="instance.config['includeController'] ?? true"
+    (change)="update('includeController', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>EF Core configuration</span>
+  <mat-slide-toggle [checked]="instance.config['includeConfiguration'] ?? true"
+    (change)="update('includeConfiguration', $event.checked)" />
+</div>
+<div class="toggle-row">
+  <span>Frontend client & types</span>
+  <mat-slide-toggle [checked]="instance.config['includeFrontend'] ?? true"
+    (change)="update('includeFrontend', $event.checked)" />
+</div>
+@if (instance.config['includeFrontend'] ?? true) {
+<div class="field">
+  <label>Frontend Framework</label>
+  <mat-select [value]="instance.config['frontendFramework'] ?? 'angular'"
+    (selectionChange)="update('frontendFramework', $event.value)">
+    <mat-option value="angular">Angular (HttpClient Service)</mat-option>
+    <mat-option value="react">React (TanStack Query Hooks)</mat-option>
+    <mat-option value="vue">Vue (Pinia Store)</mat-option>
+  </mat-select>
+</div>
+}
+}
+@case ('regex-tester') {
+<div class="cheat-sheet-container">
+  <div class="cheat-search-wrapper">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input type="text" [(ngModel)]="regexFilter" placeholder="Search regex syntax..." class="cheat-search-input" />
+    @if (regexFilter) {
+    <button type="button" class="btn-clear-search" (click)="regexFilter = ''" aria-label="Clear search">
+      <mat-icon>close</mat-icon>
+    </button>
+    }
+  </div>
+
+  <!-- Character Classes -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>category</mat-icon> Character Classes
+    </div>
+    <div class="cheat-table">
+      @if (filterRow('.', 'Any character except newline')) {
+      <div class="cheat-row"><code class="token">.</code><span class="desc">Any character except newline</span></div>
+      }
+      @if (filterRow('\\d', 'Digit [0-9]')) {
+      <div class="cheat-row"><code class="token">\d</code><span class="desc">Digit <code>[0-9]</code></span></div>
+      }
+      @if (filterRow('\\D', 'Non-digit [^0-9]')) {
+      <div class="cheat-row"><code class="token">\D</code><span class="desc">Non-digit <code>[^0-9]</code></span></div>
+      }
+      @if (filterRow('\\w', 'Word character [a-zA-Z0-9_]')) {
+      <div class="cheat-row"><code class="token">\w</code><span class="desc">Word char <code>[a-zA-Z0-9_]</code></span>
       </div>
+      }
+      @if (filterRow('\\W', 'Non-word character')) {
+      <div class="cheat-row"><code class="token">\W</code><span class="desc">Non-word character</span></div>
+      }
+      @if (filterRow('\\s', 'Whitespace (space, tab, newline)')) {
+      <div class="cheat-row"><code class="token">\s</code><span class="desc">Whitespace (space, tab, \n)</span></div>
+      }
+      @if (filterRow('\\S', 'Non-whitespace character')) {
+      <div class="cheat-row"><code class="token">\S</code><span class="desc">Non-whitespace character</span></div>
+      }
+      @if (filterRow('[abc]', 'Any character in set')) {
+      <div class="cheat-row"><code class="token">[abc]</code><span class="desc">Any character in set</span></div>
+      }
+      @if (filterRow('[^abc]', 'Any character NOT in set')) {
+      <div class="cheat-row"><code class="token">[^abc]</code><span class="desc">Any character NOT in set</span></div>
+      }
+      @if (filterRow('[a-z]', 'Character range from a to z')) {
+      <div class="cheat-row"><code class="token">[a-z]</code><span class="desc">Character range from a to z</span></div>
+      }
+    </div>
+  </div>
 
-      <!-- Groups & Captures -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>data_object</mat-icon> Groups & Captures
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('(abc)', 'Numbered capture group $1')) {
-            <div class="cheat-row"><code class="token">(abc)</code><span class="desc">Capture group (<code>$1</code>)</span></div>
-          }
-          @if (filterRow('(?<name>abc)', 'Named capture group $<name>')) {
-            <div class="cheat-row"><code class="token">(?&lt;name&gt;abc)</code><span class="desc">Named group (<code>$&lt;name&gt;</code>)</span></div>
+  <!-- Quantifiers -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>repeat</mat-icon> Quantifiers
+    </div>
+    <div class="cheat-table">
+      @if (filterRow('*', '0 or more times (greedy)')) {
+      <div class="cheat-row"><code class="token">*</code><span class="desc">0 or more times (greedy)</span></div>
+      }
+      @if (filterRow('+', '1 or more times (greedy)')) {
+      <div class="cheat-row"><code class="token">+</code><span class="desc">1 or more times (greedy)</span></div>
+      }
+      @if (filterRow('?', '0 or 1 time (optional)')) {
+      <div class="cheat-row"><code class="token">?</code><span class="desc">0 or 1 time (optional)</span></div>
+      }
+      @if (filterRow('{n}', 'Exactly n times')) {
+      <div class="cheat-row"><code class="token">&#123;n&#125;</code><span class="desc">Exactly <em>n</em> times</span>
+      </div>
+      }
+      @if (filterRow('{n,}', 'n or more times')) {
+      <div class="cheat-row"><code class="token">&#123;n,&#125;</code><span class="desc"><em>n</em> or more times</span>
+      </div>
+      }
+      @if (filterRow('{n,m}', 'Between n and m times')) {
+      <div class="cheat-row"><code class="token">&#123;n,m&#125;</code><span class="desc">Between <em>n</em> and
+          <em>m</em> times</span></div>
+      }
+      @if (filterRow('*? +?', 'Lazy / non-greedy matching')) {
+      <div class="cheat-row"><code class="token">*? / +?</code><span class="desc">Lazy (match shortest)</span></div>
+      }
+    </div>
+  </div>
+
+  <!-- Anchors & Boundaries -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>vertical_align_center</mat-icon> Anchors & Boundaries
+    </div>
+    <div class="cheat-table">
+      @if (filterRow('^', 'Start of line or string')) {
+      <div class="cheat-row"><code class="token">^</code><span class="desc">Start of line / string</span></div>
+      }
+      @if (filterRow('$', 'End of line or string')) {
+      <div class="cheat-row"><code class="token">$</code><span class="desc">End of line / string</span></div>
+      }
+      @if (filterRow('\\b', 'Word boundary')) {
+      <div class="cheat-row"><code class="token">\b</code><span class="desc">Word boundary</span></div>
+      }
+      @if (filterRow('\\B', 'Non-word boundary')) {
+      <div class="cheat-row"><code class="token">\B</code><span class="desc">Non-word boundary</span></div>
+      }
+    </div>
+  </div>
+
+  <!-- Groups & Captures -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>data_object</mat-icon> Groups & Captures
+    </div>
+    <div class="cheat-table">
+      @if (filterRow('(abc)', 'Numbered capture group $1')) {
+      <div class="cheat-row"><code class="token">(abc)</code><span class="desc">Capture group (<code>$1</code>)</span>
+      </div>
+      }
+      @if (filterRow('(?<name>abc)', 'Named capture group $<name>')) {
+          <div class="cheat-row"><code class="token">(?&lt;name&gt;abc)</code><span class="desc">Named group
+              (<code>$&lt;name&gt;</code>)</span></div>
           }
           @if (filterRow('(?:abc)', 'Non-capturing group')) {
-            <div class="cheat-row"><code class="token">(?:abc)</code><span class="desc">Non-capturing group</span></div>
+          <div class="cheat-row"><code class="token">(?:abc)</code><span class="desc">Non-capturing group</span></div>
           }
           @if (filterRow('a|b', 'Alternation (matches a OR b)')) {
-            <div class="cheat-row"><code class="token">a|b</code><span class="desc">Match <code>a</code> OR <code>b</code></span></div>
+          <div class="cheat-row"><code class="token">a|b</code><span class="desc">Match <code>a</code> OR
+              <code>b</code></span></div>
           }
           @if (filterRow('\\1', 'Backreference to group 1')) {
-            <div class="cheat-row"><code class="token">\1</code><span class="desc">Backreference to group 1</span></div>
+          <div class="cheat-row"><code class="token">\1</code><span class="desc">Backreference to group 1</span></div>
           }
-        </div>
+    </div>
+  </div>
+
+  <!-- Lookaround Assertions -->
+  <div class="cheat-section">
+    <div class="cheat-section-title">
+      <mat-icon>visibility</mat-icon> Lookaround Assertions
+    </div>
+    <div class="cheat-table">
+      @if (filterRow('(?=abc)', 'Positive lookahead')) {
+      <div class="cheat-row"><code class="token">(?=abc)</code><span class="desc">Positive lookahead</span></div>
+      }
+      @if (filterRow('(?!abc)', 'Negative lookahead')) {
+      <div class="cheat-row"><code class="token">(?!abc)</code><span class="desc">Negative lookahead</span></div>
+      }
+      @if (filterRow('(?<=abc)', 'Positive lookbehind' )) { <div class="cheat-row"><code
+          class="token">(?&lt;=abc)</code><span class="desc">Positive lookbehind</span>
+    </div>
+    }
+    @if (filterRow('(?<!abc)', 'Negative lookbehind' )) { <div class="cheat-row"><code
+        class="token">(?&lt;!abc)</code><span class="desc">Negative lookbehind</span>
+  </div>
+  }
+</div>
+</div>
+
+<!-- Flags -->
+<div class="cheat-section">
+  <div class="cheat-section-title">
+    <mat-icon>flag</mat-icon> Flags
+  </div>
+  <div class="cheat-table">
+    @if (filterRow('g', 'Global: find all matches')) {
+    <div class="cheat-row"><code class="token">g</code><span class="desc">Global: match all occurrences</span></div>
+    }
+    @if (filterRow('i', 'Case-insensitive matching')) {
+    <div class="cheat-row"><code class="token">i</code><span class="desc">Case-insensitive matching</span></div>
+    }
+    @if (filterRow('m', 'Multiline: ^ and $ match per line')) {
+    <div class="cheat-row"><code class="token">m</code><span class="desc">Multiline (^ &amp; $ match per line)</span>
+    </div>
+    }
+    @if (filterRow('s', 'Dotall: . matches newlines')) {
+    <div class="cheat-row"><code class="token">s</code><span class="desc">Dotall (. matches newline)</span></div>
+    }
+    @if (filterRow('u', 'Unicode mode')) {
+    <div class="cheat-row"><code class="token">u</code><span class="desc">Unicode code point support</span></div>
+    }
+  </div>
+</div>
+
+<!-- Replacement Syntax -->
+<div class="cheat-section">
+  <div class="cheat-section-title">
+    <mat-icon>find_replace</mat-icon> Replacement Patterns
+  </div>
+  <div class="cheat-table">
+    @if (filterRow('$1, $2', 'Numbered group replacement')) {
+    <div class="cheat-row"><code class="token">$1, $2</code><span class="desc">Numbered group value</span></div>
+    }
+    @if (filterRow('$<name>', 'Named group replacement')) {
+      <div class="cheat-row"><code class="token">$&lt;name&gt;</code><span class="desc">Named group value</span></div>
+      }
+      @if (filterRow('$&', 'Entire matched substring')) {
+      <div class="cheat-row"><code class="token">$&amp;</code><span class="desc">Entire matched substring</span></div>
+      }
+      @if (filterRow('$$', 'Literal dollar sign')) {
+      <div class="cheat-row"><code class="token">$$</code><span class="desc">Literal <code>$</code> character</span>
       </div>
-
-      <!-- Lookaround Assertions -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>visibility</mat-icon> Lookaround Assertions
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('(?=abc)', 'Positive lookahead')) {
-            <div class="cheat-row"><code class="token">(?=abc)</code><span class="desc">Positive lookahead</span></div>
-          }
-          @if (filterRow('(?!abc)', 'Negative lookahead')) {
-            <div class="cheat-row"><code class="token">(?!abc)</code><span class="desc">Negative lookahead</span></div>
-          }
-          @if (filterRow('(?<=abc)', 'Positive lookbehind')) {
-            <div class="cheat-row"><code class="token">(?&lt;=abc)</code><span class="desc">Positive lookbehind</span></div>
-          }
-          @if (filterRow('(?<!abc)', 'Negative lookbehind')) {
-            <div class="cheat-row"><code class="token">(?&lt;!abc)</code><span class="desc">Negative lookbehind</span></div>
-          }
-        </div>
+      }
+      @if (filterRow('$` / $\'', 'Portion before or after match')) {
+      <div class="cheat-row"><code class="token">$` / $'</code><span class="desc">Portion before / after match</span>
       </div>
+      }
+  </div>
+</div>
+</div>
+}
 
-      <!-- Flags -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>flag</mat-icon> Flags
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('g', 'Global: find all matches')) {
-            <div class="cheat-row"><code class="token">g</code><span class="desc">Global: match all occurrences</span></div>
-          }
-          @if (filterRow('i', 'Case-insensitive matching')) {
-            <div class="cheat-row"><code class="token">i</code><span class="desc">Case-insensitive matching</span></div>
-          }
-          @if (filterRow('m', 'Multiline: ^ and $ match per line')) {
-            <div class="cheat-row"><code class="token">m</code><span class="desc">Multiline (^ &amp; $ match per line)</span></div>
-          }
-          @if (filterRow('s', 'Dotall: . matches newlines')) {
-            <div class="cheat-row"><code class="token">s</code><span class="desc">Dotall (. matches newline)</span></div>
-          }
-          @if (filterRow('u', 'Unicode mode')) {
-            <div class="cheat-row"><code class="token">u</code><span class="desc">Unicode code point support</span></div>
-          }
-        </div>
-      </div>
+@case ('ef-configuration') {
+<div class="field">
+  <label>Table Naming</label>
+  <mat-select [value]="instance.config['tableNaming'] || 'plural'"
+    (selectionChange)="update('tableNaming', $event.value)">
+    <mat-option value="plural">Pluralized (e.g. Users)</mat-option>
+    <mat-option value="singular">Singular (e.g. User)</mat-option>
+    <mat-option value="exact">Exact (as defined)</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Default Schema</label>
+  <input [value]="instance.config['schema'] || ''" (input)="update('schema', $any($event.target).value)"
+    placeholder="e.g. dbo, auth, or empty" />
+</div>
+<div class="field">
+  <label>Default String Length</label>
+  <mat-select [value]="instance.config['defaultStringLength'] ?? 200"
+    (selectionChange)="update('defaultStringLength', $event.value)">
+    <mat-option [value]="50">50 characters</mat-option>
+    <mat-option [value]="100">100 characters</mat-option>
+    <mat-option [value]="200">200 characters</mat-option>
+    <mat-option [value]="256">256 characters</mat-option>
+    <mat-option [value]="500">500 characters</mat-option>
+    <mat-option [value]="4000">4000 characters</mat-option>
+    <mat-option [value]="0">Uncapped / Max</mat-option>
+  </mat-select>
+</div>
+<div class="field">
+  <label>Foreign Key Delete Behavior</label>
+  <mat-select [value]="instance.config['deleteBehavior'] || 'Restrict'"
+    (selectionChange)="update('deleteBehavior', $event.value)">
+    <mat-option value="Restrict">Restrict</mat-option>
+    <mat-option value="Cascade">Cascade</mat-option>
+    <mat-option value="SetNull">Set Null</mat-option>
+    <mat-option value="NoAction">No Action</mat-option>
+    <mat-option value="ClientSetNull">Client Set Null</mat-option>
+  </mat-select>
+</div>
+<div class="toggle-row">
+  <span>Global Soft Delete Filter</span>
+  <mat-slide-toggle [checked]="instance.config['enableSoftDelete'] ?? true"
+    (change)="update('enableSoftDelete', $event.checked)"></mat-slide-toggle>
+</div>
+<div class="toggle-row">
+  <span>Decimal Precision (18, 2)</span>
+  <mat-slide-toggle [checked]="instance.config['enablePrecision'] ?? true"
+    (change)="update('enablePrecision', $event.checked)"></mat-slide-toggle>
+</div>
+<div class="toggle-row">
+  <span>Enum to String Conversion</span>
+  <mat-slide-toggle [checked]="instance.config['enableEnumConversion'] ?? true"
+    (change)="update('enableEnumConversion', $event.checked)"></mat-slide-toggle>
+</div>
+}
 
-      <!-- Replacement Syntax -->
-      <div class="cheat-section">
-        <div class="cheat-section-title">
-          <mat-icon>find_replace</mat-icon> Replacement Patterns
-        </div>
-        <div class="cheat-table">
-          @if (filterRow('$1, $2', 'Numbered group replacement')) {
-            <div class="cheat-row"><code class="token">$1, $2</code><span class="desc">Numbered group value</span></div>
-          }
-          @if (filterRow('$<name>', 'Named group replacement')) {
-            <div class="cheat-row"><code class="token">$&lt;name&gt;</code><span class="desc">Named group value</span></div>
-          }
-          @if (filterRow('$&', 'Entire matched substring')) {
-            <div class="cheat-row"><code class="token">$&amp;</code><span class="desc">Entire matched substring</span></div>
-          }
-          @if (filterRow('$$', 'Literal dollar sign')) {
-            <div class="cheat-row"><code class="token">$$</code><span class="desc">Literal <code>$</code> character</span></div>
-          }
-          @if (filterRow('$` / $\'', 'Portion before or after match')) {
-            <div class="cheat-row"><code class="token">$` / $'</code><span class="desc">Portion before / after match</span></div>
-          }
-        </div>
-      </div>
-    </div>
-  }
+@case ('ef-migrations') {
+<div class="field">
+  <label>Target Project Path (-p)</label>
+  <input [value]="instance.config['project'] || 'src/Infrastructure'"
+    (input)="update('project', $any($event.target).value)" placeholder="src/Infrastructure" />
+</div>
+<div class="field">
+  <label>Startup Project Path (-s)</label>
+  <input [value]="instance.config['startupProject'] || 'src/WebApi'"
+    (input)="update('startupProject', $any($event.target).value)" placeholder="src/WebApi" />
+</div>
+<div class="field">
+  <label>Default DbContext Name (-c)</label>
+  <input [value]="instance.config['contextName'] || 'AppDbContext'"
+    (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
+</div>
+<div class="field">
+  <label>Database Provider (for Scaffold)</label>
+  <mat-select [value]="instance.config['provider'] || 'Microsoft.EntityFrameworkCore.SqlServer'"
+    (selectionChange)="update('provider', $event.value)">
+    <mat-option value="Microsoft.EntityFrameworkCore.SqlServer">SQL Server</mat-option>
+    <mat-option value="Npgsql.EntityFrameworkCore.PostgreSQL">PostgreSQL (Npgsql)</mat-option>
+    <mat-option value="Pomelo.EntityFrameworkCore.MySql">MySQL (Pomelo)</mat-option>
+    <mat-option value="Microsoft.EntityFrameworkCore.Sqlite">SQLite</mat-option>
+  </mat-select>
+</div>
+}
 
-  @case ('ef-configuration') {
-    <div class="field">
-      <label>Table Naming</label>
-      <mat-select [value]="instance.config['tableNaming'] || 'plural'" (selectionChange)="update('tableNaming', $event.value)">
-        <mat-option value="plural">Pluralized (e.g. Users)</mat-option>
-        <mat-option value="singular">Singular (e.g. User)</mat-option>
-        <mat-option value="exact">Exact (as defined)</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Default Schema</label>
-      <input [value]="instance.config['schema'] || ''" (input)="update('schema', $any($event.target).value)" placeholder="e.g. dbo, auth, or empty" />
-    </div>
-    <div class="field">
-      <label>Default String Length</label>
-      <mat-select [value]="instance.config['defaultStringLength'] ?? 200" (selectionChange)="update('defaultStringLength', $event.value)">
-        <mat-option [value]="50">50 characters</mat-option>
-        <mat-option [value]="100">100 characters</mat-option>
-        <mat-option [value]="200">200 characters</mat-option>
-        <mat-option [value]="256">256 characters</mat-option>
-        <mat-option [value]="500">500 characters</mat-option>
-        <mat-option [value]="4000">4000 characters</mat-option>
-        <mat-option [value]="0">Uncapped / Max</mat-option>
-      </mat-select>
-    </div>
-    <div class="field">
-      <label>Foreign Key Delete Behavior</label>
-      <mat-select [value]="instance.config['deleteBehavior'] || 'Restrict'" (selectionChange)="update('deleteBehavior', $event.value)">
-        <mat-option value="Restrict">Restrict</mat-option>
-        <mat-option value="Cascade">Cascade</mat-option>
-        <mat-option value="SetNull">Set Null</mat-option>
-        <mat-option value="NoAction">No Action</mat-option>
-        <mat-option value="ClientSetNull">Client Set Null</mat-option>
-      </mat-select>
-    </div>
-    <div class="toggle-row">
-      <span>Global Soft Delete Filter</span>
-      <mat-slide-toggle
-        [checked]="instance.config['enableSoftDelete'] ?? true"
-        (change)="update('enableSoftDelete', $event.checked)"
-      ></mat-slide-toggle>
-    </div>
-    <div class="toggle-row">
-      <span>Decimal Precision (18, 2)</span>
-      <mat-slide-toggle
-        [checked]="instance.config['enablePrecision'] ?? true"
-        (change)="update('enablePrecision', $event.checked)"
-      ></mat-slide-toggle>
-    </div>
-    <div class="toggle-row">
-      <span>Enum to String Conversion</span>
-      <mat-slide-toggle
-        [checked]="instance.config['enableEnumConversion'] ?? true"
-        (change)="update('enableEnumConversion', $event.checked)"
-      ></mat-slide-toggle>
-    </div>
-  }
+@case ('ef-dbcontext') {
+<div class="field">
+  <label>Default DbContext Name</label>
+  <input [value]="instance.config['contextName'] || 'AppDbContext'"
+    (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
+</div>
+<div class="field">
+  <label>Namespace</label>
+  <input [value]="instance.config['namespace'] || 'MyApp.Infrastructure.Data'"
+    (input)="update('namespace', $any($event.target).value)" placeholder="MyApp.Infrastructure.Data" />
+</div>
+<div class="field">
+  <label>Database Provider</label>
+  <mat-select [value]="instance.config['provider'] || 'SqlServer'" (selectionChange)="update('provider', $event.value)">
+    <mat-option value="SqlServer">Microsoft SQL Server</mat-option>
+    <mat-option value="PostgreSql">PostgreSQL</mat-option>
+    <mat-option value="MySql">MySQL</mat-option>
+    <mat-option value="Sqlite">SQLite</mat-option>
+  </mat-select>
+</div>
+}
 
-  @case ('ef-migrations') {
-    <div class="field">
-      <label>Target Project Path (-p)</label>
-      <input [value]="instance.config['project'] || 'src/Infrastructure'" (input)="update('project', $any($event.target).value)" placeholder="src/Infrastructure" />
-    </div>
-    <div class="field">
-      <label>Startup Project Path (-s)</label>
-      <input [value]="instance.config['startupProject'] || 'src/WebApi'" (input)="update('startupProject', $any($event.target).value)" placeholder="src/WebApi" />
-    </div>
-    <div class="field">
-      <label>Default DbContext Name (-c)</label>
-      <input [value]="instance.config['contextName'] || 'AppDbContext'" (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
-    </div>
-    <div class="field">
-      <label>Database Provider (for Scaffold)</label>
-      <mat-select [value]="instance.config['provider'] || 'Microsoft.EntityFrameworkCore.SqlServer'" (selectionChange)="update('provider', $event.value)">
-        <mat-option value="Microsoft.EntityFrameworkCore.SqlServer">SQL Server</mat-option>
-        <mat-option value="Npgsql.EntityFrameworkCore.PostgreSQL">PostgreSQL (Npgsql)</mat-option>
-        <mat-option value="Pomelo.EntityFrameworkCore.MySql">MySQL (Pomelo)</mat-option>
-        <mat-option value="Microsoft.EntityFrameworkCore.Sqlite">SQLite</mat-option>
-      </mat-select>
-    </div>
-  }
-
-  @case ('ef-dbcontext') {
-    <div class="field">
-      <label>Default DbContext Name</label>
-      <input [value]="instance.config['contextName'] || 'AppDbContext'" (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
-    </div>
-    <div class="field">
-      <label>Namespace</label>
-      <input [value]="instance.config['namespace'] || 'MyApp.Infrastructure.Data'" (input)="update('namespace', $any($event.target).value)" placeholder="MyApp.Infrastructure.Data" />
-    </div>
-    <div class="field">
-      <label>Database Provider</label>
-      <mat-select [value]="instance.config['provider'] || 'SqlServer'" (selectionChange)="update('provider', $event.value)">
-        <mat-option value="SqlServer">Microsoft SQL Server</mat-option>
-        <mat-option value="PostgreSql">PostgreSQL</mat-option>
-        <mat-option value="MySql">MySQL</mat-option>
-        <mat-option value="Sqlite">SQLite</mat-option>
-      </mat-select>
-    </div>
-  }
-
-  @default {
-    <div class="empty-state">No options for this tool yet</div>
-  }
+@default {
+<div class="empty-state">No options for this tool yet</div>
+}
 }

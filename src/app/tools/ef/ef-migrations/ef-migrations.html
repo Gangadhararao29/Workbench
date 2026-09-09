@@ -70,7 +70,7 @@
         </div>
         <div class="form-row">
           <label>Connection String</label>
-          <input [(ngModel)]="connectionString" (ngModelChange)="generate()" placeholder="Server=...;Database=..." />
+          <input [(ngModel)]="connectionString" (ngModelChange)="syncConfig()" placeholder="Server=...;Database=..." />
         </div>
       }
 
@@ -105,11 +105,11 @@
       @if (activeAction() === 'scaffold') {
         <div class="form-row">
           <label>Connection String</label>
-          <input [(ngModel)]="connectionString" (ngModelChange)="generate()" placeholder="Server=...;Database=..." />
+          <input [(ngModel)]="connectionString" (ngModelChange)="syncConfig()" placeholder="Server=...;Database=..." />
         </div>
         <div class="form-row">
           <label>Provider</label>
-          <input [(ngModel)]="provider" (ngModelChange)="generate()" placeholder="Microsoft.EntityFrameworkCore.SqlServer" />
+          <input [(ngModel)]="provider" (ngModelChange)="syncConfig()" placeholder="Microsoft.EntityFrameworkCore.SqlServer" />
         </div>
         <div class="form-row">
           <label>Output Directory</label>
@@ -142,6 +142,7 @@
             <mat-option value="index">Filtered / Custom Index</mat-option>
             <mat-option value="add-column">Add / Drop Column</mat-option>
             <mat-option value="view">Database View / SP Creation</mat-option>
+            <mat-option value="seed">Data Seeding (InsertData / DeleteData)</mat-option>
           </mat-select>
         </div>
 
@@ -156,7 +157,7 @@
           </div>
         }
 
-        @if (customSnippetType === 'index' || customSnippetType === 'add-column') {
+        @if (customSnippetType === 'index' || customSnippetType === 'add-column' || customSnippetType === 'seed') {
           <div class="form-row">
             <label>Table Name</label>
             <input [(ngModel)]="customTable" (ngModelChange)="generate()" />
@@ -180,17 +181,17 @@
 
         <div class="form-row">
           <label>Target Project (-p)</label>
-          <input [(ngModel)]="project" (ngModelChange)="generate()" placeholder="src/Infrastructure or MyProject.Data.csproj" />
+          <input [(ngModel)]="project" (ngModelChange)="syncConfig()" placeholder="src/Infrastructure or MyProject.Data.csproj" />
         </div>
 
         <div class="form-row">
           <label>Startup Project (-s)</label>
-          <input [(ngModel)]="startupProject" (ngModelChange)="generate()" placeholder="src/WebApi or MyProject.Api.csproj" />
+          <input [(ngModel)]="startupProject" (ngModelChange)="syncConfig()" placeholder="src/WebApi or MyProject.Api.csproj" />
         </div>
 
         <div class="form-row">
           <label>DbContext Name (-c)</label>
-          <input [(ngModel)]="contextName" (ngModelChange)="generate()" placeholder="AppDbContext" />
+          <input [(ngModel)]="contextName" (ngModelChange)="syncConfig()" placeholder="AppDbContext" />
         </div>
 
         <div class="checkbox-row">
@@ -205,8 +206,19 @@
     <!-- Right Generated Output -->
     <div class="output-panel field grow">
       <div class="pane-header">
-        <label>{{ activeAction() === 'custom-cs' ? 'C# Custom Migration Code' : 'Generated CLI Command' }}</label>
-        <span class="pane-subtitle">{{ activeAction() === 'custom-cs' ? 'Drop into your EF Core migration file' : 'Run in terminal at repository root' }}</span>
+        <div>
+          <label>{{ activeAction() === 'custom-cs' ? 'C# Custom Migration Code' : 'Generated CLI Command' }}</label>
+          <span class="pane-subtitle">{{ activeAction() === 'custom-cs' ? 'Drop into your EF Core migration file' : 'Run in terminal at repository root' }}</span>
+        </div>
+        <button
+          class="btn-copy-result"
+          [class.copied]="copied()"
+          (click)="copyResult()"
+          [matTooltip]="copied() ? 'Copied!' : 'Copy result'"
+          aria-label="Copy result"
+        >
+          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
       </div>
       <app-code-editor
         [value]="result()"

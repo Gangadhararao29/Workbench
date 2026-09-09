@@ -25,6 +25,7 @@ export class EfConfiguration implements OnInit {
   input = signal(PRESET_CUSTOMER_ORDERS);
   result = signal('');
   activeTab = signal<'fluent' | 'annotations' | 'both'>('fluent');
+  copied = signal(false);
 
   constructor(private instanceService: InstanceService) {
     effect(() => {
@@ -44,6 +45,11 @@ export class EfConfiguration implements OnInit {
     this.generate();
   }
 
+  onInputChange(val: string): void {
+    this.input.set(val);
+    this.generate();
+  }
+
   loadPreset(preset: 'customer' | 'blog' | 'simple'): void {
     if (preset === 'customer') {
       this.input.set(PRESET_CUSTOMER_ORDERS);
@@ -60,6 +66,16 @@ export class EfConfiguration implements OnInit {
   setTab(tab: 'fluent' | 'annotations' | 'both'): void {
     this.activeTab.set(tab);
     this.generate();
+  }
+
+  copyResult(): void {
+    const text = this.result();
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.copied.set(true);
+        setTimeout(() => this.copied.set(false), 1500);
+      });
+    }
   }
 
   generate(): void {

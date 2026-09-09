@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
@@ -111,7 +110,6 @@ const SQL_LINQ_CARDS: SqlLinqCard[] = [
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    MatSelectModule,
     MatSlideToggleModule,
     CodeEditor
   ],
@@ -138,7 +136,6 @@ export class EfLinq implements OnInit {
   includeNavigation = 'Orders';
   thenIncludeNav = 'OrderItems';
   filteredIncludeCondition = 'o.TotalAmount > 100';
-  batchUpdateSet = 'c.Status = CustomerStatus.Active, c.UpdatedAtUtc = DateTime.UtcNow';
   batchCondition = 'c.Status == CustomerStatus.Pending && c.CreatedAtUtc < cutoffDate';
   pageNumber = 1;
   pageSize = 20;
@@ -147,6 +144,7 @@ export class EfLinq implements OnInit {
   searchFilter = signal('');
 
   result = signal('');
+  copied = signal(false);
 
   cards = SQL_LINQ_CARDS;
 
@@ -235,15 +233,28 @@ export class EfLinq implements OnInit {
 
       case 'split-query': {
         lines.push('// AsSplitQuery avoids Cartesian product explosion when including multiple 1:N collections:');
-        lines.push(`var customers = await ${ctx}.${entity}s`);
-        if (tag) lines.push(`    ${tag}`);
-        if (noTrack) lines.push(`    ${noTrack}`);
-        lines.push(`    .AsSplitQuery()`);
-        lines.push(`    .Include(c => c.Orders)`);
-        lines.push(`    .Include(c => c.Addresses)`);
-        lines.push(`    .Include(c => c.AuditLogs)`);
-        lines.push(`    .Where(c => c.IsActive)`);
-        lines.push(`    .ToListAsync(${ct});`);
+        if (syntax === 'method') {
+          lines.push(`var customers = await ${ctx}.${entity}s`);
+          if (tag) lines.push(`    ${tag}`);
+          if (noTrack) lines.push(`    ${noTrack}`);
+          lines.push(`    .AsSplitQuery()`);
+          lines.push(`    .Include(c => c.Orders)`);
+          lines.push(`    .Include(c => c.Addresses)`);
+          lines.push(`    .Include(c => c.AuditLogs)`);
+          lines.push(`    .Where(c => c.IsActive)`);
+          lines.push(`    .ToListAsync(${ct});`);
+        } else {
+          lines.push(`var query = (from c in ${ctx}.${entity}s${noTrack ? ' /* Note: Call AsNoTracking() on dbSet */' : ''}`);
+          lines.push(`             where c.IsActive`);
+          lines.push(`             select c)`);
+          if (tag) lines.push(`            ${tag}`);
+          lines.push(`            .AsSplitQuery()`);
+          lines.push(`            .Include(c => c.Orders)`);
+          lines.push(`            .Include(c => c.Addresses)`);
+          lines.push(`            .Include(c => c.AuditLogs);`);
+          lines.push('');
+          lines.push(`var customers = await query.ToListAsync(${ct});`);
+        }
         break;
       }
 
@@ -271,26 +282,48 @@ export class EfLinq implements OnInit {
         lines.push(`int page = ${this.pageNumber};`);
         lines.push(`int pageSize = ${this.pageSize};`);
         lines.push('');
-        lines.push(`var baseQuery = ${ctx}.${entity}s`);
-        if (tag) lines.push(`    ${tag}`);
-        if (noTrack) lines.push(`    ${noTrack}`);
-        lines.push(`    .Where(c => c.IsActive);`);
-        lines.push('');
-        lines.push(`// 1. Get Total Count`);
-        lines.push(`int totalCount = await baseQuery.CountAsync(${ct});`);
-        lines.push('');
-        lines.push(`// 2. Fetch Paged Items`);
-        lines.push(`var items = await baseQuery`);
-        lines.push(`    .OrderByDescending(c => c.CreatedAtUtc)`);
-        lines.push(`    .Skip((page - 1) * pageSize)`);
-        lines.push(`    .Take(pageSize)`);
-        lines.push(`    .Select(c => new ${entity}ResponseDto(`);
-        lines.push(`        c.Id,`);
-        lines.push(`        c.FirstName,`);
-        lines.push(`        c.Email,`);
-        lines.push(`        c.Orders.Count`);
-        lines.push(`    ))`);
-        lines.push(`    .ToListAsync(${ct});`);
+        if (syntax === 'method') {
+          lines.push(`var baseQuery = ${ctx}.${entity}s`);
+          if (tag) lines.push(`    ${tag}`);
+          if (noTrack) lines.push(`    ${noTrack}`);
+          lines.push(`    .Where(c => c.IsActive);`);
+          lines.push('');
+          lines.push(`// 1. Get Total Count`);
+          lines.push(`int totalCount = await baseQuery.CountAsync(${ct});`);
+          lines.push('');
+          lines.push(`// 2. Fetch Paged Items`);
+          lines.push(`var items = await baseQuery`);
+          lines.push(`    .OrderByDescending(c => c.CreatedAtUtc)`);
+          lines.push(`    .Skip((page - 1) * pageSize)`);
+          lines.push(`    .Take(pageSize)`);
+          lines.push(`    .Select(c => new ${entity}ResponseDto(`);
+          lines.push(`        c.Id,`);
+          lines.push(`        c.FirstName,`);
+          lines.push(`        c.Email,`);
+          lines.push(`        c.Orders.Count`);
+          lines.push(`    ))`);
+          lines.push(`    .ToListAsync(${ct});`);
+        } else {
+          lines.push(`var baseQuery = from c in ${ctx}.${entity}s${noTrack ? ' /* Note: Call AsNoTracking() on dbSet */' : ''}`);
+          lines.push(`                where c.IsActive`);
+          lines.push(`                select c;`);
+          lines.push('');
+          lines.push(`// 1. Get Total Count`);
+          lines.push(`int totalCount = await baseQuery.CountAsync(${ct});`);
+          lines.push('');
+          lines.push(`// 2. Fetch Paged Items`);
+          lines.push(`var items = await (from c in baseQuery`);
+          lines.push(`                   orderby c.CreatedAtUtc descending`);
+          lines.push(`                   select new ${entity}ResponseDto(`);
+          lines.push(`                       c.Id,`);
+          lines.push(`                       c.FirstName,`);
+          lines.push(`                       c.Email,`);
+          lines.push(`                       c.Orders.Count`);
+          lines.push(`                   ))`);
+          lines.push(`                   .Skip((page - 1) * pageSize)`);
+          lines.push(`                   .Take(pageSize)`);
+          lines.push(`                   .ToListAsync(${ct});`);
+        }
         lines.push('');
         lines.push(`var pagedResult = new PagedList<${entity}ResponseDto>(items, totalCount, page, pageSize);`);
         break;
@@ -298,18 +331,30 @@ export class EfLinq implements OnInit {
 
       case 'groupby': {
         lines.push('// GroupBy with multi-metric aggregation and HAVING clause equivalent:');
-        lines.push(`var metrics = await ${ctx}.${entity}s`);
-        if (tag) lines.push(`    ${tag}`);
-        if (noTrack) lines.push(`    ${noTrack}`);
-        lines.push(`    .GroupBy(c => c.Status)`);
-        lines.push(`    .Where(g => g.Count() > 10) // Translates to HAVING COUNT(*) > 10`);
-        lines.push(`    .Select(g => new {`);
-        lines.push(`        Status = g.Key,`);
-        lines.push(`        TotalCount = g.Count(),`);
-        lines.push(`        AverageCreditLimit = g.Average(c => c.CreditLimit),`);
-        lines.push(`        MaxCredit = g.Max(c => c.CreditLimit)`);
-        lines.push(`    })`);
-        lines.push(`    .ToListAsync(${ct});`);
+        if (syntax === 'method') {
+          lines.push(`var metrics = await ${ctx}.${entity}s`);
+          if (tag) lines.push(`    ${tag}`);
+          if (noTrack) lines.push(`    ${noTrack}`);
+          lines.push(`    .GroupBy(c => c.Status)`);
+          lines.push(`    .Where(g => g.Count() > 10) // Translates to HAVING COUNT(*) > 10`);
+          lines.push(`    .Select(g => new {`);
+          lines.push(`        Status = g.Key,`);
+          lines.push(`        TotalCount = g.Count(),`);
+          lines.push(`        AverageCreditLimit = g.Average(c => c.CreditLimit),`);
+          lines.push(`        MaxCredit = g.Max(c => c.CreditLimit)`);
+          lines.push(`    })`);
+          lines.push(`    .ToListAsync(${ct});`);
+        } else {
+          lines.push(`var metrics = await (from c in ${ctx}.${entity}s${noTrack ? ' /* Note: Call AsNoTracking() on dbSet */' : ''}`);
+          lines.push(`                    group c by c.Status into g`);
+          lines.push(`                    where g.Count() > 10 // Translates to HAVING COUNT(*) > 10`);
+          lines.push(`                    select new {`);
+          lines.push(`                        Status = g.Key,`);
+          lines.push(`                        TotalCount = g.Count(),`);
+          lines.push(`                        AverageCreditLimit = g.Average(c => c.CreditLimit),`);
+          lines.push(`                        MaxCredit = g.Max(c => c.CreditLimit)`);
+          lines.push(`                    }).ToListAsync(${ct});`);
+        }
         break;
       }
 
@@ -333,11 +378,17 @@ export class EfLinq implements OnInit {
 
       case 'soft-delete': {
         lines.push('// Bypass Global Query Filters for Admin / Recovery features:');
-        lines.push(`var allCustomersIncludingDeleted = await ${ctx}.${entity}s`);
-        lines.push(`    .IgnoreQueryFilters()`);
-        if (noTrack) lines.push(`    ${noTrack}`);
-        lines.push(`    .Where(c => c.IsDeleted)`);
-        lines.push(`    .ToListAsync(${ct});`);
+        if (syntax === 'method') {
+          lines.push(`var allCustomersIncludingDeleted = await ${ctx}.${entity}s`);
+          lines.push(`    .IgnoreQueryFilters()`);
+          if (noTrack) lines.push(`    ${noTrack}`);
+          lines.push(`    .Where(c => c.IsDeleted)`);
+          lines.push(`    .ToListAsync(${ct});`);
+        } else {
+          lines.push(`var allCustomersIncludingDeleted = await (from c in ${ctx}.${entity}s.IgnoreQueryFilters()`);
+          lines.push(`                                          where c.IsDeleted`);
+          lines.push(`                                          select c).ToListAsync(${ct});`);
+        }
         break;
       }
 
@@ -363,6 +414,16 @@ export class EfLinq implements OnInit {
     }
 
     if (this.wrapInHandler) {
+      const fieldName = ctx.startsWith('_') ? ctx : `_${ctx}`;
+      const paramName = ctx.startsWith('_') ? ctx.replace(/^_/, '') : ctx;
+
+      const methodLines = lines.map((line) => {
+        if (fieldName !== ctx) {
+          return line.replace(new RegExp(`\\b${ctx}\\.`, 'g'), `${fieldName}.`);
+        }
+        return line;
+      });
+
       const code = [
         'using System;',
         'using System.Collections.Generic;',
@@ -373,22 +434,32 @@ export class EfLinq implements OnInit {
         '',
         `public class Get${entity}QueryHandler`,
         '{',
-        `    private readonly AppDbContext _context;`,
+        `    private readonly AppDbContext ${fieldName};`,
         '',
-        `    public Get${entity}QueryHandler(AppDbContext context)`,
+        `    public Get${entity}QueryHandler(AppDbContext ${paramName})`,
         '    {',
-        '        _context = context;',
+        `        ${fieldName} = ${paramName};`,
         '    }',
         '',
         `    public async Task ExecuteAsync(CancellationToken cancellationToken = default)`,
         '    {',
-        '        ' + lines.join('\n        '),
+        '        ' + methodLines.join('\n        '),
         '    }',
         '}'
       ].join('\n');
       this.result.set(code);
     } else {
       this.result.set(lines.join('\n'));
+    }
+  }
+
+  copyResult(): void {
+    const text = this.result();
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.copied.set(true);
+        setTimeout(() => this.copied.set(false), 1500);
+      });
     }
   }
 }
