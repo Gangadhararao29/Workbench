@@ -25,9 +25,32 @@ describe('feature-generator-engine', () => {
     expect(fileNames).toContain('order.model.ts');
     expect(fileNames).toContain('order.service.ts');
 
+    const repoInterface = files.find((f) => f.fileName === 'IOrderRepository.cs')!;
+    expect(repoInterface.content).not.toContain('using CommerceApp.Domain;');
+    expect(repoInterface.content).toContain('Task<bool> DeleteAsync(int id');
+
     const controller = files.find((f) => f.fileName === 'OrderController.cs')!;
     expect(controller.content).toContain('[Route("api/orders")]');
     expect(controller.content).toContain('public sealed class OrderController');
+  });
+
+  it('should format multi-word feature routes using kebab-case', () => {
+    const files = generateFeatureFiles('OrderItem', 'CommerceApp', {
+      includeEntity: false,
+      includeDto: false,
+      includeRepository: false,
+      includeService: false,
+      includeController: true,
+      includeConfiguration: false,
+      includeFrontend: true,
+      frontendFramework: 'angular',
+    });
+
+    const controller = files.find((f) => f.fileName === 'OrderItemController.cs')!;
+    expect(controller.content).toContain('[Route("api/order-items")]');
+
+    const service = files.find((f) => f.fileName === 'orderitem.service.ts')!;
+    expect(service.content).toContain("private readonly url = '/api/order-items';");
   });
 
   it('should generate React Query frontend client when react is selected', () => {

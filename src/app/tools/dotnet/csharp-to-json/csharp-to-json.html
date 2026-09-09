@@ -1,15 +1,24 @@
 <div class="tool-surface-inner">
 
   <div class="field">
-    <div class="field-header"><label>C# Input</label></div>
+    <div class="field-header">
+      <label>C# Input</label>
+      <div class="input-actions">
+        <button type="button" class="action-link-btn" (click)="clear()" title="Clear input">
+          <mat-icon>clear_all</mat-icon>
+          <span>Clear</span>
+        </button>
+      </div>
+    </div>
     <app-code-editor [value]="input()" language="csharp" ariaLabel="C# input"
-      (valueChange)="input.set($event)"></app-code-editor>
+      (valueChange)="onInputChange($event)"></app-code-editor>
   </div>
 
   <div class="toolbar-row">
     <div class="result-header">
       <span class="result-label">JSON Output</span>
-      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()" title="Copy result">
+      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()"
+        [matTooltip]="copied() ? 'Copied!' : 'Copy result'" aria-label="Copy result">
         <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
       </button>
     </div>
@@ -20,6 +29,10 @@
       </button>
     </div>
   </div>
+
+  @if (error()) {
+    <p class="status-message error-message">{{ error() }}</p>
+  }
 
   <div class="field grow">
     <app-code-editor [value]="result()" language="json" ariaLabel="JSON output" [readOnly]="true"></app-code-editor>

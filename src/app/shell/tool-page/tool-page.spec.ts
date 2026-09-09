@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ToolPage } from './tool-page';
-import { InstanceService } from '../core/tool/tool-instance';
+import { InstanceService } from '../../core/tool/tool-instance';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 

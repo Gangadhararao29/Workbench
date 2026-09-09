@@ -147,5 +147,17 @@ key: [unterminated
         expect(() => yamlToJson(preset.yaml)).not.toThrow();
       }
     });
+
+    it('each preset converts bidirectionally with equivalent data structure', () => {
+      for (const preset of YAML_PRESETS) {
+        const expectedData = JSON.parse(preset.json);
+        const fromYamlData = JSON.parse(yamlToJson(preset.yaml));
+        expect(fromYamlData).toEqual(expectedData);
+
+        const generatedYaml = jsonToYaml(preset.json);
+        const roundTripData = JSON.parse(yamlToJson(generatedYaml));
+        expect(roundTripData).toEqual(expectedData);
+      }
+    });
   });
 });

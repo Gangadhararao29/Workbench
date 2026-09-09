@@ -255,8 +255,12 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'Formatter',
     description: 'Format and tidy C# source code.',
     keywords: ['c#', 'csharp', 'format', 'tidy', 'beautify', 'indent', 'clean', 'source code', 'style'],
-    hasSidebarOptions: false,
+    hasSidebarOptions: true,
     defaultSidebarOpen: false,
+    defaultConfig: {
+      braceStyle: 'allman',
+      indent: '4 spaces',
+    },
     component: CsharpFormatter,
   },
   {

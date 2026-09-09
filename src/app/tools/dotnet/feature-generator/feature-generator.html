@@ -4,11 +4,11 @@
   <div class="form-grid">
     <div class="field">
       <div class="field-header"><label>Feature Name</label></div>
-      <input class="text-input" [(ngModel)]="feature" (ngModelChange)="generate()" placeholder="e.g. CreateOrder" />
+      <input class="text-input" [ngModel]="feature()" (ngModelChange)="feature.set($event)" placeholder="e.g. CreateOrder" />
     </div>
     <div class="field">
       <div class="field-header"><label>Namespace</label></div>
-      <input class="text-input" [(ngModel)]="namespace" (ngModelChange)="generate()" placeholder="e.g. MyApp.Features" />
+      <input class="text-input" [ngModel]="namespace()" (ngModelChange)="namespace.set($event)" placeholder="e.g. MyApp.Features" />
     </div>
   </div>
 

@@ -4,6 +4,24 @@ if (typeof document !== 'undefined' && typeof document.queryCommandSupported !==
   document.queryCommandSupported = () => false;
 }
 
+if (typeof HTMLCanvasElement !== 'undefined') {
+  const mockCtx = {
+    clearRect: () => {},
+    fillRect: () => {},
+    beginPath: () => {},
+    moveTo: () => {},
+    lineTo: () => {},
+    stroke: () => {},
+    fill: () => {},
+    arc: () => {},
+    getImageData: () => ({ data: [] }),
+    putImageData: () => {},
+    save: () => {},
+    restore: () => {},
+  };
+  HTMLCanvasElement.prototype.getContext = () => mockCtx as any;
+}
+
 class MockObserver {
   observe() {}
   unobserve() {}

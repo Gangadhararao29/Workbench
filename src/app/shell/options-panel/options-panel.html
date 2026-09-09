@@ -19,6 +19,23 @@
 }
 
 @switch (instance.toolType) {
+  @case ('csharp-formatter') {
+    <div class="field">
+      <label>Brace style</label>
+      <mat-select [value]="instance.config['braceStyle'] || 'allman'" (selectionChange)="update('braceStyle', $event.value)">
+        <mat-option value="allman">Allman (New line)</mat-option>
+        <mat-option value="kr">K&amp;R (Same line)</mat-option>
+      </mat-select>
+    </div>
+    <div class="field">
+      <label>Indent size</label>
+      <mat-select [value]="instance.config['indent'] || '4 spaces'" (selectionChange)="update('indent', $event.value)">
+        <mat-option value="4 spaces">4 spaces</mat-option>
+        <mat-option value="2 spaces">2 spaces</mat-option>
+      </mat-select>
+    </div>
+  }
+
   @case ('sql-formatter') {
     <div class="field">
       <label>Dialect</label>
