@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,7 +31,12 @@ export class SqlFormatter implements OnInit {
   mode = signal<SqlFormatMode>('pretty');
   copied = signal(false);
 
-  constructor(private instanceService: InstanceService) {}
+  constructor(private instanceService: InstanceService) {
+    effect(() => {
+      this.config();
+      this.transform(this.mode());
+    });
+  }
 
   ngOnInit() {
     this.transform(this.mode());
@@ -63,9 +68,13 @@ export class SqlFormatter implements OnInit {
   copyResult() {
     const res = this.result();
     if (res) {
-      navigator.clipboard.writeText(res);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
+      navigator.clipboard
+        .writeText(res)
+        .then(() => {
+          this.copied.set(true);
+          setTimeout(() => this.copied.set(false), 2000);
+        })
+        .catch(() => {});
     }
   }
 
@@ -96,13 +105,7 @@ export class SqlFormatter implements OnInit {
         this.result.set(formatSql(raw, cfg));
       }
     } catch {
-      if (mode === 'minified') {
-        this.result.set(minifySql(raw));
-      } else if (mode === 'compact') {
-        this.result.set(compactSql(raw, cfg));
-      } else {
-        this.result.set(raw);
-      }
+      this.result.set(raw);
     }
   }
 }

@@ -54,6 +54,13 @@ describe('sql-formatter-engine', () => {
       expect(compact).toContain('WHERE active = 1 AND age > 18');
       expect(compact).toContain('ORDER BY id DESC');
     });
+
+    it('does not split or uppercase clause keywords inside string literals', () => {
+      const sql = "SELECT id, 'updated from orders order by date' AS note FROM users WHERE status = 'pending';";
+      const compact = compactSql(sql, { uppercaseKeywords: true });
+      expect(compact).toContain("'updated from orders order by date'");
+      expect(compact).not.toContain("'updated\nFROM orders\nORDER BY date'");
+    });
   });
 
   describe('minifySql', () => {
@@ -67,6 +74,16 @@ describe('sql-formatter-engine', () => {
       `;
       const minified = minifySql(sql);
       expect(minified).toBe("SELECT id, 'hello   world' AS msg FROM users WHERE id = 1");
+    });
+
+    it('strips single-line and block comments without breaking subsequent SQL tokens', () => {
+      const sql = `
+        SELECT id, name -- get user columns
+        FROM users /* table of users */
+        WHERE active = 1;
+      `;
+      const minified = minifySql(sql);
+      expect(minified).toBe('SELECT id, name FROM users WHERE active = 1;');
     });
   });
 });

@@ -1,18 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SqlFormatter } from './sql-formatter';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 describe('SqlFormatter', () => {
   let component: SqlFormatter;
   let fixture: ComponentFixture<SqlFormatter>;
+  let instanceService: InstanceService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SqlFormatter],
     }).compileComponents();
 
+    instanceService = TestBed.inject(InstanceService);
+    const instance = instanceService.open('sql-formatter');
     fixture = TestBed.createComponent(SqlFormatter);
     component = fixture.componentInstance;
-    component.instanceId = 'test-instance';
+    component.instanceId = instance.id;
     await fixture.whenStable();
   });
 
@@ -41,5 +45,17 @@ describe('SqlFormatter', () => {
     component.minify();
     expect(component.mode()).toBe('minified');
     expect(component.result()).toBe('SELECT id, name, email FROM users WHERE active = 1;');
+  });
+
+  it('should automatically re-format when options change in InstanceService', async () => {
+    component.input.set('select id from users;');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.result()).toContain('SELECT');
+
+    instanceService.updateConfig(component.instanceId, { keywordCase: 'lower' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.result()).toContain('select');
   });
 });

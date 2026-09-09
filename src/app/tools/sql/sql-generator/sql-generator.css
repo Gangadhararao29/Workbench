@@ -475,8 +475,8 @@
 }
 
 .badge-pk {
-  background: #f59e0b;
-  color: #000;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
   font-size: 9px;
   font-weight: 800;
   padding: 1px 4px;
@@ -484,8 +484,8 @@
 }
 
 .badge-identity {
-  background: #2563eb;
-  color: #fff;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
   font-size: 9px;
   font-weight: 700;
   padding: 1px 4px;
@@ -500,11 +500,8 @@
 }
 .col-type {
   font-family: 'Roboto Mono', monospace;
-  color: #0284c7;
+  color: var(--mat-sys-primary);
   font-weight: 600;
-}
-body.dark-theme .col-type {
-  color: #7dd3fc;
 }
 
 .col-nullability {
@@ -512,11 +509,8 @@ body.dark-theme .col-type {
   font-size: 9.5px;
 }
 .col-nullability.not-null {
-  color: #dc2626;
+  color: var(--mat-sys-error);
   font-weight: 600;
-}
-body.dark-theme .col-nullability.not-null {
-  color: #f87171;
 }
 
 .col-default {
@@ -796,4 +790,121 @@ body.dark-theme .col-nullability.not-null {
   height: 100% !important;
   min-height: 300px !important;
   width: 100%;
+}
+
+/* =============================================
+   SECTION ACTIONS & SECTION-ACTIONS WRAPPER
+   ============================================= */
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Primary accent variant for the "View Batch SQL" button
+   (base .action-link-btn is in tool-common.css) */
+.action-link-btn--primary {
+  border: 1px solid var(--mat-sys-primary, #a8c7fa);
+  color: var(--mat-sys-primary, #a8c7fa);
+  background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  border-radius: 5px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.action-link-btn--primary:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  color: var(--mat-sys-primary, #a8c7fa);
+  border-color: var(--mat-sys-primary, #a8c7fa);
+}
+
+/* =============================================
+   PARSE STATUS BADGE (shown next to Parse button)
+   ============================================= */
+.parse-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--mat-sys-tertiary-container);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 35%, transparent);
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.status-ok-icon {
+  font-size: 13px;
+  width: 13px;
+  height: 13px;
+  color: var(--mat-sys-tertiary);
+}
+
+/* =============================================
+   PARSE ERROR HINT
+   ============================================= */
+.parse-error-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: var(--mat-sys-secondary-container);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-secondary) 30%, transparent);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.parse-error-hint mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   SSMS HINT BAR
+   ============================================= */
+.ssms-hint-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--mat-sys-on-surface-variant, #919499);
+}
+
+.ssms-hint-bar strong {
+  color: var(--mat-sys-on-surface, #e2e2e6);
+}
+
+.hint-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: var(--mat-sys-primary, #a8c7fa);
+  flex-shrink: 0;
+}
+
+/* =============================================
+   STATUS ITEM SUCCESS VARIANT
+   ============================================= */
+.status-item--success {
+  color: var(--mat-sys-tertiary);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.status-item--success .status-icon {
+  color: var(--mat-sys-tertiary);
+}
+
+.status-item--success strong {
+  color: var(--mat-sys-tertiary);
 }

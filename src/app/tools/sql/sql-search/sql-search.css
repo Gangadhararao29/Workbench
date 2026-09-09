@@ -799,11 +799,32 @@ body.dark-theme .empty-state-box {
   border-color: var(--mat-sys-outline-variant, #3a414e);
 }
 
+.empty-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--mat-sys-surface-container-high, #f1f5f9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host-context(body.dark-theme) .empty-icon-wrapper,
+:host-context(.dark-theme) .empty-icon-wrapper,
+body.dark-theme .empty-icon-wrapper {
+  background: var(--mat-sys-surface-container-high, #282a2f);
+}
+
 .empty-icon {
-  font-size: 40px;
-  width: 40px;
-  height: 40px;
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+  line-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--mat-sys-on-surface-variant, #64748b);
+  opacity: 0.85;
 }
 
 :host-context(body.dark-theme) .empty-icon,

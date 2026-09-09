@@ -38,7 +38,7 @@
   @if (activeHomeTab() === 'tools') {
   @if (filteredToolGroups().length === 0) {
   <div class="home-empty-search">
-    <mat-icon class="empty-icon">search_off</mat-icon>
+    <mat-icon class="empty-icon">search</mat-icon>
     <h2>No tools found matching "{{ searchQuery().trim() }}"</h2>
     <p>Try searching for other keywords, descriptions, or tool names.</p>
     <button type="button" class="btn-clear-search" (click)="clearSearch()">

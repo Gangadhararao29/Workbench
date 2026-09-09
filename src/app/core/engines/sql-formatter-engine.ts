@@ -101,27 +101,37 @@ export function compactSql(source: string, options: SqlFormatterOptions = {}): s
     'EXCEPT',
     'INTERSECT',
     'ON CONFLICT',
-    'RETURNING'
+    'RETURNING',
   ];
 
-  // Regex to split on major clause keywords outside string literals
-  const clausePattern = new RegExp(`\\b(${clauseKeywords.map(k => k.replace(/ /g, '\\s+')).join('|')})\\b`, 'gi');
-  
-  let formatted = minified.replace(clausePattern, match => `\n${match.toUpperCase()}`);
+  const clausePattern = new RegExp(
+    `\\b(${clauseKeywords.map((k) => k.replace(/ /g, '\\s+')).join('|')})\\b`,
+    'gi',
+  );
+
+  let formatted = transformOutsideQuotes(minified, (chunk) =>
+    chunk.replace(clausePattern, (match) => `\n${match.toUpperCase()}`),
+  );
 
   if (options.uppercaseKeywords !== false) {
     const inlineKeywords = [
       'DISTINCT', 'AS', 'AND', 'OR', 'NOT', 'IN', 'IS NULL', 'IS NOT NULL',
       'BETWEEN', 'LIKE', 'ILIKE', 'ASC', 'DESC', 'NULLS FIRST', 'NULLS LAST',
       'ON', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'TOP', 'ROWS', 'ROW', 'ONLY',
-      'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'COALESCE', 'NOW()', 'CURRENT_TIMESTAMP'
+      'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'COALESCE', 'NOW()', 'CURRENT_TIMESTAMP',
     ];
-    formatted = uppercaseKeywordsOutsideQuotes(formatted, inlineKeywords);
+    const inlinePattern = new RegExp(
+      `\\b(${inlineKeywords.map((k) => k.replace(/ /g, '\\s+')).join('|')})\\b`,
+      'gi',
+    );
+    formatted = transformOutsideQuotes(formatted, (chunk) =>
+      chunk.replace(inlinePattern, (m) => m.toUpperCase()),
+    );
   }
 
   return formatted
     .split('\n')
-    .map(line => line.trim())
+    .map((line) => line.trim())
     .filter(Boolean)
     .join('\n');
 }
@@ -130,19 +140,47 @@ export function minifySql(source: string): string {
   let result = '';
   let quote: "'" | '"' | '`' | null = null;
   let whitespacePending = false;
+  let index = 0;
 
-  for (let index = 0; index < source.length; index++) {
+  while (index < source.length) {
     const character = source[index];
     const next = source[index + 1];
 
     if (quote) {
       result += character;
-      if (character === quote && next === quote) {
-        result += next;
+      if (character === '\\' && index + 1 < source.length) {
         index++;
+        result += source[index];
+      } else if (character === quote && next === quote) {
+        index++;
+        result += next;
       } else if (character === quote) {
         quote = null;
       }
+      index++;
+      continue;
+    }
+
+    // Skip single-line SQL comments: -- ...
+    if (character === '-' && next === '-') {
+      index += 2;
+      while (index < source.length && source[index] !== '\n' && source[index] !== '\r') {
+        index++;
+      }
+      whitespacePending = true;
+      continue;
+    }
+
+    // Skip block comments: /* ... */
+    if (character === '/' && next === '*') {
+      index += 2;
+      while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) {
+        index++;
+      }
+      if (index < source.length) {
+        index += 2;
+      }
+      whitespacePending = true;
       continue;
     }
 
@@ -151,21 +189,25 @@ export function minifySql(source: string): string {
       whitespacePending = false;
       quote = character;
       result += character;
+      index++;
     } else if (/\s/.test(character)) {
       whitespacePending = true;
+      index++;
     } else {
       if (whitespacePending && result) result += ' ';
       whitespacePending = false;
       result += character;
+      index++;
     }
   }
 
   return result.trim();
 }
 
-function uppercaseKeywordsOutsideQuotes(source: string, keywords: string[]): string {
-  const pattern = new RegExp(`\\b(${keywords.map(k => k.replace(/ /g, '\\s+')).join('|')})\\b`, 'gi');
-  
+function transformOutsideQuotes(
+  source: string,
+  transform: (chunk: string) => string,
+): string {
   let result = '';
   let inQuote: "'" | '"' | '`' | null = null;
   let buffer = '';
@@ -176,9 +218,12 @@ function uppercaseKeywordsOutsideQuotes(source: string, keywords: string[]): str
 
     if (inQuote) {
       result += char;
-      if (char === inQuote && next === inQuote) {
-        result += next;
+      if (char === '\\' && i + 1 < source.length) {
         i++;
+        result += source[i];
+      } else if (char === inQuote && next === inQuote) {
+        i++;
+        result += next;
       } else if (char === inQuote) {
         inQuote = null;
       }
@@ -186,7 +231,7 @@ function uppercaseKeywordsOutsideQuotes(source: string, keywords: string[]): str
     }
 
     if (char === "'" || char === '"' || char === '`') {
-      result += buffer.replace(pattern, m => m.toUpperCase());
+      result += transform(buffer);
       buffer = '';
       inQuote = char;
       result += char;
@@ -196,7 +241,7 @@ function uppercaseKeywordsOutsideQuotes(source: string, keywords: string[]): str
   }
 
   if (buffer) {
-    result += buffer.replace(pattern, m => m.toUpperCase());
+    result += transform(buffer);
   }
 
   return result;

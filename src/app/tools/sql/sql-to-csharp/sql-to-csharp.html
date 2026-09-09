@@ -21,6 +21,13 @@
     </div>
   </div>
 
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
   <div class="field grow">
     <app-code-editor [value]="result()" language="csharp" ariaLabel="C# output" [readOnly]="true"></app-code-editor>
   </div>

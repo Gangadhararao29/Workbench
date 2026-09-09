@@ -60,6 +60,12 @@
           <div class="section-header">
             <span class="section-title">Table Definition (DDL)</span>
             <div class="section-actions">
+              @if (columns().length > 0) {
+                <span class="parse-status-badge">
+                  <mat-icon class="status-ok-icon">check_circle</mat-icon>
+                  {{ columns().length }} columns parsed
+                </span>
+              }
               <button class="action-link-btn" (click)="parseDdl()">
                 <mat-icon>sync</mat-icon> Parse &amp; Sync
               </button>
@@ -68,12 +74,18 @@
           <div class="editor-wrap">
             <app-code-editor
               [value]="ddlInput()"
-              (valueChange)="ddlInput.set($event); parseDdl()"
+              (valueChange)="ddlInput.set($event); parseDdlDebounced()"
               language="sql"
               ariaLabel="CREATE TABLE DDL Input"
               style="height: 180px;">
             </app-code-editor>
           </div>
+          @if (columns().length === 0 && ddlInput().trim().length > 0) {
+            <div class="parse-error-hint">
+              <mat-icon>warning_amber</mat-icon>
+              Could not parse columns. Check the DDL syntax or click <strong>Parse &amp; Sync</strong> manually.
+            </div>
+          }
         </div>
       }
 
@@ -82,13 +94,23 @@
         <div class="panel-section">
           <div class="section-header">
             <span class="section-title">SSMS Grid Data (Copy with Headers)</span>
-            <span class="section-hint">Paste Tab-Separated or CSV rows copied from SSMS</span>
+            <div class="section-actions">
+              @if (parsedSsmsData().rows.length > 0) {
+                <button class="action-link-btn action-link-btn--primary" (click)="setOutputTab('ssms_batch')">
+                  <mat-icon>bolt</mat-icon> View Batch SQL
+                </button>
+              }
+            </div>
+          </div>
+          <div class="ssms-hint-bar">
+            <mat-icon class="hint-icon">info_outline</mat-icon>
+            <span>In SSMS: select rows &rarr; right-click &rarr; <strong>Copy with Headers</strong>, then paste below</span>
           </div>
           <div class="textarea-wrap">
             <textarea
               class="ssms-textarea"
               [ngModel]="ssmsInput()"
-              (ngModelChange)="ssmsInput.set($event)"
+              (ngModelChange)="onSsmsInputChange($event)"
               placeholder="Paste SSMS grid results here (e.g. Id&#9;Username&#9;Email...)"
               rows="7"></textarea>
           </div>
@@ -101,6 +123,12 @@
               <mat-icon class="status-icon">data_array</mat-icon>
               <span><strong>{{ parsedSsmsData().rows.length }}</strong> Rows parsed</span>
             </div>
+            @if (parsedSsmsData().rows.length > 0) {
+              <div class="status-item status-item--success">
+                <mat-icon class="status-icon">check_circle</mat-icon>
+                <span>Ready — switch to <strong>SSMS Batch</strong> output tab</span>
+              </div>
+            }
           </div>
         </div>
       }

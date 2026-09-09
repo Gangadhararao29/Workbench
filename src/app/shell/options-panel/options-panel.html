@@ -368,11 +368,16 @@
 @case ('sql-to-csharp') {
 <div class="field">
   <label>Output type</label>
-  <mat-select [value]="instance.config['outputType']" (selectionChange)="update('outputType', $event.value)">
+  <mat-select [value]="instance.config['outputType'] || 'class'" (selectionChange)="update('outputType', $event.value)">
     <mat-option value="class">POCO class</mat-option>
     <mat-option value="record">Record</mat-option>
     <mat-option value="ef">EF entity</mat-option>
   </mat-select>
+</div>
+<div class="toggle-row">
+  <span>Nullable reference types</span>
+  <mat-slide-toggle [checked]="instance.config['nullableRefTypes'] ?? true"
+    (change)="update('nullableRefTypes', $event.checked)" />
 </div>
 }
 @case ('feature-generator') {

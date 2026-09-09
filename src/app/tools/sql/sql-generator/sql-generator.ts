@@ -106,6 +106,9 @@ export class SqlGenerator implements OnInit {
   copied = signal<boolean>(false);
   isRegenerating = signal<boolean>(false);
 
+  // Debounce timer handle for DDL parsing
+  private _parseTimer: ReturnType<typeof setTimeout> | null = null;
+
   ngOnInit() {
     this.parseDdl();
   }
@@ -165,42 +168,72 @@ export class SqlGenerator implements OnInit {
   // ==========================================
   // PARSER: DDL CREATE TABLE
   // ==========================================
+
+  /** Debounced version: waits 150ms after last keystroke before parsing */
+  parseDdlDebounced() {
+    if (this._parseTimer) clearTimeout(this._parseTimer);
+    this._parseTimer = setTimeout(() => {
+      this._parseTimer = null;
+      this.parseDdl();
+    }, 150);
+  }
+
   parseDdl() {
     const ddl = this.ddlInput().trim();
     if (!ddl) return;
 
-    // 1. Extract Table and Schema Name
-    const tableMatch = ddl.match(/CREATE\s+TABLE\s+(?:\[?(\w+)\]?\.)?\[?(\w+)\]?\s*\(([\s\S]+)\)/i);
+    // ── 1. Extract Table Name & Schema using header-only regex ──────────────
+    // We only match up to the first '(' so nested parens can't confuse it.
+    const headerMatch = ddl.match(
+      /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:\[?([\w$#]+)\]?\.)?\[?([\w$#]+)\]?\s*\(/i
+    );
     let schema = 'dbo';
     let table = 'TableName';
-    let body = '';
 
-    if (tableMatch) {
-      if (tableMatch[1]) {
-        schema = tableMatch[1];
-        table = tableMatch[2];
-      } else {
-        table = tableMatch[2];
-      }
-      body = tableMatch[3];
-    } else {
-      // Fallback simple column list or generic table
-      table = 'GeneratedTable';
-      body = ddl;
+    if (headerMatch) {
+      if (headerMatch[1]) schema = headerMatch[1];
+      table = headerMatch[2];
     }
 
     this.tableSchema.set(schema);
     this.tableName.set(table);
 
-    // 2. Extract Primary Keys from table constraints (e.g. CONSTRAINT PK_x PRIMARY KEY (Id, Key2))
-    const pkSet = new Set<string>();
-    const pkMatches = body.matchAll(/(?:CONSTRAINT\s+\[?\w+\]?\s+)?PRIMARY\s+KEY(?:\s+CLUSTERED|\s+NONCLUSTERED)?\s*\(([^)]+)\)/gi);
-    for (const match of pkMatches) {
-      const cols = match[1].split(',').map(c => c.trim().replace(/^\[|\]$/g, '').split(/\s+/)[0]);
-      cols.forEach(c => pkSet.add(c.toLowerCase()));
+    // ── 2. Extract Table Body via bracket-depth scan ────────────────────────
+    // Find the position of the first '(' after CREATE TABLE name
+    const bodyStart = headerMatch
+      ? ddl.indexOf('(', headerMatch.index! + headerMatch[0].length - 1)
+      : -1;
+
+    let body = '';
+    if (bodyStart !== -1) {
+      let depth = 0;
+      let bodyEnd = -1;
+      for (let i = bodyStart; i < ddl.length; i++) {
+        if (ddl[i] === '(') depth++;
+        else if (ddl[i] === ')') {
+          depth--;
+          if (depth === 0) { bodyEnd = i; break; }
+        }
+      }
+      body = bodyEnd !== -1 ? ddl.slice(bodyStart + 1, bodyEnd) : ddl.slice(bodyStart + 1);
+    } else {
+      // No CREATE TABLE header at all — treat entire input as column list
+      body = ddl;
     }
 
-    // 3. Parse Lines
+    // ── 3. Extract Primary Key columns from table-level CONSTRAINT block ─────
+    const pkSet = new Set<string>();
+    const pkMatches = body.matchAll(
+      /(?:CONSTRAINT\s+\[?\w+\]?\s+)?PRIMARY\s+KEY(?:\s+CLUSTERED|\s+NONCLUSTERED)?\s*\(([^)]+)\)/gi
+    );
+    for (const match of pkMatches) {
+      match[1].split(',').forEach(c => {
+        const col = c.trim().replace(/^\[|\]$/g, '').split(/\s+/)[0];
+        if (col) pkSet.add(col.toLowerCase());
+      });
+    }
+
+    // ── 4. Split body into individual column/constraint tokens ───────────────
     const lines = this.splitColumnLines(body);
     const parsedCols: SqlColumn[] = [];
 
@@ -208,89 +241,137 @@ export class SqlGenerator implements OnInit {
       const cleanLine = line.trim();
       if (!cleanLine) continue;
 
-      // Ignore table-level constraints
-      if (/^(CONSTRAINT|PRIMARY\s+KEY|FOREIGN\s+KEY|UNIQUE|INDEX|KEY|CHECK)\b/i.test(cleanLine)) {
+      // Skip table-level constraints
+      if (/^(CONSTRAINT|PRIMARY\s+KEY|FOREIGN\s+KEY|UNIQUE|INDEX|KEY\s+\w|CHECK)\b/i.test(cleanLine)) {
         continue;
       }
 
-      // Column pattern: [ColName] TYPE(prec) [IDENTITY(1,1)] [NOT NULL/NULL] [DEFAULT (val)] [PRIMARY KEY]
-      const colMatch = cleanLine.match(/^\[?([\w@#$]+)\]?\s+([A-Za-z0-9_]+(?:\s*\([^)]*\))?)(.*)$/i);
+      // ── Column pattern ──────────────────────────────────────────────────────
+      // Captures:  [1] ColName   [2] fullType (with optional precision parens)   [3] rest
+      // The fullType group greedily captures the base type + ONE parenthesised
+      // precision group (e.g. NVARCHAR(50), DECIMAL(18,2), DATETIME2(7)).
+      const colMatch = cleanLine.match(
+        /^\[?([\w@#$]+)\]?\s+([A-Za-z_][\w]*(?:\s*\([^)]*\))?)([\s\S]*)$/i
+      );
       if (!colMatch) continue;
 
-      const colName = colMatch[1];
+      const colName  = colMatch[1];
       const fullType = colMatch[2].trim();
-      const rest = colMatch[3] || '';
+      const rest     = colMatch[3] || '';
 
-      const isIdentity = /IDENTITY(?:\s*\([^)]*\))?/i.test(rest) || /AUTO_INCREMENT/i.test(rest) || /SERIAL/i.test(fullType);
-      const isInlinePk = /PRIMARY\s+KEY/i.test(rest);
-      const isPk = isInlinePk || pkSet.has(colName.toLowerCase()) || (/^id$/i.test(colName) && parsedCols.length === 0);
-      const nullable = !/NOT\s+NULL/i.test(rest) && !isPk;
+      // IDENTITY / SERIAL / AUTO_INCREMENT detection
+      const isIdentity =
+        /IDENTITY(?:\s*\([^)]*\))?/i.test(rest) ||
+        /AUTO_INCREMENT/i.test(rest) ||
+        /\bSERIAL\b/i.test(fullType);
 
-      // Extract Default Value if any
+      // Primary key detection: inline keyword OR table-level CONSTRAINT
+      const isInlinePk = /\bPRIMARY\s+KEY\b/i.test(rest);
+      const isPk = isInlinePk || pkSet.has(colName.toLowerCase());
+
+      // Nullable — NOT NULL wins; PK columns are implicitly NOT NULL
+      const nullable = !/\bNOT\s+NULL\b/i.test(rest) && !isPk;
+
+      // ── Default value extraction ─────────────────────────────────────────
+      // Handles: DEFAULT 1   DEFAULT ('USD')   DEFAULT (GETUTCDATE())
+      // Strategy: find DEFAULT keyword, then collect the token or parenthesised
+      // expression that follows it.
       let defaultValue: string | undefined;
-      const defMatch = rest.match(/DEFAULT\s+(?:\(?([^)]+)\)?)/i);
-      if (defMatch) {
-        defaultValue = defMatch[1].trim().replace(/^\(|\)$/g, '').trim();
+      const defIdx = rest.search(/\bDEFAULT\b/i);
+      if (defIdx !== -1) {
+        const afterDef = rest.slice(defIdx + 7).trimStart();
+        if (afterDef.startsWith('(')) {
+          // Parenthesised default — walk to matching ')'
+          let d = 0, end = 0;
+          for (let k = 0; k < afterDef.length; k++) {
+            if (afterDef[k] === '(') d++;
+            else if (afterDef[k] === ')') {
+              d--;
+              if (d === 0) { end = k; break; }
+            }
+          }
+          defaultValue = afterDef.slice(1, end).trim();
+        } else {
+          // Bare token default (e.g. DEFAULT 0, DEFAULT 'Active')
+          defaultValue = afterDef.split(/[\s,)]/)[0].replace(/^'|'$/g, '');
+        }
+        if (defaultValue === '') defaultValue = undefined;
       }
 
-      const baseType = fullType.replace(/\s*\(.*\)/, '').toUpperCase();
+      // Add CONSTRAINT inline default: CONSTRAINT [DF_x] DEFAULT (...)
+      if (!defaultValue) {
+        const constraintDef = rest.match(/CONSTRAINT\s+\[?\w+\]?\s+DEFAULT\s+\(([^)]+)\)/i);
+        if (constraintDef) defaultValue = constraintDef[1].trim();
+      }
+
+      const baseType = fullType.replace(/\s*\(.*$/, '').toUpperCase();
       const sampleVal = this.generateSampleValue(colName, baseType, defaultValue);
 
       parsedCols.push({
         name: colName,
         type: baseType,
         fullType: fullType,
-        nullable: nullable,
+        nullable,
         isPrimaryKey: isPk,
-        isIdentity: isIdentity,
-        defaultValue: defaultValue,
+        isIdentity,
+        defaultValue,
         sampleValue: sampleVal,
         selectedInSelect: true,
-        // Default insert: true unless identity
         selectedInInsert: !isIdentity,
-        // Default update: true unless identity or primary key
         selectedInUpdate: !isIdentity && !isPk,
-        // Default where: true if primary key or Id
         isWhereKey: isPk
       });
     }
 
-    // If no PK was detected, default the first column or Id column as WHERE filter
+    // If no PK detected, mark first Id-like column or first column as WHERE key
     if (parsedCols.length > 0 && !parsedCols.some(c => c.isWhereKey)) {
       const idCol = parsedCols.find(c => /^id$|_id$/i.test(c.name)) || parsedCols[0];
       idCol.isWhereKey = true;
+      idCol.isPrimaryKey = true;
     }
 
     this.columns.set(parsedCols);
   }
 
+  /**
+   * Splits the table body into individual column/constraint tokens.
+   * Only splits on commas at bracket-depth 0 — never splits on newlines,
+   * so multi-line column definitions stay intact.
+   */
   private splitColumnLines(body: string): string[] {
     const lines: string[] = [];
     let current = '';
     let depth = 0;
-    let inQuote = false;
+    let inSingleQuote = false;
 
     for (let i = 0; i < body.length; i++) {
-      const char = body[i];
-      if (char === "'") {
-        inQuote = !inQuote;
-        current += char;
-      } else if (!inQuote && char === '(') {
-        depth++;
-        current += char;
-      } else if (!inQuote && char === ')') {
-        depth--;
-        current += char;
-      } else if (!inQuote && depth === 0 && (char === ',' || char === '\n')) {
-        if (char === ',') {
-          if (current.trim()) lines.push(current.trim());
-          current = '';
-        } else if (current.trim()) {
-          // If ends with comma or newline
-          current += ' ';
+      const ch = body[i];
+
+      if (ch === "'" && !inSingleQuote) {
+        inSingleQuote = true;
+        current += ch;
+      } else if (ch === "'" && inSingleQuote) {
+        // Handle escaped single quotes ('')
+        if (body[i + 1] === "'") {
+          current += "''";
+          i++;
+        } else {
+          inSingleQuote = false;
+          current += ch;
         }
+      } else if (!inSingleQuote && ch === '(') {
+        depth++;
+        current += ch;
+      } else if (!inSingleQuote && ch === ')') {
+        depth--;
+        current += ch;
+      } else if (!inSingleQuote && depth === 0 && ch === ',') {
+        // Top-level comma = column/constraint separator
+        if (current.trim()) lines.push(current.trim());
+        current = '';
       } else {
-        current += char;
+        // All other characters — including \r and \n — are part of current token
+        current += ch;
       }
     }
     if (current.trim()) lines.push(current.trim());
@@ -407,26 +488,36 @@ export class SqlGenerator implements OnInit {
   // ==========================================
   // SSMS GRID / TSV / CSV PARSER
   // ==========================================
+
+  /** Called when SSMS textarea content changes — also auto-switches to ssms_batch output. */
+  onSsmsInputChange(value: string) {
+    this.ssmsInput.set(value);
+    // Auto-switch to SSMS Batch output tab when tab-separated data with a header is detected
+    const firstLine = value.trim().split(/\r?\n/)[0] || '';
+    if (firstLine.includes('\t') || (firstLine.split(',').length > 2)) {
+      this.activeOutputTab.set('ssms_batch');
+    }
+  }
+
   parsedSsmsData = computed(() => {
     const raw = this.ssmsInput().trim();
     if (!raw) return { headers: [], rows: [] };
 
-    // Auto detect separator: tab (\t) or comma (,)
+    // Auto-detect separator: prefer tab, then comma
     const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     if (lines.length === 0) return { headers: [], rows: [] };
 
     const firstLine = lines[0];
-    const isTab = firstLine.includes('\t');
-    const separator = isTab ? '\t' : (firstLine.includes(',') ? ',' : '\t');
+    const separator = firstLine.includes('\t') ? '\t' : (firstLine.includes(',') ? ',' : '\t');
 
-    const headers = firstLine.split(separator).map(h => h.trim().replace(/^\[|\]$/g, '').replace(/^"|"$/g, ''));
+    const headers = firstLine
+      .split(separator)
+      .map(h => h.trim().replace(/^\[|\]$/g, '').replace(/^"|"$/g, ''));
     const rows: string[][] = [];
 
     for (let i = 1; i < lines.length; i++) {
       const rowParts = lines[i].split(separator).map(v => v.trim().replace(/^"|"$/g, ''));
-      if (rowParts.length > 0 && rowParts.some(p => p !== '')) {
-        rows.push(rowParts);
-      }
+      if (rowParts.some(p => p !== '')) rows.push(rowParts);
     }
 
     return { headers, rows };
@@ -480,12 +571,44 @@ export class SqlGenerator implements OnInit {
     const table = this.fullTableName;
     const guard = this.guardCondition();
     const declareVars = this.declareVarsAtTop();
+    const ssmsData = this.parsedSsmsData();
 
     if (insCols.length === 0) {
       return `-- No columns selected for INSERT.\nINSERT INTO ${table} DEFAULT VALUES;`;
     }
 
-    // Top variable declarations
+    // ── SSMS Data Mode: generate real VALUES rows from pasted grid data ──────
+    // When SSMS "Copy with Headers" data is present, produce a batch INSERT
+    // with the actual row values instead of @variable placeholders.
+    if (ssmsData.headers.length > 0 && ssmsData.rows.length > 0) {
+      // Map each INSERT column to its SSMS header index (case-insensitive)
+      const colHeaderMap = insCols.map(col => ({
+        col,
+        headerIdx: ssmsData.headers.findIndex(
+          h => h.toLowerCase() === col.name.toLowerCase()
+        )
+      }));
+
+      const colNamesSql = insCols.map(c => `    ${this.formatIdentifier(c.name)}`).join(',\n');
+
+      const valueRows = ssmsData.rows.map(row => {
+        const vals = colHeaderMap.map(({ col, headerIdx }) => {
+          const rawVal = headerIdx !== -1 && row[headerIdx] !== undefined
+            ? row[headerIdx]
+            : col.sampleValue ?? '';
+          return `    ${this.formatSqlLiteral(rawVal, col.type)}`;
+        });
+        return `(\n${vals.join(',\n')}\n)`;
+      });
+
+      return `-- =============================================\n` +
+        `-- INSERT with real data from SSMS grid (${ssmsData.rows.length} rows)\n` +
+        `-- =============================================\n` +
+        `INSERT INTO ${table} (\n${colNamesSql}\n)\nVALUES\n` +
+        valueRows.join(',\n') + ';';
+    }
+
+    // ── Standard @variable mode ───────────────────────────────────────────────
     let varDecls = '';
     if (declareVars) {
       const varsToDeclare = Array.from(new Set([...insCols, ...whereCols]));
