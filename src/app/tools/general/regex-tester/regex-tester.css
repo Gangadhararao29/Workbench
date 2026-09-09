@@ -17,7 +17,7 @@
   background: var(--mat-sys-surface-container-lowest);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -218,7 +218,7 @@ body.dark-theme .replacement-field .text-input:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 6px 8px;
   background: #fee2e2;
   border: 1px solid #fca5a5;
   border-radius: 6px;
@@ -303,7 +303,7 @@ body.dark-theme .header-hint {
   background: var(--mat-sys-surface-container-lowest, #ffffff);
   border: 1px solid var(--mat-sys-outline-variant, #e2e8f0);
   border-radius: 10px;
-  padding: 16px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -466,7 +466,7 @@ body.dark-theme .test-textarea:focus {
    ========================================================================== */
 
 .highlight-preview {
-  padding: 10px 12px;
+  padding: 6px 8px;
   background: var(--mat-sys-surface-container-low, #f8fafc);
   border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
   border-radius: 6px;
@@ -516,7 +516,7 @@ body.dark-theme mark.regex-match {
    ========================================================================== */
 
 .replacement-preview {
-  padding: 10px 12px;
+  padding: 6px 8px;
   background: #ecfdf5;
   border: 1px solid #6ee7b7;
   border-radius: 6px;
@@ -579,7 +579,7 @@ body.dark-theme .breakdown-label {
   background: var(--mat-sys-surface-container-low, #f8fafc);
   border: 1px solid var(--mat-sys-outline-variant, #e2e8f0);
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;

@@ -27,7 +27,7 @@
 .controls-grid select {
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -89,7 +89,7 @@
   justify-content: center !important;
   gap: 6px !important;
   line-height: 1 !important;
-  padding: 8px 14px !important;
+  padding: 5px 10px !important;
   height: 100% !important;
   box-sizing: border-box !important;
 }

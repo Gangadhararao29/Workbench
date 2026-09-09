@@ -12,7 +12,7 @@
   flex-direction: column;
   min-height: 100%;
   box-sizing: border-box;
-  padding: 24px 28px;
+  padding: 8px 10px;
   color: var(--mat-sys-on-surface);
 }
 
@@ -21,7 +21,7 @@
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 28px;
-  padding-bottom: 20px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
@@ -154,7 +154,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container);
@@ -214,7 +214,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 6px 10px;
   border: none;
   border-radius: 20px;
   background: transparent;
@@ -250,7 +250,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container);
@@ -275,7 +275,7 @@
   justify-content: center;
   gap: 12px;
   margin-top: 32px;
-  padding: 24px;
+  padding: 8px 10px;
   border-radius: 12px;
   border: 1px dashed var(--mat-sys-outline-variant);
   background: color-mix(in srgb, var(--mat-sys-surface-container) 60%, transparent);
@@ -293,7 +293,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 6px 10px;
   border-radius: 20px;
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
@@ -327,7 +327,7 @@
 
 @media (max-width: 760px) {
   .home {
-    padding: 16px;
+    padding: 8px;
   }
 
   .home-tool-grid {
@@ -342,7 +342,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 10px 8px;
   text-align: center;
   background: var(--mat-sys-surface-container);
   border: 1px dashed var(--mat-sys-outline-variant);
@@ -373,7 +373,7 @@
 }
 
 .home-empty-search .btn-clear-search {
-  padding: 8px 18px;
+  padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid var(--mat-sys-primary);
   background: transparent;

@@ -6,14 +6,14 @@
 .feedback-container {
   /* max-width: 860px; */
   margin: 0 auto;
-  padding: 8px 0 32px;
+  padding: 6px 0 10px;
 }
 
 .feedback-card {
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 12px;
-  padding: 24px 28px;
+  padding: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 6px 10px;
   border-radius: 8px;
   border: none;
   background: transparent;
@@ -140,7 +140,7 @@ textarea,
 select {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 6px 8px;
   font-family: inherit;
   font-size: 0.875rem;
   background: var(--mat-sys-surface, #1e1e1e);
@@ -200,7 +200,7 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 10px 12px;
+  padding: 6px 8px;
   border-radius: 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface, #1e1e1e);
@@ -322,7 +322,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 6px 10px;
   background: var(--mat-sys-surface, #1e1e1e);
   border: 1px dashed var(--mat-sys-outline-variant);
   border-radius: 8px;
@@ -372,7 +372,7 @@ textarea {
 
 .system-info-preview {
   margin-top: -6px;
-  padding: 14px 16px;
+  padding: 8px 10px;
   background: var(--mat-sys-surface, #181818);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
@@ -433,7 +433,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 8px 10px;
   border-radius: 8px;
   background: color-mix(in srgb, #ef4444 15%, transparent);
   border: 1px solid #ef4444;
@@ -459,7 +459,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px;
+  padding: 6px 10px;
   border-radius: 20px;
   border: none;
   background: var(--mat-sys-primary);
@@ -521,7 +521,7 @@ textarea {
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 12px;
-  padding: 48px 32px;
+  padding: 10px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -567,7 +567,7 @@ textarea {
   align-items: center;
   gap: 8px;
   margin-top: 4px;
-  padding: 6px 12px;
+  padding: 4px 8px;
   background: var(--mat-sys-surface);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
@@ -592,7 +592,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 22px;
+  padding: 6px 10px;
   border-radius: 20px;
   border: none;
   background: var(--mat-sys-primary);
@@ -615,7 +615,7 @@ textarea {
 
 @media (max-width: 680px) {
   .feedback-card {
-    padding: 18px 16px;
+    padding: 8px 10px;
   }
 
   .form-row.two-cols {

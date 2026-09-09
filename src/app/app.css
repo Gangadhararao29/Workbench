@@ -36,7 +36,7 @@ mat-icon svg {
 .app-toolbar {
   flex: 0 0 56px;
   min-height: 56px;
-  padding: 0 12px;
+  padding: 0 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 10px;
   background: var(--mat-sys-surface-container);
@@ -168,6 +168,14 @@ mat-icon svg {
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--mat-sys-shadow) 14%, transparent);
+  overflow-x: hidden !important;
+}
+
+.left-panel ::ng-deep .mat-drawer-inner-container,
+.right-panel ::ng-deep .mat-drawer-inner-container {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
 }
 
 .left-panel {

@@ -144,7 +144,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px;
+  padding: 6px 8px;
   box-sizing: border-box;
   background: var(--mat-sys-surface-container-low);
 }
@@ -171,7 +171,7 @@
 
 @media (max-width: 760px) {
   .tool-surface {
-    padding: 12px;
+    padding: 6px 8px;
   }
 }
 

@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 5px 8px;
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
@@ -33,7 +33,7 @@
   font-size: 12px !important;
   height: 32px !important;
   line-height: 32px !important;
-  padding: 0 12px !important;
+  padding: 0 8px !important;
   border-radius: 4px;
   color: var(--mat-sys-on-surface-variant);
 }
@@ -103,7 +103,7 @@
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
-  padding: 14px;
+  padding: 8px;
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -246,7 +246,7 @@ app-code-editor {
   background: var(--mat-sys-surface-container-high);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
-  padding: 6px 12px;
+  padding: 5px 8px;
 }
 
 .search-bar-row mat-icon {
@@ -279,7 +279,7 @@ app-code-editor {
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
-  padding: 12px 14px;
+  padding: 6px 8px;
   gap: 10px;
 }
 

@@ -76,7 +76,7 @@
   align-items: center;
   gap: 6px;
   height: 36px;
-  padding: 0 16px;
+  padding: 0 8px;
   font-size: 13px;
   font-weight: 500;
   border-radius: 6px;
@@ -250,7 +250,7 @@ app-code-editor.result-editor {
 
 .code-input {
   min-height: 140px;
-  padding: 12px;
+  padding: 8px;
   resize: vertical;
 }
 
@@ -258,7 +258,7 @@ app-code-editor.result-editor {
   min-height: 220px;
   margin: 0;
   overflow: auto;
-  padding: 16px;
+  padding: 8px 10px;
   white-space: pre-wrap;
   resize: vertical;
 }
@@ -266,7 +266,7 @@ app-code-editor.result-editor {
 .text-input {
   box-sizing: border-box;
   width: 100%;
-  padding: 10px 12px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -521,7 +521,7 @@ body.dark-theme .required-badge {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px;
+  padding: 8px;
   margin-bottom: 10px;
   border-radius: 6px;
   background: rgba(239, 68, 68, 0.1);
@@ -727,7 +727,7 @@ body.dark-theme .required-badge {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 24px 16px;
+  padding: 10px 8px;
   background: var(--mat-sys-surface-container-high);
   border-radius: 6px;
   border: 1px dashed var(--mat-sys-outline-variant);
@@ -737,7 +737,7 @@ body.dark-theme .required-badge {
 }
 
 .btn-outlined {
-  padding: 6px 14px;
+  padding: 4px 8px;
   border-radius: 6px;
   border: 1px solid var(--mat-sys-primary);
   background: transparent;
@@ -769,12 +769,12 @@ body.dark-theme .required-badge {
   background: var(--mat-sys-surface-container-high, #212835);
   color: var(--mat-sys-on-surface-variant, #94a3b8);
   font-weight: 700;
-  padding: 8px 12px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--mat-sys-outline-variant, #2a313d);
 }
 
 .detail-table td {
-  padding: 8px 12px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--mat-sys-outline-variant, #232a35);
   color: var(--mat-sys-on-surface, #e2e8f0);
 }
@@ -789,7 +789,7 @@ body.dark-theme .required-badge {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 10px 8px;
   background: var(--mat-sys-surface-container-low, #181c24);
   border: 1px dashed var(--mat-sys-outline-variant, #2a313d);
   border-radius: 10px;

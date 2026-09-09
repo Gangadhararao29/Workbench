@@ -43,7 +43,7 @@
 .search-input-wrapper input {
   box-sizing: border-box;
   width: 100%;
-  padding: 10px 36px 10px 40px;
+  padding: 6px 32px 6px 36px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container-lowest);
@@ -141,7 +141,7 @@ body.dark-theme .btn-clear-search:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 6px 10px;
   background: var(--mat-sys-surface-container-lowest, #ffffff);
   border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
   border-radius: 8px;
@@ -228,7 +228,7 @@ body.dark-theme .filter-fav-btn.active mat-icon {
   background: var(--mat-sys-surface-container-lowest, #ffffff);
   border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
   border-radius: 10px;
-  padding: 20px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -341,7 +341,7 @@ body.dark-theme .form-field label {
 .form-field textarea {
   box-sizing: border-box;
   width: 100%;
-  padding: 8px 12px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline-variant, #cbd5e1);
   border-radius: 6px;
   background: var(--mat-sys-surface-container, #efedf0);
@@ -432,7 +432,7 @@ body.dark-theme .form-error-msg {
 }
 
 .pattern-card {
-  padding: 16px;
+  padding: 8px 10px;
   border: 1px solid var(--mat-sys-outline-variant, #e2e8f0);
   border-radius: 10px;
   background: var(--mat-sys-surface-container-lowest, #ffffff);
@@ -676,7 +676,7 @@ body.dark-theme .code-box-wrapper {
 .sql-code {
   overflow: auto;
   margin: 0;
-  padding: 12px;
+  padding: 8px;
   background: transparent;
   color: var(--mat-sys-on-surface, #0f172a);
   font-family: Consolas, Monaco, 'Roboto Mono', monospace;
@@ -781,7 +781,7 @@ body.dark-theme .btn-copy-sql.copied {
 
 .empty-state-box {
   grid-column: 1 / -1;
-  padding: 48px 16px;
+  padding: 10px 8px;
   text-align: center;
   background: var(--mat-sys-surface-container-lowest, #ffffff);
   border: 1px dashed var(--mat-sys-outline-variant, #cbd5e1);

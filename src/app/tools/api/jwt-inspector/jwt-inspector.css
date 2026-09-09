@@ -18,7 +18,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid transparent;
   background: transparent;
@@ -102,7 +102,7 @@
 .select-input,
 .text-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-low);
@@ -133,7 +133,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 12px 16px;
+  padding: 8px 10px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container);
@@ -169,7 +169,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 6px 8px;
   border-radius: 8px;
   background: rgba(244, 67, 54, 0.1);
   color: #d32f2f;
@@ -181,7 +181,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 8px 10px;
   border-radius: 8px;
   font-size: 13px;
 }
@@ -264,7 +264,7 @@
 }
 
 .comparison-table th {
-  padding: 10px 14px;
+  padding: 6px 8px;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface-variant);
   font-weight: 600;
@@ -272,7 +272,7 @@
 }
 
 .comparison-table td {
-  padding: 10px 14px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
   vertical-align: middle;
 }
@@ -341,7 +341,7 @@
 }
 
 .empty-state {
-  padding: 32px;
+  padding: 10px 8px;
   text-align: center;
   color: var(--mat-sys-on-surface-variant);
   font-size: 13px;

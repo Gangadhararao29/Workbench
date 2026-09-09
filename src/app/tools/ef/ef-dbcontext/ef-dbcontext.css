@@ -24,7 +24,7 @@
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
-  padding: 14px;
+  padding: 8px;
   overflow-y: auto;
   box-sizing: border-box;
 }
