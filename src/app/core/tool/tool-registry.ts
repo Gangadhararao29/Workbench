@@ -170,8 +170,8 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     label: 'Path tester',
     description: 'Test paths against JSON data.',
     keywords: ['json', 'path', 'jsonpath', 'query', 'filter', 'extract', 'tester', 'expression'],
-    hasSidebarOptions: false,
-    defaultSidebarOpen: false,
+    hasSidebarOptions: true,
+    defaultSidebarOpen: true,
     component: JsonPath,
   },
   {

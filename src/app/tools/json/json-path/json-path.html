@@ -1,25 +1,89 @@
 <div class="tool-surface-inner">
 
-  <div class="field">
-    <div class="field-header"><label>JSON Input</label></div>
-    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input"
-      (valueChange)="input.set($event)"></app-code-editor>
+  <!-- JSON INPUT FIELD -->
+  <div class="field json-input-field">
+    <div class="field-header">
+      <label>JSON Input</label>
+      <button type="button" class="header-hint-toggle" [class.hint-active]="autoPathOnClick()"
+        (click)="toggleAutoPath()" title="Toggle click-to-path: Click any property in JSON to auto-form its path"
+        aria-label="Toggle Auto-Fill JSON Path">
+        <mat-icon class="hint-icon">{{ autoPathOnClick() ? 'ads_click' : 'touch_app' }}</mat-icon>
+        <span>Auto-Fill JSON Path : <strong class="toggle-state" [class.state-on]="autoPathOnClick()">{{
+            autoPathOnClick() ? 'On' : 'Off' }}</strong></span>
+      </button>
+    </div>
+    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="onInputChange($event)"
+      (editorClick)="onEditorClick($event)"></app-code-editor>
   </div>
 
+  <!-- TOOLBAR ROW -->
   <div class="toolbar-row">
-    <div class="result-header">
-      <span class="result-label">Result</span>
-    </div>
     <div class="format-actions path-actions">
-      <input class="path-input" [(ngModel)]="path" placeholder="$.users[0].name" aria-label="JSONPath expression" />
-      <button mat-flat-button color="primary" (click)="evaluate()">
-        <mat-icon>search</mat-icon>
+      <!-- Search Input Container (Expanded Width) -->
+      <div class="path-input-box">
+        <mat-icon class="path-icon">search</mat-icon>
+        <input class="path-input" [(ngModel)]="path" (keydown.enter)="evaluate()"
+          placeholder="e.g. $.users[0].name, $..role, $.users[*], $..skills[0]" aria-label="JSONPath expression" />
+        @if (path) {
+        <button type="button" class="clear-btn" (click)="path = ''; evaluate()" title="Clear path"
+          aria-label="Clear path">
+          <mat-icon class="clear-icon">close</mat-icon>
+        </button>
+        }
+      </div>
+
+      <!-- Cheat Sheet in Sidebar Toggle -->
+      <button type="button" class="action-link-btn cheat-sheet-btn" (click)="instanceService.toggleRightDrawer()"
+        title="Toggle JSONPath Cheat Sheet in sidebar" aria-label="Toggle JSONPath Cheat Sheet in sidebar">
+        <mat-icon>menu_book</mat-icon>
+        <span>Cheat Sheet</span>
+      </button>
+
+      <!-- Evaluate Button -->
+      <button mat-flat-button color="primary" class="evaluate-btn" (click)="evaluate()" aria-label="Evaluate JSONPath">
+        <mat-icon>play_arrow</mat-icon>
         <span>Evaluate</span>
       </button>
     </div>
   </div>
 
-  <div class="field grow">
+  @if (errorMsg()) {
+  <div class="path-error-banner" role="alert">
+    <mat-icon class="error-icon">warning</mat-icon>
+    <span>{{ errorMsg() }}</span>
+  </div>
+  }
+
+  <!-- RESULT FIELD -->
+  <div class="field result-field grow">
+    <div class="field-header">
+      <div class="result-header-left">
+        <span class="result-label">Result</span>
+        @if (matchSummary()) {
+        <span class="match-badge" [class.badge-error]="matchSummary() === 'Error'"
+          [class.badge-empty]="matchSummary() === 'No match'"
+          [class.badge-success]="matchSummary() !== 'Error' && matchSummary() !== 'No match'">
+          {{ matchSummary() }}
+        </span>
+        }
+      </div>
+
+      <!-- Result Type Segmented Switch (Value / Path / Pointer) -->
+      <div class="view-switch" role="group" aria-label="Result format">
+        <button type="button" class="seg-btn" [class.active-mode]="resultType() === 'value'"
+          (click)="setResultType('value')" title="Return matched values">
+          <span>Value</span>
+        </button>
+        <button type="button" class="seg-btn" [class.active-mode]="resultType() === 'path'"
+          (click)="setResultType('path')" title="Return normalized JSONPath strings">
+          <span>Path</span>
+        </button>
+        <button type="button" class="seg-btn" [class.active-mode]="resultType() === 'pointer'"
+          (click)="setResultType('pointer')" title="Return JSON Pointers (RFC 6901)">
+          <span>Pointer</span>
+        </button>
+      </div>
+    </div>
     <app-code-editor [value]="result()" language="json" ariaLabel="JSON path result"
       [readOnly]="true"></app-code-editor>
   </div>

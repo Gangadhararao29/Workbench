@@ -114,10 +114,14 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   @Input() resizable = true;
   @Input() minHeight = 100;
   @Output() valueChange = new EventEmitter<string>();
+  @Output() editorClick = new EventEmitter<{ offset: number; lineNumber: number; column: number }>();
+  @Output() cursorOffsetChange = new EventEmitter<number>();
   @ViewChild('editorHost', { static: true }) editorHost!: ElementRef<HTMLDivElement>;
 
   private editor?: monaco.editor.IStandaloneCodeEditor;
   private changeSubscription?: monaco.IDisposable;
+  private clickSubscription?: monaco.IDisposable;
+  private cursorSubscription?: monaco.IDisposable;
   private resizeObserver?: ResizeObserver;
   private layoutRafId: number | null = null;
   // Track the value we last pushed INTO the editor so we can avoid
@@ -177,6 +181,26 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       if (current !== this.lastPushedValue) {
         this.valueChange.emit(current);
       }
+    });
+
+    this.clickSubscription = this.editor.onMouseDown((e) => {
+      const position = e.target.position;
+      if (!position) return;
+      const model = this.editor?.getModel();
+      if (!model) return;
+      const offset = model.getOffsetAt(position);
+      this.editorClick.emit({
+        offset,
+        lineNumber: position.lineNumber,
+        column: position.column,
+      });
+    });
+
+    this.cursorSubscription = this.editor.onDidChangeCursorPosition((e) => {
+      const model = this.editor?.getModel();
+      if (!model) return;
+      const offset = model.getOffsetAt(e.position);
+      this.cursorOffsetChange.emit(offset);
     });
   }
 
@@ -280,6 +304,8 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
     }
     this.resizeObserver?.disconnect();
     this.changeSubscription?.dispose();
+    this.clickSubscription?.dispose();
+    this.cursorSubscription?.dispose();
     this.editor?.dispose();
   }
 }

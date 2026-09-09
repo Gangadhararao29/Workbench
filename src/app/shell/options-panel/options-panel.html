@@ -125,6 +125,125 @@
       />
     </div>
   }
+  @case ('json-path') {
+    <div class="cheat-sheet-container">
+      <div class="cheat-search-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input
+          type="text"
+          [(ngModel)]="jsonPathFilter"
+          placeholder="Search JSONPath syntax..."
+          class="cheat-search-input" />
+        @if (jsonPathFilter) {
+          <button type="button" class="btn-clear-search" (click)="jsonPathFilter = ''" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Basic Operators -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>category</mat-icon> Basic Operators
+        </div>
+        <div class="cheat-table">
+          @if (filterJsonPathRow('$', 'Root object or array')) {
+            <div class="cheat-row"><code class="token">$</code><span class="desc">Root object or array</span></div>
+          }
+          @if (filterJsonPathRow('@', 'Current node in filter query')) {
+            <div class="cheat-row"><code class="token">@</code><span class="desc">Current node being evaluated in filter query</span></div>
+          }
+          @if (filterJsonPathRow('. or []', 'Child operator (dot or bracket notation)')) {
+            <div class="cheat-row"><code class="token">.prop / ['prop']</code><span class="desc">Child property access</span></div>
+          }
+          @if (filterJsonPathRow('..', 'Recursive descent: scan entire tree deeply')) {
+            <div class="cheat-row"><code class="token">..</code><span class="desc">Recursive descent (scan all nested descendants)</span></div>
+          }
+          @if (filterJsonPathRow('*', 'Wildcard: all elements or properties')) {
+            <div class="cheat-row"><code class="token">*</code><span class="desc">Wildcard matching any property or array item</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Array Selectors & Slices -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>data_array</mat-icon> Array & Index Selectors
+        </div>
+        <div class="cheat-table">
+          @if (filterJsonPathRow('[n]', 'Direct array index')) {
+            <div class="cheat-row"><code class="token">[0]</code><span class="desc">First element of array</span></div>
+          }
+          @if (filterJsonPathRow('[-1]', 'Negative index: last element')) {
+            <div class="cheat-row"><code class="token">[-1]</code><span class="desc">Last element of array</span></div>
+          }
+          @if (filterJsonPathRow('[0, 1]', 'Union of indices or property names')) {
+            <div class="cheat-row"><code class="token">[0, 2]</code><span class="desc">Union of multiple indices</span></div>
+          }
+          @if (filterJsonPathRow("['a', 'b']", 'Union of multiple property names')) {
+            <div class="cheat-row"><code class="token">['id', 'name']</code><span class="desc">Union of multiple property keys</span></div>
+          }
+          @if (filterJsonPathRow('[start:end]', 'Array slice')) {
+            <div class="cheat-row"><code class="token">[0:2]</code><span class="desc">Slice elements from index 0 to 1</span></div>
+          }
+          @if (filterJsonPathRow('[-2:]', 'Last n elements')) {
+            <div class="cheat-row"><code class="token">[-2:]</code><span class="desc">Slice last 2 elements</span></div>
+          }
+          @if (filterJsonPathRow('[start:end:step]', 'Array slice with step')) {
+            <div class="cheat-row"><code class="token">[0:5:2]</code><span class="desc">Slice with step (every 2nd element)</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Filter Expressions -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>filter_alt</mat-icon> Filter Expressions
+        </div>
+        <div class="cheat-table">
+          @if (filterJsonPathRow('[?(...)]', 'Filter expression syntax')) {
+            <div class="cheat-row"><code class="token">[?(&lt;expr&gt;)]</code><span class="desc">Filter query expression</span></div>
+          }
+          @if (filterJsonPathRow('[?(@.price < 10)]', 'Comparison: less than, greater than')) {
+            <div class="cheat-row"><code class="token">[?(@.price &lt; 10)]</code><span class="desc">Numeric comparison (<code>&lt;, &gt;, &lt;=, &gt;=</code>)</span></div>
+          }
+          @if (filterJsonPathRow('[?(@.role == "admin")]', 'Equality filter')) {
+            <div class="cheat-row"><code class="token">[?(@.role == 'admin')]</code><span class="desc">String or value equality</span></div>
+          }
+          @if (filterJsonPathRow('[?(@.role != "guest")]', 'Inequality filter')) {
+            <div class="cheat-row"><code class="token">[?(@.role != 'guest')]</code><span class="desc">Value inequality</span></div>
+          }
+          @if (filterJsonPathRow('[?(@.email)]', 'Existence check')) {
+            <div class="cheat-row"><code class="token">[?(@.email)]</code><span class="desc">Check if property exists and is truthy</span></div>
+          }
+          @if (filterJsonPathRow('[?(@.a && @.b)]', 'Logical AND / OR')) {
+            <div class="cheat-row"><code class="token">&amp;&amp; / ||</code><span class="desc">Logical operators in expressions</span></div>
+          }
+        </div>
+      </div>
+
+      <!-- Extensions & Advanced (jsonpath-plus) -->
+      <div class="cheat-section">
+        <div class="cheat-section-title">
+          <mat-icon>auto_awesome</mat-icon> Extensions (jsonpath-plus)
+        </div>
+        <div class="cheat-table">
+          @if (filterJsonPathRow('^', 'Parent operator')) {
+            <div class="cheat-row"><code class="token">^</code><span class="desc">Navigate to parent node (e.g. <code>$..[?(@.id)]^</code>)</span></div>
+          }
+          @if (filterJsonPathRow('~', 'Property names operator')) {
+            <div class="cheat-row"><code class="token">~</code><span class="desc">Extract property keys instead of values</span></div>
+          }
+          @if (filterJsonPathRow('$..*', 'All descendant leaf items')) {
+            <div class="cheat-row"><code class="token">$..*</code><span class="desc">All descendant values in entire document</span></div>
+          }
+          @if (filterJsonPathRow('Click to Path', 'Auto-form path by clicking in editor')) {
+            <div class="cheat-row"><code class="token">Editor Click</code><span class="desc">Click any node in editor to auto-form its path</span></div>
+          }
+        </div>
+      </div>
+    </div>
+  }
   @case ('csharp-to-typescript') {
     <div class="field">
       <label>Output type</label>

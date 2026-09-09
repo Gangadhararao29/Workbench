@@ -20,12 +20,19 @@ export class OptionsPanel implements OnChanges {
   editingName = false;
   nameDraft = '';
   regexFilter = '';
+  jsonPathFilter = '';
 
   constructor(private instanceService: InstanceService) {}
 
   filterRow(token: string, desc: string): boolean {
     if (!this.regexFilter.trim()) return true;
     const q = this.regexFilter.toLowerCase().trim();
+    return token.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
+  }
+
+  filterJsonPathRow(token: string, desc: string): boolean {
+    if (!this.jsonPathFilter.trim()) return true;
+    const q = this.jsonPathFilter.toLowerCase().trim();
     return token.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
   }
 

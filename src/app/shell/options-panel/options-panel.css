@@ -139,12 +139,12 @@ mat-select {
 }
 
 .btn-clear-search:hover {
-  color: var(--mat-sys-on-surface, #e2e8f0);
+  color: var(--mat-sys-on-surface);
 }
 
 .cheat-section {
-  background: var(--mat-sys-surface-container-low, #181c24);
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -158,9 +158,9 @@ mat-select {
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  color: var(--mat-sys-primary, #60a5fa);
-  background: rgba(59, 130, 246, 0.08);
-  border-bottom: 1px solid var(--mat-sys-outline-variant, #2a313d);
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-low));
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .cheat-section-title mat-icon {
@@ -179,10 +179,10 @@ mat-select {
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 7px 12px;
   font-size: 12px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
-  transition: background-color 0.1s ease;
+  transition: background-color 0.12s ease;
 }
 
 .cheat-row:last-child {
@@ -190,39 +190,34 @@ mat-select {
 }
 
 .cheat-row:hover {
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
 }
 
 .cheat-row .token {
-  font-family: Consolas, Monaco, monospace;
-  font-size: 12px;
-  font-weight: 700;
-  color: #0284c7;
-  background: rgba(2, 132, 199, 0.1);
-  border: 1px solid rgba(2, 132, 199, 0.25);
+  font-family: 'Roboto Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   white-space: nowrap;
   display: inline-block;
 }
 
-body.dark-theme .cheat-row .token {
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-}
-
 .cheat-row .desc {
-  color: var(--mat-sys-on-surface-variant, #cbd5e1);
-  line-height: 1.3;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.35;
   word-break: break-word;
 }
 
 .cheat-row .desc code {
-  font-family: monospace;
+  font-family: 'Roboto Mono', monospace;
   font-size: 11px;
-  color: #facc15;
-  background: rgba(250, 204, 21, 0.1);
-  padding: 1px 4px;
+  color: var(--mat-sys-tertiary);
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent);
+  padding: 1px 5px;
   border-radius: 3px;
 }
