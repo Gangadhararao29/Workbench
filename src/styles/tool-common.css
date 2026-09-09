@@ -37,21 +37,16 @@
 
 /* Copy result button inside toolbar-row */
 .btn-copy-result {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
+  /* display: inline-flex !important; */
+  /* align-items: center; */
+  /* justify-content: center; */
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--mat-sys-on-surface-variant);
   cursor: pointer;
-  padding: 0 !important;
-  margin-left: 2px;
+  padding: 4px 6px !important;
   transition: all 0.18s ease;
-  flex-shrink: 0;
 }
 
 .btn-copy-result mat-icon {

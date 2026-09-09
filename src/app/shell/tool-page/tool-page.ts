@@ -4,19 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InstanceService, ToolInstance } from '../core/tool/tool-instance';
-import { findToolDefinition, getToolComponent } from '../core/tool/tool-registry';
+import { InstanceService, ToolInstance } from '../../core/tool/tool-instance';
+import { findToolDefinition, getToolComponent } from '../../core/tool/tool-registry';
 
 @Component({
   selector: 'app-tool-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    NgComponentOutlet,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-  ],
+  imports: [CommonModule, NgComponentOutlet, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './tool-page.html',
   styleUrls: ['./tool-page.css'],
 })
