@@ -1,27 +1,52 @@
-/* toolbar-row, format-actions, result-label, field-header, action-link-btn — from tool-common.css */
-
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  flex: 1 1 auto;
 }
 
 .tool-surface-inner {
-  /* max-width: 1200px; */
+  overflow: hidden;
 }
 
-/* Segmented mode buttons */
-.seg-btn {
-  background: transparent;
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Segmented View Switch */
+.view-switch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
   color: var(--mat-sys-on-surface-variant);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.seg-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
 }
 
 .seg-btn:hover {
@@ -30,27 +55,50 @@
 }
 
 .seg-btn.active-mode {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-  border-color: var(--mat-sys-secondary-container);
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
   font-weight: 600;
 }
 
-.diff-mode-group {
-  display: flex;
+/* Status Badges - Using theme tokens */
+.diff-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.diff-badge mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.badge-success {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.badge-warning {
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.badge-error {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }
 
 .compare-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
+  height: 34px;
   padding: 0 16px;
   border-radius: 6px;
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
   font-size: 13px;
   font-weight: 600;
 }
@@ -61,43 +109,77 @@
   height: 18px;
 }
 
-.key-field-inline {
+/* Error Banner */
+.diff-error-banner {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.inline-input {
-  background: var(--mat-sys-surface-container-high);
-  border: 1px solid var(--mat-sys-outline-variant);
-  color: var(--mat-sys-on-surface);
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-family: monospace;
-  width: 110px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.inline-input:focus {
-  border-color: var(--mat-sys-primary);
-}
-
-.diff-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font-size: 12px;
+  font-weight: 500;
   flex-shrink: 0;
 }
 
-.diff-grid .field app-code-editor {
-  height: 160px;
-  min-height: 80px;
+.diff-error-banner .error-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
-@media (max-width: 700px) {
-  .diff-grid {
+/* Visual Diff Mode */
+.visual-diff-wrapper {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Semantic Diff Mode */
+.semantic-diff-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.semantic-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1 1 50%;
+  min-height: 120px;
+}
+
+.semantic-inputs-grid .field,
+.semantic-result-field {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.semantic-result-field {
+  flex: 1 1 50%;
+  min-height: 120px;
+}
+
+.semantic-inputs-grid .field app-code-editor,
+.semantic-result-field app-code-editor {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .semantic-inputs-grid {
     grid-template-columns: 1fr;
   }
 }

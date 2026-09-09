@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { diffJson } from './json-diff-engine';
+import { diffJson, sortAndFormatJson } from './json-diff-engine';
 
 describe('json-diff-engine', () => {
   it('detects no differences for identical inputs', () => {
@@ -8,6 +8,7 @@ describe('json-diff-engine', () => {
     const result = diffJson(left, right);
     expect(result.changes).toHaveLength(0);
     expect(result.summary).toBe('No differences found.');
+    expect(result.delta).toBeUndefined();
   });
 
   it('detects added, removed, and changed properties on objects', () => {
@@ -19,6 +20,8 @@ describe('json-diff-engine', () => {
       '~ Changed age: 30 -> 31',
       '+ Added city: "London"',
     ]);
+    expect(result.delta).toBeDefined();
+    expect(result.formattedDelta).toContain('"age"');
   });
 
   it('compares arrays by key field', () => {
@@ -44,5 +47,21 @@ describe('json-diff-engine', () => {
     const result = diffJson(left, right, { arrayMode: 'index' });
     expect(result.changes).toContain('~ Changed [1]: 2 -> 9');
     expect(result.changes).toContain('+ Added [3]: 4');
+  });
+
+  it('sortAndFormatJson recursively sorts keys alphabetically and indents', () => {
+    const raw = {
+      zebra: true,
+      apple: 1,
+      nested: {
+        z: 10,
+        a: 20,
+      },
+      list: [{ y: 1, x: 2 }],
+    };
+
+    const formatted = sortAndFormatJson(raw);
+    const keysInOrder = [...formatted.matchAll(/"([^"]+)":/g)].map((m) => m[1]);
+    expect(keysInOrder).toEqual(['apple', 'list', 'x', 'y', 'nested', 'a', 'z', 'zebra']);
   });
 });

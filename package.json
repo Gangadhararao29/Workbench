@@ -26,6 +26,7 @@
     "firebase": "^12.18.0",
     "jose": "^6.2.10",
     "js-yaml": "^5.4.1",
+    "jsondiffpatch": "^0.7.6",
     "jwt-decode": "^4.0.0",
     "monaco-editor": "^0.56.0",
     "openapi3-ts": "^4.6.1",
