@@ -27,7 +27,7 @@
 .controls-grid select {
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 6px 8px;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -109,6 +109,20 @@
   display: inline-flex;
   align-items: center;
   line-height: 1;
+}
+
+:host ::ng-deep .mat-button-toggle-checked {
+  background: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
+}
+
+:host ::ng-deep .mat-button-toggle-checked mat-icon {
+  color: var(--mat-sys-on-primary) !important;
+}
+
+:host ::ng-deep .mat-button-toggle:not(.mat-button-toggle-checked):hover {
+  background: var(--mat-sys-surface-container-high) !important;
+  color: var(--mat-sys-primary) !important;
 }
 
 /* Output tab toggle group sits directly on the card header, not a floating pill */

@@ -19,27 +19,25 @@
       </button>
     </div>
 
-    @if (viewMode() === 'patterns') {
-      <div class="syntax-switch">
-        <span class="syntax-label">Syntax Style:</span>
-        <button
-          mat-button
-          class="syntax-btn"
-          [class.active]="syntaxStyle() === 'method'"
-          (click)="setSyntax('method')"
-        >
-          Method (.Where().Select())
-        </button>
-        <button
-          mat-button
-          class="syntax-btn"
-          [class.active]="syntaxStyle() === 'query'"
-          (click)="setSyntax('query')"
-        >
-          Comprehension (from ... in ...)
-        </button>
-      </div>
-    }
+    <div class="syntax-switch">
+      <span class="syntax-label">Syntax Style:</span>
+      <button
+        mat-button
+        class="syntax-btn"
+        [class.active]="syntaxStyle() === 'method'"
+        (click)="setSyntax('method')"
+      >
+        Method (.Where().Select())
+      </button>
+      <button
+        mat-button
+        class="syntax-btn"
+        [class.active]="syntaxStyle() === 'query'"
+        (click)="setSyntax('query')"
+      >
+        Comprehension (from ... in ...)
+      </button>
+    </div>
   </div>
 
   @if (viewMode() === 'patterns') {
@@ -138,6 +136,13 @@
           </div>
         }
 
+        @if (activePattern() === 'batch-operations') {
+          <div class="form-row">
+            <label>Batch Condition (.Where)</label>
+            <input [(ngModel)]="batchCondition" (ngModelChange)="generate()" placeholder="c.Status == CustomerStatus.Pending" />
+          </div>
+        }
+
         @if (activePattern() === 'pagination') {
           <div class="form-row">
             <label>Page Size</label>
@@ -154,6 +159,12 @@
         <div class="checkbox-row">
           <mat-slide-toggle [(ngModel)]="useTagWith" (ngModelChange)="generate()">Tag Query with .TagWith()</mat-slide-toggle>
         </div>
+        @if (useTagWith) {
+          <div class="form-row">
+            <label>Query Tag Text</label>
+            <input [(ngModel)]="tagText" (ngModelChange)="generate()" placeholder="e.g. GetActiveCustomersWithOrders" />
+          </div>
+        }
         <div class="checkbox-row">
           <mat-slide-toggle [(ngModel)]="wrapInHandler" (ngModelChange)="generate()">Wrap in Handler Class</mat-slide-toggle>
         </div>
@@ -162,8 +173,19 @@
       <!-- Right Code Output -->
       <div class="output-panel field grow">
         <div class="pane-header">
-          <label>C# / EF Core Query Code</label>
-          <span class="pane-subtitle">Optimized EF Core LINQ query execution pattern</span>
+          <div>
+            <label>C# / EF Core Query Code</label>
+            <span class="pane-subtitle">Optimized EF Core LINQ query execution pattern</span>
+          </div>
+          <button
+            class="btn-copy-result"
+            [class.copied]="copied()"
+            (click)="copyResult()"
+            [matTooltip]="copied() ? 'Copied!' : 'Copy result'"
+            aria-label="Copy result"
+          >
+            <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
         </div>
         <app-code-editor
           [value]="result()"
@@ -204,8 +226,8 @@
                 <pre class="code-block sql-block"><code>{{ card.sql }}</code></pre>
               </div>
               <div class="code-column">
-                <div class="code-title">EF Core LINQ Equivalent</div>
-                <pre class="code-block linq-block"><code>{{ card.linqMethod }}</code></pre>
+                <div class="code-title">EF Core LINQ ({{ syntaxStyle() === 'method' ? 'Method Syntax' : 'Query Syntax' }})</div>
+                <pre class="code-block linq-block"><code>{{ syntaxStyle() === 'method' ? card.linqMethod : card.linqQuery }}</code></pre>
               </div>
             </div>
             <div class="card-footer">

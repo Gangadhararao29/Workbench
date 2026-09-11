@@ -48,55 +48,62 @@ Open `http://localhost:4200/`. The client reloads automatically when source file
 | `npm run watch` | Build continuously using the development configuration |
 | `npm run deploy` | Build and deploy to Firebase |
 
+## Architecture & Documentation
+
+Comprehensive architectural, performance, and security documentation is available in `docs/`:
+
+- [Architecture Guide](docs/architecture.md) — Core abstractions (`ToolDefinition`, `ToolInstance`), decoupled registry pattern, dynamic component rendering, and engine separation.
+- [Performance Baseline](docs/performance.md) — Bundle breakdown (v0.1.0 baseline of 7.48 MB), heavy dependency audits, and lazy loading targets.
+- [Security Model](docs/security.md) — Client-side isolation, script execution sandboxing roadmap, and local persistence boundaries.
+
 ## Project structure
 
-- `src/app/core/` contains shared services, state management, tool registration, defaults, storage, and reusable engines.
+- `docs/` contains architecture, performance baselines, and security specifications.
+- `src/app/core/` contains shared services, state management, tool registry, and pure transformation engines.
 - `src/app/shell/` contains the application shell, navigation bar, sidebar, and options panel.
 - `src/app/home/` contains the home dashboard.
-- `src/app/tool-page/` contains the dedicated tool container page and scoped instance tab bar.
+- `src/app/tool-page/` contains the dynamic tool container page and scoped instance tab bar.
 - `src/app/tools/` contains individual tool components grouped by domain.
 - `src/app/shared/` contains reusable UI components such as the code editor.
 - `public/` contains static assets and the web app manifest.
 
 ## Adding a new tool
 
-Each tool currently has three integration points: metadata, rendering, and optional configuration.
+Thanks to the decoupled **Tool Registry** architecture, adding a new tool is declarative and does not require modifying shell pages or switch statements.
 
-1. Create a standalone component under the appropriate folder in `src/app/tools/`. Keep the usual component files together: `.ts`, `.html`, and `.css`. The component should accept the workspace instance ID:
+1. Create a standalone component under `src/app/tools/<group>/<tool-name>/`. Keep component files together (`.ts`, `.html`, `.css`). The component accepts the workspace instance ID:
 
 	```ts
 	@Input({ required: true }) instanceId!: string;
 	```
 
-	Inject `InstanceService` when the tool needs to read or update its persisted instance configuration. Reuse shared engines and `CodeEditor` where appropriate.
+	Inject `InstanceService` when the tool needs to read or update its persisted instance configuration. Reuse shared pure engines in `src/app/core/engines/` and `CodeEditor` where appropriate.
 
-2. Add the tool metadata to the relevant group in [`tool-registry.ts`](src/app/core/tool-registry.ts):
+2. Register the tool in [`src/app/core/tool-registry.ts`](src/app/core/tool-registry.ts) using `registerTool()`:
 
 	```ts
-	{ type: 'my-tool', label: 'My tool', description: 'What the tool does.' }
+	registerTool({
+	  type: 'my-tool',
+	  groupId: 'general',
+	  label: 'My Tool',
+	  description: 'What the tool does.',
+	  defaultConfig: { exampleSetting: true },
+	  loadComponent: () => import('../tools/general/my-tool/my-tool').then((m) => m.MyToolComponent),
+	});
 	```
 
-	The `type` must be unique. It is used as the instance key, route parameter (`/tools/my-tool`), sidebar search value, and dispatch value.
+	- **`type`**: Unique identifier used for routes (`/tools/my-tool`), persistence keys, and sidebar dispatch.
+	- **`loadComponent`**: Dynamic import function that lazy-loads the tool chunk on demand.
+	- **`defaultConfig`**: Initial state cloned when a new instance tab is opened.
 
-3. Import the component in [`tool-page.ts`](src/app/tool-page/tool-page.ts), add it to the standalone component `imports` array, and add a matching `@case` to [`tool-page.html`](src/app/tool-page/tool-page.html):
+3. *(Optional)* If user-configurable options are required, add an entry to [`options-panel.html`](src/app/shell/options-panel/options-panel.html) and add the tool type to `TOOLS_WITH_OPTIONS` in [`shell-state.service.ts`](src/app/core/shell-state.service.ts).
 
-	```html
-	@case ('my-tool') {
-	  <app-my-tool [instanceId]="selectedInstance()!.id" />
-	}
-	```
-
-4. If the tool needs initial settings, add a matching entry to [`tool-defaults.ts`](src/app/core/tool-defaults.ts). The default object is copied for each new instance.
-
-5. If it has user-facing settings, add an `@case ('my-tool')` to [`options-panel.html`](src/app/shell/options-panel/options-panel.html), and update the tool to read those values from its instance configuration. Add the tool type to `TOOLS_WITH_OPTIONS` in [`shell-state.service.ts`](src/app/core/shell-state.service.ts) so the panel opens automatically.
-
-6. Add or update focused unit tests beside the component. Verify the tool appears on the home page and sidebar, opens in its tool page, preserves its state after reload, and handles invalid input where applicable.
+4. Add focused unit tests beside your component and engine. Verify the tool appears on the home page and sidebar, opens in its tabbed workspace, and preserves configuration.
 
 After adding a tool, run:
 
 ```bash
-npm test
-npm run build
+npm test -- --watch=false
 ```
 
 ## Contributing

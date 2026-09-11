@@ -1,3 +1,10 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .tool-surface-inner {
   max-width: 100vw;
   gap: 18px;
@@ -11,7 +18,7 @@
   flex-wrap: wrap;
   gap: 14px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
-  padding-bottom: 14px;
+  padding-bottom: 8px;
 }
 
 .selector-center {
@@ -42,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 6px 10px;
   border: none;
   border-radius: 6px;
   background: transparent;
@@ -68,7 +75,7 @@
 .query-tab mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 /* SQL Dialect Selector */
@@ -109,7 +116,7 @@
 /* Preset Dropdown & Reset */
 .preset-select {
   font-size: 12px;
-  padding: 6px 12px;
+  padding: 5px 8px;
   cursor: pointer;
   background: var(--mat-sys-surface-container-high);
   border-color: var(--mat-sys-outline-variant);
@@ -173,7 +180,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
   background: color-mix(
     in srgb,
@@ -211,7 +218,7 @@
 }
 
 .card-body {
-  padding: 14px;
+  padding: 8px;
   background: var(--mat-sys-surface-container-low);
 }
 
@@ -247,7 +254,7 @@
 }
 
 .req-star {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
 }
 
 .label-with-actions {
@@ -301,7 +308,7 @@
 .form-field {
   box-sizing: border-box;
   width: 100%;
-  padding: 7px 11px;
+  padding: 5px 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -466,7 +473,7 @@
 }
 
 .warn-text {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
   font-style: normal;
   font-weight: 600;
 }
@@ -509,7 +516,7 @@
   display: flex;
   gap: 12px;
   border-top: 1px dashed var(--mat-sys-outline-variant);
-  padding-top: 12px;
+  padding-top: 8px;
 }
 
 .half-width {
@@ -532,7 +539,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 8px 14px;
+  padding: 6px 10px;
 }
 
 .console-title {
@@ -635,14 +642,14 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 6px 10px;
   background: rgba(239, 68, 68, 0.12);
   border-bottom: 1px solid rgba(239, 68, 68, 0.25);
   color: var(--mat-sys-on-surface);
 }
 
 .safety-warning-banner mat-icon {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
   font-size: 20px;
   width: 20px;
   height: 20px;
@@ -658,7 +665,7 @@
 }
 
 .safety-text strong {
-  color: var(--mat-sys-error, #f43f5e);
+  color: var(--mat-sys-error);
   font-size: 12px;
 }
 

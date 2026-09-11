@@ -49,8 +49,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--mat-sys-surface-container, #1e2430);
-  border: 1px solid var(--mat-sys-outline-variant, #2a313d);
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 0 0 6px 6px;
   cursor: ns-resize;
@@ -75,8 +75,8 @@
 .resize-handle:hover,
 .resize-handle:focus-visible,
 .code-editor-container.is-resizing .resize-handle {
-  background: var(--mat-sys-surface-container-highest, #2c3545);
-  border-color: var(--mat-sys-primary, #60a5fa);
+  background: var(--mat-sys-surface-container-highest);
+  border-color: var(--mat-sys-primary);
   outline: none;
 }
 
@@ -92,7 +92,7 @@
 .grip-line {
   width: 32px;
   height: 3px;
-  background: var(--mat-sys-outline, #64748b);
+  background: var(--mat-sys-outline);
   border-radius: 2px;
   transition: background-color 0.15s ease, width 0.15s ease, background 0.15s ease;
 }
@@ -100,7 +100,7 @@
 .resize-handle:hover .grip-line,
 .resize-handle:focus-visible .grip-line,
 .code-editor-container.is-resizing .grip-line {
-  background: var(--mat-sys-primary, #60a5fa);
+  background: var(--mat-sys-primary);
   width: 48px;
 }
 

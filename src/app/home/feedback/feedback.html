@@ -1,0 +1,263 @@
+<div class="feedback-container">
+  @if (status() === 'success') {
+  <div class="feedback-success-card">
+    <div class="success-icon-wrap">
+      <mat-icon class="success-icon">check_circle</mat-icon>
+    </div>
+    <h2>Thank you for your {{ activeType() === 'bug' ? 'bug report' : 'feedback' }}!</h2>
+    <p class="success-msg">
+      Your submission has been recorded. It helps us improve Developer Workbench for everyone.
+    </p>
+    @if (submittedId()) {
+    <div class="submission-ref">
+      <span class="ref-label">Reference ID:</span>
+      <code>{{ submittedId() }}</code>
+    </div>
+    }
+    <div class="success-actions">
+      <button type="button" class="btn-primary" (click)="resetForm()">
+        <mat-icon>add</mat-icon>
+        Submit Another Response
+      </button>
+    </div>
+  </div>
+  } @else {
+  <div class="feedback-card">
+    <div class="feedback-header">
+      <div class="header-content">
+        <h2>Help Us Improve Developer Workbench</h2>
+        <p>
+          Whether you discovered an issue, have an idea for a new tool, or want to share your experience, we'd love to
+          hear from you.
+        </p>
+      </div>
+    </div>
+
+    <!-- Type Switcher Pill -->
+    <div class="type-selector" role="radiogroup" aria-label="Feedback or Bug Report">
+      <button type="button" class="type-btn" [class.active]="activeType() === 'feedback'" (click)="setType('feedback')">
+        <mat-icon>lightbulb</mat-icon>
+        <span>Share Feedback & Ideas</span>
+      </button>
+      <button type="button" class="type-btn" [class.active]="activeType() === 'bug'" (click)="setType('bug')">
+        <mat-icon>bug_report</mat-icon>
+        <span>Report a Bug</span>
+      </button>
+    </div>
+
+    <form (ngSubmit)="submit()" class="feedback-form" novalidate>
+      <!-- Row 1: Target Tool & Category -->
+      <div class="form-row two-cols">
+        <div class="form-field">
+          <label for="fb-tool">Related Tool or Area</label>
+          <div class="select-wrapper">
+            <select id="fb-tool" [ngModel]="selectedTool()" (ngModelChange)="selectedTool.set($event)" name="tool">
+              @for (tool of toolOptions; track tool.type) {
+              <option [value]="tool.type">{{ tool.label }}</option>
+              }
+            </select>
+            <mat-icon class="select-arrow">expand_more</mat-icon>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="fb-category">Category</label>
+          <div class="select-wrapper">
+            <select id="fb-category" [ngModel]="category()" (ngModelChange)="category.set($event)" name="category">
+              @if (activeType() === 'feedback') {
+              @for (cat of feedbackCategories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+              }
+              } @else {
+              @for (cat of bugCategories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+              }
+              }
+            </select>
+            <mat-icon class="select-arrow">expand_more</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bug Severity (Only for Bug Reports) -->
+      @if (activeType() === 'bug') {
+      <div class="form-field">
+        <label>Issue Severity</label>
+        <div class="severity-pills" role="radiogroup">
+          <button type="button" class="severity-pill low" [class.active]="severity() === 'low'"
+            (click)="setSeverity('low')">
+            <span class="severity-dot"></span>
+            <span>Low</span>
+            <span class="severity-hint">Minor UI / cosmetic</span>
+          </button>
+          <button type="button" class="severity-pill medium" [class.active]="severity() === 'medium'"
+            (click)="setSeverity('medium')">
+            <span class="severity-dot"></span>
+            <span>Medium</span>
+            <span class="severity-hint">Affects workflow, workaround exists</span>
+          </button>
+          <button type="button" class="severity-pill high" [class.active]="severity() === 'high'"
+            (click)="setSeverity('high')">
+            <span class="severity-dot"></span>
+            <span>High</span>
+            <span class="severity-hint">Major feature broken</span>
+          </button>
+          <button type="button" class="severity-pill critical" [class.active]="severity() === 'critical'"
+            (click)="setSeverity('critical')">
+            <span class="severity-dot"></span>
+            <span>Critical</span>
+            <span class="severity-hint">Crash or data loss</span>
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- Star Rating (Only for Feedback) -->
+      @if (activeType() === 'feedback') {
+      <div class="form-field">
+        <label>How has your experience with Workbench been?</label>
+        <div class="star-rating">
+          @for (star of [1, 2, 3, 4, 5]; track star) {
+          <button type="button" class="star-btn" [class.filled]="rating() >= star" (click)="setRating(star)"
+            [matTooltip]="star + ' star' + (star > 1 ? 's' : '')" [attr.aria-label]="'Rate ' + star + ' of 5'">
+            <mat-icon>{{ rating() >= star ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+          }
+          @if (rating() > 0) {
+          <span class="rating-label">
+            @switch (rating()) {
+            @case (5) { Excellent! }
+            @case (4) { Very Good }
+            @case (3) { Decent }
+            @case (2) { Needs Improvement }
+            @case (1) { Frustrating }
+            }
+          </span>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Title / Summary -->
+      <div class="form-field">
+        <label for="fb-title">
+          {{ activeType() === 'bug' ? 'Issue Summary' : 'Title / Subject' }}
+          <span class="req">*</span>
+        </label>
+        <input id="fb-title" type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" name="title"
+          [placeholder]="activeType() === 'bug' ? 'e.g. SQL Formatter throws an error when pasting CTE queries' : 'e.g. Add support for YAML syntax highlighting in Script Runner'"
+          required minlength="3" maxlength="150" autocomplete="off" />
+      </div>
+
+      <!-- Description -->
+      <div class="form-field">
+        <label for="fb-desc">
+          {{ activeType() === 'bug' ? 'What happened? (Details & Expected Behavior)' : 'Detailed Feedback / Feature
+          Description' }}
+          <span class="req">*</span>
+        </label>
+        <textarea id="fb-desc" rows="5" [ngModel]="description()" (ngModelChange)="description.set($event)"
+          name="description"
+          [placeholder]="activeType() === 'bug' ? 'Describe what went wrong, what you expected to happen, and any relevant details...' : 'Describe your suggestion, what pain points it solves, and how you imagine it working...'"
+          required minlength="5"></textarea>
+      </div>
+
+      <!-- Steps to Reproduce (Only for Bug Reports) -->
+      @if (activeType() === 'bug') {
+      <div class="form-field">
+        <label for="fb-steps">
+          Steps to Reproduce
+          <span class="field-hint">(optional but very helpful)</span>
+        </label>
+        <textarea id="fb-steps" rows="3" [ngModel]="stepsToReproduce()" (ngModelChange)="stepsToReproduce.set($event)"
+          name="stepsToReproduce"
+          placeholder="1. Open SQL Formatter&#10;2. Select PostgreSQL dialect&#10;3. Click Format"></textarea>
+      </div>
+      }
+
+      <!-- Row 2: Email and Diagnostic System Info -->
+      <div class="form-row two-cols">
+        <div class="form-field">
+          <label for="fb-email">
+            Your Email
+            <span class="field-hint">(optional, for follow-up or updates)</span>
+          </label>
+          <input id="fb-email" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email"
+            placeholder="you@example.com" autocomplete="email" />
+        </div>
+
+        <div class="form-field align-self-end">
+          <div class="system-info-toggle-box">
+            <label class="checkbox-label">
+              <input type="checkbox" [ngModel]="includeSystemInfo()" (ngModelChange)="includeSystemInfo.set($event)"
+                name="includeSystemInfo" />
+              <span class="custom-checkbox"></span>
+              <span class="checkbox-text">Include client environment details</span>
+            </label>
+
+            @if (includeSystemInfo() && systemInfo()) {
+            <button type="button" class="btn-text" (click)="toggleSystemInfo()">
+              <mat-icon>{{ showSystemInfoPreview() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              {{ showSystemInfoPreview() ? 'Hide Diagnostics' : 'View Diagnostics' }}
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- System Info Preview Box -->
+      @if (includeSystemInfo() && showSystemInfoPreview() && systemInfo()) {
+      <div class="system-info-preview">
+        <div class="sysinfo-header">
+          <mat-icon>devices</mat-icon>
+          <span>Captured Diagnostic Information</span>
+        </div>
+        <div class="sysinfo-grid">
+          <div class="sysinfo-item">
+            <span class="sysinfo-label">Platform / OS:</span>
+            <span class="sysinfo-val">{{ systemInfo()?.platform }}</span>
+          </div>
+          <div class="sysinfo-item">
+            <span class="sysinfo-label">Display & Viewport:</span>
+            <span class="sysinfo-val">{{ systemInfo()?.screenResolution }}</span>
+          </div>
+          <div class="sysinfo-item">
+            <span class="sysinfo-label">Browser Language:</span>
+            <span class="sysinfo-val">{{ systemInfo()?.language }}</span>
+          </div>
+          <div class="sysinfo-item">
+            <span class="sysinfo-label">Time Zone:</span>
+            <span class="sysinfo-val">{{ systemInfo()?.timeZone }}</span>
+          </div>
+          <div class="sysinfo-item full-width">
+            <span class="sysinfo-label">User Agent:</span>
+            <span class="sysinfo-val truncate">{{ systemInfo()?.userAgent }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Error Banner -->
+      @if (status() === 'error') {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+      }
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit" [disabled]="!isFormValid() || status() === 'submitting'">
+          @if (status() === 'submitting') {
+          <div class="spinner"></div>
+          <span>Submitting to Firebase...</span>
+          } @else {
+          <mat-icon>{{ activeType() === 'bug' ? 'send' : 'rate_review' }}</mat-icon>
+          <span>{{ activeType() === 'bug' ? 'Submit Bug Report' : 'Send Feedback' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+  }
+</div>

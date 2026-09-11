@@ -7,14 +7,14 @@ export interface CSharpConversionOptions {
   enumOutput?: string;
 }
 
-interface CSharpProperty {
+export interface CSharpProperty {
   name: string;
   type: string;
   nullable: boolean;
   jsonName?: string;
 }
 
-interface CSharpType {
+export interface CSharpType {
   name: string;
   kind: 'class' | 'record' | 'enum';
   properties: CSharpProperty[];
@@ -62,16 +62,23 @@ export async function convertCsharpToTypescript(
 }
 
 // ---------------------------------------------------------------------------
-// Parser — tree-sitter CST walk
+// Parser — tree-sitter CST walk with fallback
 // ---------------------------------------------------------------------------
 
-async function parseTypes(source: string): Promise<CSharpType[]> {
-  const parser = await getParser();
-  const tree = parser.parse(source);
-  if (!tree) return [];
-  const types: CSharpType[] = [];
-  walkNode(tree.rootNode, types);
-  return types;
+export async function parseTypes(source: string): Promise<CSharpType[]> {
+  try {
+    const parser = await getParser();
+    const tree = parser.parse(source);
+    if (tree) {
+      const types: CSharpType[] = [];
+      walkNode(tree.rootNode, types);
+      if (types.length > 0) return types;
+    }
+  } catch {
+    // If wasm is unavailable (e.g. unit tests or network error), fallback to pure parser
+  }
+
+  return parseTypesFallback(source);
 }
 
 function walkNode(node: Node, types: CSharpType[]): void {
@@ -195,7 +202,8 @@ function findJsonPropertyName(node: Node): string | undefined {
       for (const attr of child.children) {
         if (attr.type === 'attribute') {
           const attrName = attr.childForFieldName('name');
-          if (attrName?.text === 'JsonPropertyName') {
+          const text = attrName?.text;
+          if (text === 'JsonPropertyName' || text === 'JsonProperty' || text === 'DataMember') {
             const args = attr.childForFieldName('argument_list');
             if (args) {
               const strNode = args.children.find(
@@ -209,6 +217,164 @@ function findJsonPropertyName(node: Node): string | undefined {
     }
   }
   return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Pure Fallback Parser (Robust, synchronous, zero wasm dependencies)
+// ---------------------------------------------------------------------------
+
+function parseTypesFallback(source: string): CSharpType[] {
+  const clean = stripComments(source);
+  const found: Array<CSharpType & { index: number }> = [];
+
+  // Positional records
+  const positionalRecordRegex = /(?:public|internal|private)?\s*record\s+(?:struct\s+)?(\w+)\s*\(([^)]*)\)\s*;/g;
+  let m: RegExpExecArray | null;
+  while ((m = positionalRecordRegex.exec(clean))) {
+    const typeName = m[1];
+    const paramStr = m[2];
+    const properties: CSharpProperty[] = [];
+
+    const params = splitParameters(paramStr);
+    for (const p of params) {
+      const trimmed = p.trim();
+      if (!trimmed) continue;
+      const attrMatch = trimmed.match(/\[([^\]]+)\]/);
+      const cleanParam = trimmed.replace(/\[[^\]]+\]/g, '').trim();
+
+      const withoutDefault = cleanParam.split(/\s*=\s*/)[0].trim();
+      const nameMatch = withoutDefault.match(/\b([a-zA-Z_@][a-zA-Z0-9_]*)$/);
+      if (!nameMatch) continue;
+
+      const namePart = nameMatch[1];
+      let typePart = withoutDefault.slice(0, nameMatch.index).trim();
+      const isNullable = typePart.endsWith('?');
+      if (isNullable) typePart = typePart.slice(0, -1).trim();
+
+      let jsonName: string | undefined;
+      if (attrMatch) {
+        const jsonAttr = attrMatch[1].match(/JsonProperty(?:Name)?\s*\(\s*["']([^"']+)["']\s*\)/);
+        if (jsonAttr) jsonName = jsonAttr[1];
+      }
+
+      properties.push({
+        name: namePart,
+        type: typePart,
+        nullable: isNullable,
+        jsonName
+      });
+    }
+
+    found.push({ index: m.index, name: typeName, kind: 'record', properties, values: [] });
+  }
+
+  // Enums
+  const enumRegex = /(?:public|internal|private)?\s*enum\s+(\w+)\s*\{([^}]*)\}/g;
+  while ((m = enumRegex.exec(clean))) {
+    const typeName = m[1];
+    const enumBody = m[2];
+    const values = enumBody
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    found.push({
+      index: m.index,
+      name: typeName,
+      kind: 'enum',
+      properties: [],
+      values
+    });
+  }
+
+  // Body-based types
+  const bodyTypeRegex = /(?:public|internal|private)?\s*(?:class|record|struct)\s+(\w+)(?:<[^>]+>)?(?:\s*:\s*[^{]+)?\s*\{/g;
+  while ((m = bodyTypeRegex.exec(clean))) {
+    const typeName = m[1];
+    const bodyStart = m.index + m[0].length - 1;
+    const bodyEnd = findMatchingBrace(clean, bodyStart);
+    if (bodyEnd < 0) continue;
+
+    const body = clean.slice(bodyStart + 1, bodyEnd);
+    const properties = parsePropertiesFallback(body);
+
+    found.push({ index: m.index, name: typeName, kind: 'class', properties, values: [] });
+  }
+
+  found.sort((a, b) => a.index - b.index);
+  return found;
+}
+
+function splitParameters(paramStr: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let depth = 0;
+
+  for (let i = 0; i < paramStr.length; i++) {
+    const ch = paramStr[i];
+    if (ch === '<' || ch === '(' || ch === '[' || ch === '{') depth++;
+    else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') depth--;
+
+    if (ch === ',' && depth === 0) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+
+  if (current.trim()) {
+    result.push(current.trim());
+  }
+  return result;
+}
+
+function findMatchingBrace(source: string, openingBrace: number): number {
+  let depth = 0;
+  for (let index = openingBrace; index < source.length; index++) {
+    if (source[index] === '{') depth++;
+    if (source[index] === '}' && --depth === 0) return index;
+  }
+  return -1;
+}
+
+function parsePropertiesFallback(body: string): CSharpProperty[] {
+  const properties: CSharpProperty[] = [];
+  const propRegex = /(?:\[([^\]]+)\]\s*)*(?:(?:public|internal|private|protected|required|virtual|override|readonly|static|new)\s+)*([\w<>?,\[\] ]+?)\s+(\w+)\s*(?:\{[^}]*\}|=>[^;]*;|=([^;]+);|;)/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = propRegex.exec(body))) {
+    const rawAttr = match[1];
+    let rawType = match[2]?.trim();
+    const propName = match[3]?.trim();
+
+    if (!rawType || !propName) continue;
+    if (['void', 'return', 'class', 'struct', 'record', 'enum', 'get', 'set'].includes(rawType)) continue;
+
+    rawType = rawType.replace(/\b(public|internal|private|protected|required|virtual|override|readonly|static|new)\b\s*/g, '').trim();
+
+    const isNullable = rawType.endsWith('?');
+    if (isNullable) rawType = rawType.slice(0, -1).trim();
+
+    let jsonName: string | undefined;
+    if (rawAttr) {
+      const jsonAttr = rawAttr.match(/JsonProperty(?:Name)?\s*\(\s*["']([^"']+)["']\s*\)/);
+      if (jsonAttr) jsonName = jsonAttr[1];
+    }
+
+    properties.push({
+      name: propName,
+      type: rawType,
+      nullable: isNullable,
+      jsonName
+    });
+  }
+
+  return properties;
+}
+
+function stripComments(source: string): string {
+  return source.replace(/\/\/[^\r\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
 // ---------------------------------------------------------------------------
@@ -244,17 +410,19 @@ function propertyName(name: string, naming: string | undefined): string {
 }
 
 function mapType(type: string): string {
-  const collection = type.match(/^(?:List|IList|ICollection|IEnumerable|IReadOnlyCollection|IReadOnlyList)<(.+)>$/);
-  if (collection) return `${mapType(collection[1])}[]`;
-  if (type.endsWith('[]')) return `${mapType(type.slice(0, -2))}[]`;
-  const dictionary = type.match(/^Dictionary<([^,]+),\s*(.+)>$/);
-  if (dictionary) return `Record<${mapType(dictionary[1])}, ${mapType(dictionary[2])}>`;
+  const collection = type.match(/^(?:List|IList|ICollection|IEnumerable|IReadOnlyCollection|IReadOnlyList|ISet|HashSet)<(.+)>$/);
+  if (collection) return `${mapType(collection[1].trim())}[]`;
+  if (type.endsWith('[]')) return `${mapType(type.slice(0, -2).trim())}[]`;
+  const dictionary = type.match(/^(?:Dictionary|IDictionary|IReadOnlyDictionary)<([^,]+),\s*(.+)>$/);
+  if (dictionary) return `Record<${mapType(dictionary[1].trim())}, ${mapType(dictionary[2].trim())}>`;
   const mappings: Record<string, string> = {
     string: 'string', char: 'string', bool: 'boolean', boolean: 'boolean',
-    byte: 'number', short: 'number', int: 'number', long: 'number',
+    byte: 'number', sbyte: 'number', short: 'number', ushort: 'number',
+    int: 'number', uint: 'number', long: 'number', ulong: 'number',
     float: 'number', double: 'number', decimal: 'number',
-    Guid: 'string', DateTime: 'Date', DateTimeOffset: 'Date', TimeSpan: 'string',
-    object: 'unknown', dynamic: 'unknown'
+    Guid: 'string', DateTime: 'Date', DateTimeOffset: 'Date', DateOnly: 'string',
+    TimeSpan: 'string', TimeOnly: 'string', Uri: 'string',
+    object: 'unknown', dynamic: 'unknown', JsonElement: 'unknown', JsonObject: 'Record<string, unknown>'
   };
   return mappings[type] ?? type;
 }

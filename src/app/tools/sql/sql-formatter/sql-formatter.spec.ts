@@ -1,18 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SqlFormatter } from './sql-formatter';
+import { InstanceService } from '../../../core/tool/tool-instance';
 
 describe('SqlFormatter', () => {
   let component: SqlFormatter;
   let fixture: ComponentFixture<SqlFormatter>;
+  let instanceService: InstanceService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SqlFormatter],
     }).compileComponents();
 
+    instanceService = TestBed.inject(InstanceService);
+    const instance = instanceService.open('sql-formatter');
     fixture = TestBed.createComponent(SqlFormatter);
     component = fixture.componentInstance;
-    component.instanceId = 'test-instance';
+    component.instanceId = instance.id;
     await fixture.whenStable();
   });
 
@@ -23,7 +27,9 @@ describe('SqlFormatter', () => {
   });
 
   it('should support compact mode placing major clauses on separate lines with inline columns', () => {
-    component.input.set('select id, name, email from users left join orders on orders.user_id = users.id where active = 1 and role = \'admin\' order by name;');
+    component.input.set(
+      "select id, name, email from users left join orders on orders.user_id = users.id where active = 1 and role = 'admin' order by name;",
+    );
     component.compact();
     expect(component.mode()).toBe('compact');
     const result = component.result();
@@ -41,9 +47,15 @@ describe('SqlFormatter', () => {
     expect(component.result()).toBe('SELECT id, name, email FROM users WHERE active = 1;');
   });
 
-  it('should load sample query', () => {
-    component.loadSample();
-    expect(component.input()).toContain('SELECT u.id');
+  it('should automatically re-format when options change in InstanceService', async () => {
+    component.input.set('select id from users;');
+    fixture.detectChanges();
+    await fixture.whenStable();
     expect(component.result()).toContain('SELECT');
+
+    instanceService.updateConfig(component.instanceId, { keywordCase: 'lower' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.result()).toContain('select');
   });
 });

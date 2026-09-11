@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // General feedback collection
+    match /feedback/{feedbackId} {
+      allow create: if request.resource.data.title is string
+                    && request.resource.data.description is string
+                    && request.resource.data.type == 'feedback';
+
+      // Prevent client-side reading, editing, or deletion.
+      allow read, update, delete: if false;
+    }
+
+    // Bug reports collection
+    match /bugs/{bugId} {
+      allow create: if request.resource.data.title is string
+                    && request.resource.data.description is string
+                    && request.resource.data.type == 'bug';
+      
+      // Prevent client-side reading, editing, or deletion.
+      allow read, update, delete: if false;
+    }
+  }
+}

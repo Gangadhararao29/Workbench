@@ -1,4 +1,5 @@
 import { dump, load, loadAll } from 'js-yaml';
+import { formatJson } from './json-engine';
 
 export interface YamlToConvertOptions {
   indent?: number;
@@ -97,33 +98,11 @@ export function yamlToJson(yamlStr: string, options: JsonOutputOptions = {}): st
     throw new Error(`Invalid YAML input: ${(err as Error).message}`);
   }
 
-  if (options.sortKeys && parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-    parsed = sortObjectKeys(parsed as Record<string, any>);
-  }
-
-  if (options.compact) {
-    return JSON.stringify(parsed);
-  }
-
-  const indent = options.indent ?? 2;
-  return JSON.stringify(parsed, null, indent);
-}
-
-function sortObjectKeys(obj: Record<string, any>): Record<string, any> {
-  const sorted: Record<string, any> = {};
-  for (const key of Object.keys(obj).sort()) {
-    const val = obj[key];
-    if (val && typeof val === 'object' && !Array.isArray(val)) {
-      sorted[key] = sortObjectKeys(val);
-    } else if (Array.isArray(val)) {
-      sorted[key] = val.map(item =>
-        item && typeof item === 'object' && !Array.isArray(item) ? sortObjectKeys(item) : item
-      );
-    } else {
-      sorted[key] = val;
-    }
-  }
-  return sorted;
+  return formatJson(parsed, {
+    indent: options.indent ?? 2,
+    compact: options.compact,
+    sortKeys: options.sortKeys,
+  });
 }
 
 /**

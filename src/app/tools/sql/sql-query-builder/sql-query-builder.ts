@@ -523,15 +523,8 @@ export class SqlQueryBuilder {
 
     // Default 'formatted' mode
     try {
-      const dialectMapping: Record<SqlDialect, string> = {
-        standard: 'PostgreSQL',
-        mysql: 'MySQL',
-        tsql: 'Transact-SQL',
-        sqlite: 'SQLite',
-        oracle: 'sql'
-      };
       return formatSql(raw, {
-        dialect: dialectMapping[this.dialect()] || 'sql',
+        dialect: this.dialect(),
         uppercaseKeywords: true,
         breakOnCommas: true,
         indent: '2 spaces'

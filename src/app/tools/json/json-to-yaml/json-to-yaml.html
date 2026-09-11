@@ -130,6 +130,7 @@
           [value]="input()"
           [language]="inputLanguage()"
           [ariaLabel]="mode() === 'json-to-yaml' ? 'JSON input editor' : 'YAML input editor'"
+          [resizable]="false"
           (valueChange)="onInputChange($event)">
         </app-code-editor>
       </div>
@@ -187,7 +188,8 @@
           [value]="result()"
           [language]="outputLanguage()"
           [ariaLabel]="mode() === 'json-to-yaml' ? 'YAML output editor' : 'JSON output editor'"
-          [readOnly]="true">
+          [readOnly]="true"
+          [resizable]="false">
         </app-code-editor>
       </div>
     </div>

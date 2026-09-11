@@ -1,50 +1,52 @@
 <div class="tool-surface-inner">
+
   <!-- Input SQL Section -->
   <div class="field">
     <div class="field-header">
-      <label>Input SQL</label>
+      <label>SQL Input</label>
       <div class="input-actions">
-        <button type="button" class="action-link-btn" (click)="loadSample()" matTooltip="Load sample SQL query">
-          <mat-icon>auto_awesome</mat-icon>
-          <span>Sample</span>
-        </button>
-        <button type="button" class="action-link-btn" (click)="clear()" matTooltip="Clear input and result">
-          <mat-icon>clear</mat-icon>
+        <button type="button" class="action-link-btn" (click)="clear()" matTooltip="Clear all">
+          <mat-icon>clear_all</mat-icon>
           <span>Clear</span>
         </button>
       </div>
     </div>
     <app-code-editor [value]="input()" language="sql" ariaLabel="SQL input"
-      (valueChange)="input.set($event)"></app-code-editor>
+      (valueChange)="onInputChange($event)"></app-code-editor>
   </div>
 
-  <!-- Separate right-aligned action buttons -->
-  <div class="actions">
-    <button mat-stroked-button (click)="minify()">
-      <mat-icon>compress</mat-icon>
-      <span>Minify</span>
-    </button>
-    <button mat-stroked-button (click)="compact()">
-      <mat-icon>view_headline</mat-icon>
-      <span>Compact</span>
-    </button>
-    <button mat-stroked-button color="primary" (click)="format()">
-      <mat-icon>auto_fix_high</mat-icon>
-      <span>Format</span>
-    </button>
-  </div>
-
-  <!-- Formatted Result Section -->
-  <div class="field grow">
-    <div class="field-header">
-      <label>Result</label>
-      <div class="result-actions">
-        <button mat-icon-button (click)="copyResult()" class="btn-icon-copy" [class.copied]="copied()"
-          [matTooltip]="copied() ? 'Copied!' : 'Copy Result'" aria-label="Copy result">
-          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-        </button>
-      </div>
+  <!-- Compact toolbar: result label + copy left, format buttons right -->
+  <div class="toolbar-row">
+    <div class="result-header">
+      <span class="result-label">Formatted SQL</span>
+      <button mat-icon-button (click)="copyResult()" class="btn-copy-result" [class.copied]="copied()"
+        [matTooltip]="copied() ? 'Copied!' : 'Copy result'" aria-label="Copy result">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+      </button>
     </div>
+
+    <div class="format-actions">
+      <button mat-stroked-button (click)="minify()" [class.active-mode]="mode() === 'minified'"
+        matTooltip="Remove all whitespace">
+        <mat-icon>compress</mat-icon>
+        <span>Minify</span>
+      </button>
+      <button mat-stroked-button (click)="compact()" [class.active-mode]="mode() === 'compact'"
+        matTooltip="Single-line per clause">
+        <mat-icon>view_headline</mat-icon>
+        <span>Compact</span>
+      </button>
+      <button mat-flat-button color="primary" (click)="format()" [class.active-mode]="mode() === 'pretty'"
+        matTooltip="Pretty-print SQL">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Format</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Result Section: grows to fill remaining space -->
+  <div class="field grow">
     <app-code-editor [value]="result()" language="sql" ariaLabel="SQL result" [readOnly]="true"></app-code-editor>
   </div>
+
 </div>

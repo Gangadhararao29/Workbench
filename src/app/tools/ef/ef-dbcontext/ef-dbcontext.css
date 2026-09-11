@@ -1,5 +1,13 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .ef-dbcontext-container {
   max-width: 100vw;
+  box-sizing: border-box;
 }
 
 .main-split {
@@ -16,10 +24,11 @@
   gap: 10px;
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 6px;
-  padding: 14px;
+  border-radius: 8px;
+  padding: 12px;
   overflow-y: auto;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .panel-section-title {
@@ -28,6 +37,7 @@
   color: var(--mat-sys-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-top: 2px;
 }
 
 .form-row {
@@ -47,19 +57,27 @@
 .form-row mat-select {
   background: var(--mat-sys-surface-container-high);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--mat-sys-on-surface);
   font-size: 12px;
-  padding: 6px 8px;
+  padding: 6px 10px;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-row input::placeholder,
+.form-row textarea::placeholder {
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.7;
 }
 
 .form-row input:focus,
 .form-row textarea:focus,
 .form-row mat-select:focus {
   border-color: var(--mat-sys-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
 }
 
 .checkbox-row {
@@ -71,7 +89,8 @@
 .section-divider {
   height: 1px;
   background: var(--mat-sys-outline-variant);
-  margin: 4px 0;
+  margin: 6px 0;
+  opacity: 0.6;
 }
 
 .output-panel {
@@ -85,24 +104,29 @@
 .pane-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   margin-bottom: 6px;
+  min-height: 28px;
 }
 
 .pane-header label {
   font-weight: 600;
   font-size: 13px;
   color: var(--mat-sys-on-surface);
+  display: block;
 }
 
 .pane-subtitle {
   font-size: 11px;
   color: var(--mat-sys-on-surface-variant);
+  margin-top: 1px;
 }
 
 app-code-editor {
   flex: 1;
   min-height: 0;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -113,3 +137,5 @@ app-code-editor {
     width: 100%;
   }
 }
+
+

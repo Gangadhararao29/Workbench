@@ -1,53 +1,53 @@
 <div class="sidebar-header">
   <span>Tools</span>
   @if (hasOpenTools) {
-    <button mat-icon-button #closeAllTip="matTooltip" matTooltip="Close all tools" matTooltipPosition="right" aria-label="Close all tools" (click)="closeAllTip.hide(0); closeAll.emit()">
-      <mat-icon>close</mat-icon>
-    </button>
+  <button mat-icon-button #closeAllTip="matTooltip" matTooltip="Close all tools" matTooltipPosition="right"
+    aria-label="Close all tools" (click)="closeAllTip.hide(0); closeAll.emit()">
+    <mat-icon>close</mat-icon>
+  </button>
   }
 </div>
 
 <mat-accordion multi="true" displayMode="flat">
   @for (group of filteredGroups; track group.id) {
-    <mat-expansion-panel [expanded]="isGroupExpanded(group)">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon class="group-icon">{{ group.icon }}</mat-icon>
-          {{ group.label }}
-        </mat-panel-title>
-      </mat-expansion-panel-header>
+  <mat-expansion-panel [expanded]="isGroupExpanded(group)">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon class="group-icon">{{ group.icon }}</mat-icon>
+        {{ group.label }}
+      </mat-panel-title>
+    </mat-expansion-panel-header>
 
-      @for (tool of group.tools; track tool.type) {
-        <div
-          class="tool-row"
-          [class.active]="isToolActive(tool.type)"
-          [attr.aria-current]="isToolActive(tool.type) ? 'page' : null"
-          (click)="descTip.hide(0); emit(tool.type, group.id)"
-        >
-          <span
-            class="tool-label"
-            #descTip="matTooltip"
-            [matTooltip]="tool.description"
-            matTooltipPosition="right"
-            matTooltipShowDelay="300"
-            matTooltipHideDelay="0"
-          >{{ tool.label }}</span>
-          <button
-            mat-icon-button
-            class="favorite-btn"
-            #favTip="matTooltip"
-            [matTooltip]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
-            matTooltipPosition="right"
-            matTooltipTouchGestures="off"
-            [attr.aria-label]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
-            (click)="toggleFavorite(tool.type); favTip.hide(0); $event.stopPropagation()"
-          >
-            <mat-icon class="favorite-icon" [class.favorite-active]="isFavorite(tool.type)" inline="true">
-              {{ isFavorite(tool.type) ? 'star' : 'star_border' }}
-            </mat-icon>
-          </button>
-        </div>
-      }
-    </mat-expansion-panel>
+    @for (tool of group.tools; track tool.type) {
+    <div class="tool-row" [class.active]="isToolActive(tool.type)" [class.search-mode]="!!searchQuery.trim()"
+      [attr.aria-current]="isToolActive(tool.type) ? 'page' : null"
+      (click)="descTip.hide(0); emit(tool.type, group.id)">
+      <div class="tool-text-container">
+        <span class="tool-label" #descTip="matTooltip" [matTooltip]="tool.description" matTooltipPosition="right"
+          matTooltipShowDelay="300" matTooltipHideDelay="0">{{ tool.label }}</span>
+        @if (searchQuery.trim()) {
+        <span class="tool-search-hint" [title]="getSearchHint(tool)">{{ getSearchHint(tool) }}</span>
+        }
+      </div>
+      <button mat-icon-button class="favorite-btn" #favTip="matTooltip"
+        [matTooltip]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'" matTooltipPosition="right"
+        matTooltipTouchGestures="off"
+        [attr.aria-label]="isFavorite(tool.type) ? 'Remove from favorites' : 'Add to favorites'"
+        (click)="toggleFavorite(tool.type); favTip.hide(0); $event.stopPropagation()">
+        <mat-icon class="favorite-icon" [class.favorite-active]="isFavorite(tool.type)" inline="true">
+          {{ isFavorite(tool.type) ? 'star_shine' : 'star' }}
+        </mat-icon>
+      </button>
+    </div>
+    }
+  </mat-expansion-panel>
   }
 </mat-accordion>
+
+@if (searchQuery.trim() && filteredGroups.length === 0) {
+<div class="sidebar-no-results">
+  <mat-icon class="no-results-icon">search</mat-icon>
+  <div class="no-results-title">No tools found</div>
+  <div class="no-results-subtitle">Nothing matches "{{ searchQuery.trim() }}"</div>
+</div>
+}

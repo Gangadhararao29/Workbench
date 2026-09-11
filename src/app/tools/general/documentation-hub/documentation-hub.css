@@ -23,7 +23,7 @@
   min-height: 110px;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
+  padding: 8px 10px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container);

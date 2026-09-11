@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { Router } from '@angular/router';
-import { InstanceService } from './core/instance-service';
-import { ShellStateService } from './core/shell-state.service';
+import { InstanceService } from './core/tool/tool-instance';
 
 describe('App', () => {
   let component: App;
@@ -17,7 +16,6 @@ describe('App', () => {
       imports: [App],
       providers: [
         InstanceService,
-        ShellStateService,
         {
           provide: Router,
           useValue: {

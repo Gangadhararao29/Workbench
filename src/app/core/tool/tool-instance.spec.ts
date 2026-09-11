@@ -1,25 +1,40 @@
-import { TestBed } from '@angular/core/testing';
-import { InstanceService } from './instance-service';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { ToolInstanceService } from './tool-instance';
+import { WorkspaceStorage } from '../workspace-storage';
 
-describe('InstanceService', () => {
-  let service: InstanceService;
+describe('ToolInstanceService', () => {
+  let service: ToolInstanceService;
 
   beforeEach(() => {
     try { window?.localStorage?.clear(); } catch {}
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(InstanceService);
+    service = new ToolInstanceService(new WorkspaceStorage());
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('opens and selects a tool instance with default configuration', () => {
+  it('opens and selects a tool instance with default configuration and sidebar state', () => {
     service.open('sql-formatter', 'sql');
 
     expect(service.instances()).toHaveLength(1);
     expect(service.activeInstance()?.toolType).toBe('sql-formatter');
     expect(service.activeInstance()?.config['keywordCase']).toBe('upper');
+    expect(service.hasOptions()).toBe(true);
+    expect(service.rightDrawerOpened()).toBe(true);
+  });
+
+  it('handles tools without options and closes sidebar', () => {
+    service.open('guid-generator', 'general');
+
+    expect(service.hasOptions()).toBe(false);
+    expect(service.rightDrawerOpened()).toBe(false);
+  });
+
+  it('manages searchQuery correctly', () => {
+    expect(service.searchQuery()).toBe('');
+    service.searchQuery.set('formatter');
+    expect(service.searchQuery()).toBe('formatter');
   });
 
   it('updates configuration without replacing the instance', () => {
@@ -85,6 +100,36 @@ describe('InstanceService', () => {
 
     expect(updatedOriginal?.config['indent']).toBe('4 spaces');
     expect(updatedCloned?.config['indent']).toBe('tab');
+  });
+
+  it('updates and retrieves instance state', () => {
+    const inst = service.open('sql-formatter', 'sql');
+    service.updateState(inst.id, { query: 'SELECT * FROM users', cursorPosition: 12 });
+
+    const state = service.getState<{ query: string; cursorPosition: number }>(inst.id);
+    expect(state).toBeDefined();
+    expect(state?.query).toBe('SELECT * FROM users');
+    expect(state?.cursorPosition).toBe(12);
+
+    // Partial update merges into state
+    service.updateState(inst.id, { cursorPosition: 20 });
+    const updatedState = service.getState<{ query: string; cursorPosition: number }>(inst.id);
+    expect(updatedState?.query).toBe('SELECT * FROM users');
+    expect(updatedState?.cursorPosition).toBe(20);
+  });
+
+  it('clones an instance with copied state', () => {
+    const original = service.open('sql-formatter', 'sql');
+    service.updateState(original.id, { editorText: 'SELECT 1;', mode: 'pretty' });
+
+    const cloned = service.clone(original.id);
+    expect(cloned).not.toBeNull();
+    expect(cloned!.state).toEqual({ editorText: 'SELECT 1;', mode: 'pretty' });
+
+    // Mutating cloned state does not affect original state
+    service.updateState(cloned!.id, { editorText: 'SELECT 2;' });
+    expect(service.getState(original.id)?.['editorText']).toBe('SELECT 1;');
+    expect(service.getState(cloned!.id)?.['editorText']).toBe('SELECT 2;');
   });
 
   it('returns null when cloning a non-existent instance', () => {

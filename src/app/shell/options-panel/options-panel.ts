@@ -6,7 +6,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InstanceService, ToolInstance } from '../../core/instance-service';
+import { InstanceService, ToolInstance } from '../../core/tool/tool-instance';
 
 @Component({
   selector: 'app-options-panel',
@@ -20,12 +20,19 @@ export class OptionsPanel implements OnChanges {
   editingName = false;
   nameDraft = '';
   regexFilter = '';
+  jsonPathFilter = '';
 
   constructor(private instanceService: InstanceService) {}
 
   filterRow(token: string, desc: string): boolean {
     if (!this.regexFilter.trim()) return true;
     const q = this.regexFilter.toLowerCase().trim();
+    return token.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
+  }
+
+  filterJsonPathRow(token: string, desc: string): boolean {
+    if (!this.jsonPathFilter.trim()) return true;
+    const q = this.jsonPathFilter.toLowerCase().trim();
     return token.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
   }
 

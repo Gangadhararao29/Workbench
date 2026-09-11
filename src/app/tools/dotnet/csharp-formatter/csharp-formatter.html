@@ -1,11 +1,38 @@
 <div class="tool-surface-inner">
+
   <div class="field">
-    <label>C# input</label>
-    <app-code-editor [value]="input()" language="csharp" ariaLabel="C# input" (valueChange)="input.set($event)"></app-code-editor>
+    <div class="field-header">
+      <label>C# Input</label>
+      <div class="input-actions">
+        <button type="button" class="action-link-btn" (click)="clear()" title="Clear input">
+          <mat-icon>clear_all</mat-icon>
+          <span>Clear</span>
+        </button>
+      </div>
+    </div>
+    <app-code-editor [value]="input()" language="csharp" ariaLabel="C# input"
+      (valueChange)="onInputChange($event)"></app-code-editor>
   </div>
-  <button mat-raised-button color="primary" (click)="format()">Format C#</button>
+
+  <div class="toolbar-row">
+    <div class="result-header">
+      <span class="result-label">Formatted Output</span>
+      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()"
+        [matTooltip]="copied() ? 'Copied!' : 'Copy result'" aria-label="Copy result">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+      </button>
+    </div>
+    <div class="format-actions">
+      <button mat-flat-button color="primary" (click)="format()">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Format C#</span>
+      </button>
+    </div>
+  </div>
+
   <div class="field grow">
-    <label>Formatted output</label>
-    <app-code-editor [value]="result()" language="csharp" ariaLabel="Formatted C# output" [readOnly]="true"></app-code-editor>
+    <app-code-editor [value]="result()" language="csharp" ariaLabel="Formatted C# output"
+      [readOnly]="true"></app-code-editor>
   </div>
+
 </div>

@@ -1,13 +1,29 @@
 <div class="tool-surface-inner">
+
   <div class="field">
-    <label>JSON input</label>
-    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="input.set($event)"></app-code-editor>
+    <div class="field-header"><label>JSON Input</label></div>
+    <app-code-editor [value]="input()" language="json" ariaLabel="JSON input"
+      (valueChange)="input.set($event)"></app-code-editor>
   </div>
 
-  <button mat-raised-button color="primary" (click)="convert()">Convert to TypeScript</button>
+  <div class="toolbar-row">
+    <div class="result-header">
+      <span class="result-label">TypeScript Output</span>
+      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()" title="Copy result">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+      </button>
+    </div>
+    <div class="format-actions">
+      <button mat-flat-button color="primary" (click)="convert()">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Generate TypeScript</span>
+      </button>
+    </div>
+  </div>
 
   <div class="field grow">
-    <label>TypeScript output</label>
-    <app-code-editor [value]="result()" language="typescript" ariaLabel="TypeScript output" [readOnly]="true"></app-code-editor>
+    <app-code-editor [value]="result()" language="typescript" ariaLabel="TypeScript output"
+      [readOnly]="true"></app-code-editor>
   </div>
+
 </div>

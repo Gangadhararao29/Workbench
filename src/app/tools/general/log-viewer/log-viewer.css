@@ -19,7 +19,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
   background: color-mix(
     in srgb,
@@ -45,7 +45,7 @@
 }
 
 .card-body {
-  padding: 16px;
+  padding: 8px 10px;
   background: var(--mat-sys-surface-container-low);
 }
 
@@ -53,7 +53,7 @@
 .log-textarea {
   box-sizing: border-box;
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -95,7 +95,7 @@
 .select-wrapper select {
   width: 100%;
   height: 38px;
-  padding: 0 12px 0 34px;
+  padding: 0 8px 0 32px;
   box-sizing: border-box;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
@@ -239,7 +239,7 @@
 .filter-input {
   box-sizing: border-box;
   width: 100%;
-  padding: 8px 10px 8px 34px;
+  padding: 6px 8px 6px 32px;
   border: 1px solid var(--mat-sys-outline);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -265,7 +265,7 @@
   display: grid;
   grid-template-columns: 100px 220px 1fr 40px;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 6px 8px;
   font-weight: 700;
   font-size: 12px;
   border-bottom: 2px solid var(--mat-sys-outline-variant);
@@ -301,7 +301,7 @@
   grid-template-columns: 100px 220px 1fr 40px;
   gap: 12px;
   align-items: center;
-  padding: 10px 16px;
+  padding: 6px 8px;
   cursor: pointer;
   user-select: none;
   transition: background 0.15s;
@@ -391,7 +391,7 @@
 
 /* Log Expand Details Block */
 .log-details-block {
-  padding: 12px 16px;
+  padding: 8px 10px;
   border-top: 1px dashed var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-lowest);
   display: flex;
@@ -407,7 +407,7 @@
 
 .metadata-code {
   margin: 0;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 6px;
   background: var(--mat-sys-surface-container-high);
@@ -426,7 +426,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 10px 8px;
   text-align: center;
   color: var(--mat-sys-on-surface-variant);
   font-size: 13px;

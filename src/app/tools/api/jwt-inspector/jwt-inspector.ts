@@ -12,15 +12,22 @@ import {
   compareJwts,
   JwtInspection,
   JwtVerificationResult,
-  JwtClaimComparison
+  JwtClaimComparison,
 } from '../../../core/engines/jwt-engine';
 
 @Component({
   selector: 'app-jwt-inspector',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatTooltipModule, CodeEditor],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    CodeEditor,
+  ],
   templateUrl: './jwt-inspector.html',
-  styleUrls: ['./jwt-inspector.css']
+  styleUrls: ['./jwt-inspector.css'],
 })
 export class JwtInspector implements OnInit {
   @Input({ required: true }) instanceId!: string;
@@ -35,16 +42,17 @@ export class JwtInspector implements OnInit {
   claimHelper = computed(() => {
     const payload = this.inspection()?.payload;
     if (!payload) return '';
-    const claims = Object.keys(payload).filter(claim => !['exp', 'iat', 'nbf'].includes(claim));
+    const claims = Object.keys(payload).filter((claim) => !['exp', 'iat', 'nbf'].includes(claim));
     return (
-      claims.map(claim => `var ${safeName(claim)} = User.FindFirst("${claim}")?.Value;`).join('\n') +
-      '\n\n[Authorize(Roles = "Admin")]'
+      claims
+        .map((claim) => `var ${safeName(claim)} = User.FindFirst("${claim}")?.Value;`)
+        .join('\n') + '\n\n[Authorize(Roles = "Admin")]'
     );
   });
 
   // --- TAB 2: BUILDER ---
   buildAlgorithm = signal('HS256');
-  buildSecret = signal('your-256-bit-secret-key-workbench');
+  buildSecret = signal('');
   buildPayload = signal(`{
   "sub": "1234567890",
   "name": "Jane Developer",
@@ -78,7 +86,7 @@ export class JwtInspector implements OnInit {
   ngOnInit() {
     // Sample initial inspection token for instant demo
     this.inspectInput.set(
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o',
     );
     this.inspect();
   }
@@ -113,7 +121,7 @@ export class JwtInspector implements OnInit {
     try {
       const token = await buildJwt(this.buildPayload(), this.buildSecret().trim(), {
         alg: this.buildAlgorithm(),
-        typ: 'JWT'
+        typ: 'JWT',
       });
       this.builtToken.set(token);
     } catch (err) {
@@ -123,15 +131,37 @@ export class JwtInspector implements OnInit {
     }
   }
 
-  async copyBuiltToken() {
-    if (!this.builtToken()) return;
+  copiedKey = signal<string | null>(null);
+
+  copyText(text: string, key: string) {
+    if (!text) return;
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        this.copiedKey.set(key);
+        setTimeout(() => {
+          if (this.copiedKey() === key) {
+            this.copiedKey.set(null);
+          }
+        }, 1500);
+      })
+      .catch(() => {
+        // ignore
+      });
+  }
+
+  copyJson(obj: unknown, key: string) {
+    if (!obj) return;
     try {
-      await navigator.clipboard.writeText(this.builtToken());
-      this.copiedBuilt.set(true);
-      setTimeout(() => this.copiedBuilt.set(false), 2000);
+      const json = JSON.stringify(obj, null, 2);
+      this.copyText(json, key);
     } catch {
       // ignore
     }
+  }
+
+  async copyBuiltToken() {
+    this.copyText(this.builtToken(), 'builtToken');
   }
 
   // --- VERIFY METHODS ---
@@ -143,7 +173,7 @@ export class JwtInspector implements OnInit {
     } catch (err) {
       this.verificationResult.set({
         valid: false,
-        error: (err as Error).message
+        error: (err as Error).message,
       });
     } finally {
       this.isVerifying.set(false);

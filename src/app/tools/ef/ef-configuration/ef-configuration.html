@@ -46,14 +46,25 @@
         [value]="input()"
         language="csharp"
         ariaLabel="C# entity input"
-        (valueChange)="input.set($event); generate()"
+        (valueChange)="onInputChange($event)"
       ></app-code-editor>
     </div>
 
     <div class="editor-pane field grow">
       <div class="pane-header">
-        <label>EF Core Output</label>
-        <span class="pane-subtitle">Generated entity configurations with keys, relations, and indexes</span>
+        <div>
+          <label>EF Core Output</label>
+          <span class="pane-subtitle">Generated entity configurations with keys, relations, and indexes</span>
+        </div>
+        <button
+          class="btn-copy-result"
+          [class.copied]="copied()"
+          (click)="copyResult()"
+          [matTooltip]="copied() ? 'Copied!' : 'Copy result'"
+          aria-label="Copy result"
+        >
+          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
       </div>
       <app-code-editor
         [value]="result()"

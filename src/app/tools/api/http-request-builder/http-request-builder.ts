@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { formatJson } from '../../../core/engines/json-engine';
 
 export interface KeyValueItem {
   key: string;
@@ -218,8 +219,7 @@ export class HttpRequestBuilder implements OnInit {
   // --- Body & Formatting ---
   formatBodyJson() {
     try {
-      const parsed = JSON.parse(this.bodyContent);
-      this.bodyContent = JSON.stringify(parsed, null, 2);
+      this.bodyContent = formatJson(this.bodyContent);
     } catch (e) {
       // Do nothing if invalid JSON
     }
@@ -327,7 +327,7 @@ export class HttpRequestBuilder implements OnInit {
       const contentType = response.headers.get('content-type') || '';
       if (contentType.includes('json') || (text.trim().startsWith('{') || text.trim().startsWith('['))) {
         try {
-          formattedBody = JSON.stringify(JSON.parse(text), null, 2);
+          formattedBody = formatJson(text);
           language = 'json';
         } catch {
           language = 'plaintext';

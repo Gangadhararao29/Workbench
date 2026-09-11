@@ -19,15 +19,28 @@
   @if (activeTab() === 'inspect') {
   <div class="tab-pane">
     <div class="field">
-      <label>JWT Token</label>
-      <app-code-editor class="jwt-input-editor" [value]="inspectInput()" language="plaintext" wordWrap="on"
-        ariaLabel="JWT token" (valueChange)="inspectInput.set($event); inspect()">
-      </app-code-editor>
+      <div class="field-header">
+        <label>JWT Token</label>
+        <div class="input-actions">
+          <button type="button" class="action-link-btn" (click)="inspectInput.set(''); inspect()" title="Clear token">
+            <mat-icon>clear_all</mat-icon>
+            <span>Clear</span>
+          </button>
+          <button class="btn-copy-result" [class.copied]="copiedKey() === 'inspectInput'"
+            (click)="copyText(inspectInput(), 'inspectInput')" title="Copy token">
+            <mat-icon>{{ copiedKey() === 'inspectInput' ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+      <textarea class="jwt-token-input" [ngModel]="inspectInput()"
+        (ngModelChange)="inspectInput.set($event); inspect()" placeholder="Paste JWT token here..."
+        spellcheck="false" aria-label="JWT token"></textarea>
     </div>
 
-    <div class="action-row">
-      <button mat-raised-button color="primary" (click)="inspect()">
-        <mat-icon>visibility</mat-icon> Inspect Token
+    <div class="action-row format-actions">
+      <button mat-flat-button color="primary" (click)="inspect()">
+        <mat-icon>visibility</mat-icon>
+        <span>Inspect Token</span>
       </button>
     </div>
 
@@ -50,17 +63,35 @@
 
     <div class="jwt-grid">
       <div class="field">
-        <label>Header</label>
+        <div class="field-header">
+          <label>Header</label>
+          <button class="btn-copy-result" [class.copied]="copiedKey() === 'header'"
+            (click)="copyJson(token.header, 'header')" title="Copy header">
+            <mat-icon>{{ copiedKey() === 'header' ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
         <pre class="code-result">{{ token.header | json }}</pre>
       </div>
       <div class="field">
-        <label>Payload & Claims</label>
+        <div class="field-header">
+          <label>Payload & Claims</label>
+          <button class="btn-copy-result" [class.copied]="copiedKey() === 'payload'"
+            (click)="copyJson(token.payload, 'payload')" title="Copy payload">
+            <mat-icon>{{ copiedKey() === 'payload' ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
         <pre class="code-result">{{ token.payload | json }}</pre>
       </div>
     </div>
 
     <div class="field">
-      <label>ASP.NET Core Claim Helper</label>
+      <div class="field-header">
+        <label>ASP.NET Core Claim Helper</label>
+        <button class="btn-copy-result" [class.copied]="copiedKey() === 'claimHelper'"
+          (click)="copyText(claimHelper(), 'claimHelper')" title="Copy claim helper">
+          <mat-icon>{{ copiedKey() === 'claimHelper' ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
+      </div>
       <pre class="code-result">{{ claimHelper() }}</pre>
     </div>
 
@@ -89,15 +120,22 @@
     </div>
 
     <div class="field">
-      <label>JWT Payload (JSON)</label>
+      <div class="field-header">
+        <label>JWT Payload (JSON)</label>
+        <button class="btn-copy-result" [class.copied]="copiedKey() === 'buildPayload'"
+          (click)="copyText(buildPayload(), 'buildPayload')" title="Copy payload">
+          <mat-icon>{{ copiedKey() === 'buildPayload' ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
+      </div>
       <app-code-editor class="builder-payload-editor" [value]="buildPayload()" language="json" wordWrap="on"
         ariaLabel="JWT Payload" (valueChange)="buildPayload.set($event)">
       </app-code-editor>
     </div>
 
-    <div class="action-row">
-      <button mat-raised-button color="primary" [disabled]="isBuilding()" (click)="build()">
-        <mat-icon>vpn_key</mat-icon> Sign & Generate JWT
+    <div class="action-row format-actions">
+      <button mat-flat-button color="primary" [disabled]="isBuilding()" (click)="build()">
+        <mat-icon>vpn_key</mat-icon>
+        <span>Sign & Generate JWT</span>
       </button>
     </div>
 
@@ -110,16 +148,15 @@
 
     @if (builtToken()) {
     <div class="field">
-      <div class="label-with-copy">
+      <div class="field-header">
         <label>Signed JWT Output</label>
-        <button type="button" class="btn-copy-mini" (click)="copyBuiltToken()">
-          <mat-icon>{{ copiedBuilt() ? 'check' : 'content_copy' }}</mat-icon>
-          <span>{{ copiedBuilt() ? 'Copied!' : 'Copy Token' }}</span>
+        <button class="btn-copy-result" [class.copied]="copiedKey() === 'builtToken'"
+          (click)="copyBuiltToken()" title="Copy token">
+          <mat-icon>{{ copiedKey() === 'builtToken' ? 'check' : 'content_copy' }}</mat-icon>
         </button>
       </div>
-      <app-code-editor class="jwt-output-editor" [value]="builtToken()" language="plaintext" wordWrap="on"
-        ariaLabel="Signed JWT Token" [readOnly]="true">
-      </app-code-editor>
+      <textarea class="jwt-token-input" [ngModel]="builtToken()" readonly
+        spellcheck="false" aria-label="Signed JWT Token"></textarea>
     </div>
     }
   </div>
@@ -129,10 +166,22 @@
   @if (activeTab() === 'verify') {
   <div class="tab-pane">
     <div class="field">
-      <label>JWT Token to Verify</label>
-      <app-code-editor class="jwt-input-editor" [value]="verifyTokenInput()" language="plaintext" wordWrap="on"
-        ariaLabel="JWT token" (valueChange)="verifyTokenInput.set($event)">
-      </app-code-editor>
+      <div class="field-header">
+        <label>JWT Token to Verify</label>
+        <div class="input-actions">
+          <button type="button" class="action-link-btn" (click)="verifyTokenInput.set('')" title="Clear token">
+            <mat-icon>clear_all</mat-icon>
+            <span>Clear</span>
+          </button>
+          <button class="btn-copy-result" [class.copied]="copiedKey() === 'verifyToken'"
+            (click)="copyText(verifyTokenInput(), 'verifyToken')" title="Copy token">
+            <mat-icon>{{ copiedKey() === 'verifyToken' ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+      <textarea class="jwt-token-input" [ngModel]="verifyTokenInput()"
+        (ngModelChange)="verifyTokenInput.set($event)" placeholder="Paste JWT token to verify..."
+        spellcheck="false" aria-label="JWT token to verify"></textarea>
     </div>
 
     <div class="field">
@@ -141,9 +190,10 @@
         class="text-input" placeholder="Enter the secret key used to sign this token..." />
     </div>
 
-    <div class="action-row">
-      <button mat-raised-button color="primary" [disabled]="isVerifying()" (click)="verify()">
-        <mat-icon>verified_user</mat-icon> Verify Signature
+    <div class="action-row format-actions">
+      <button mat-flat-button color="primary" [disabled]="isVerifying()" (click)="verify()">
+        <mat-icon>verified_user</mat-icon>
+        <span>Verify Signature</span>
       </button>
     </div>
 
@@ -159,11 +209,23 @@
 
     <div class="jwt-grid">
       <div class="field">
-        <label>Verified Header</label>
+        <div class="field-header">
+          <label>Verified Header</label>
+          <button class="btn-copy-result" [class.copied]="copiedKey() === 'vHeader'"
+            (click)="copyJson(res.header, 'vHeader')" title="Copy verified header">
+            <mat-icon>{{ copiedKey() === 'vHeader' ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
         <pre class="code-result">{{ res.header | json }}</pre>
       </div>
       <div class="field">
-        <label>Verified Payload</label>
+        <div class="field-header">
+          <label>Verified Payload</label>
+          <button class="btn-copy-result" [class.copied]="copiedKey() === 'vPayload'"
+            (click)="copyJson(res.payload, 'vPayload')" title="Copy verified payload">
+            <mat-icon>{{ copiedKey() === 'vPayload' ? 'check' : 'content_copy' }}</mat-icon>
+          </button>
+        </div>
         <pre class="code-result">{{ res.payload | json }}</pre>
       </div>
     </div>
@@ -185,23 +247,48 @@
   <div class="tab-pane">
     <div class="compare-inputs-grid">
       <div class="field">
-        <label>Token A</label>
-        <app-code-editor class="jwt-compare-editor" [value]="compareTokenA()" language="plaintext" wordWrap="on"
-          ariaLabel="Token A" (valueChange)="compareTokenA.set($event); compare()">
-        </app-code-editor>
+        <div class="field-header">
+          <label>Token A</label>
+          <div class="input-actions">
+            <button type="button" class="action-link-btn" (click)="compareTokenA.set(''); compare()" title="Clear token A">
+              <mat-icon>clear_all</mat-icon>
+              <span>Clear</span>
+            </button>
+            <button class="btn-copy-result" [class.copied]="copiedKey() === 'compareA'"
+              (click)="copyText(compareTokenA(), 'compareA')" title="Copy token A">
+              <mat-icon>{{ copiedKey() === 'compareA' ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+        <textarea class="jwt-token-input" [ngModel]="compareTokenA()"
+          (ngModelChange)="compareTokenA.set($event); compare()" placeholder="Paste first JWT token..."
+          spellcheck="false" aria-label="Token A"></textarea>
       </div>
 
       <div class="field">
-        <label>Token B</label>
-        <app-code-editor class="jwt-compare-editor" [value]="compareTokenB()" language="plaintext" wordWrap="on"
-          ariaLabel="Token B" (valueChange)="compareTokenB.set($event); compare()">
-        </app-code-editor>
+        <div class="field-header">
+          <label>Token B</label>
+          <div class="input-actions">
+            <button type="button" class="action-link-btn" (click)="compareTokenB.set(''); compare()" title="Clear token B">
+              <mat-icon>clear_all</mat-icon>
+              <span>Clear</span>
+            </button>
+            <button class="btn-copy-result" [class.copied]="copiedKey() === 'compareB'"
+              (click)="copyText(compareTokenB(), 'compareB')" title="Copy token B">
+              <mat-icon>{{ copiedKey() === 'compareB' ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+        <textarea class="jwt-token-input" [ngModel]="compareTokenB()"
+          (ngModelChange)="compareTokenB.set($event); compare()" placeholder="Paste second JWT token..."
+          spellcheck="false" aria-label="Token B"></textarea>
       </div>
     </div>
 
-    <div class="action-row">
-      <button mat-raised-button color="primary" (click)="compare()">
-        <mat-icon>compare</mat-icon> Compare Tokens
+    <div class="action-row format-actions">
+      <button mat-flat-button color="primary" (click)="compare()">
+        <mat-icon>compare</mat-icon>
+        <span>Compare Tokens</span>
       </button>
     </div>
 

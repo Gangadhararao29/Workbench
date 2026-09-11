@@ -1,3 +1,5 @@
+import { camelCase, capitalize, pluralize } from './code-naming';
+
 export type SupportedFramework = 'angular' | 'react' | 'vue' | 'axios' | 'fetch';
 
 export type AngularPattern = 'signals-resource' | 'full-service' | 'service-method';
@@ -210,7 +212,7 @@ export function normalizeConfig(config: ApiGeneratorConfig): ApiGeneratorConfig 
     pathParts.filter((p) => !p.startsWith('{') && !p.startsWith(':')).pop() || 'resource';
   const rawResource = config.resourceName?.trim() || lastStaticPart;
 
-  const resourceCamel = toCamelCase(rawResource.replace(/Dto$/i, ''));
+  const resourceCamel = camelCase(rawResource.replace(/Dto$/i, ''));
   const resourcePascal = capitalize(resourceCamel);
 
   const resourcePluralCamel = pluralize(resourceCamel);
@@ -2879,33 +2881,4 @@ async function ${resourceCamel}Demo() {
 }
 
 ${resourceCamel}Demo();`;
-}
-
-// Helpers
-function toCamelCase(str: string): string {
-  return str
-    .replace(/[-_](\w)/g, (_, letter) => letter.toUpperCase())
-    .replace(/^[A-Z]/, (c) => c.toLowerCase());
-}
-
-function capitalize(str: string): string {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function pluralize(str: string): string {
-  if (!str) return '';
-  if (str.endsWith('y') && !/[aeiou]y$/i.test(str)) {
-    return str.slice(0, -1) + 'ies';
-  }
-  if (
-    str.endsWith('s') ||
-    str.endsWith('sh') ||
-    str.endsWith('ch') ||
-    str.endsWith('x') ||
-    str.endsWith('z')
-  ) {
-    return str + 'es';
-  }
-  return str + 's';
 }

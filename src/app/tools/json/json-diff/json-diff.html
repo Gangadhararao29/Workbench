@@ -1,56 +1,129 @@
 <div class="tool-surface-inner">
-  <div class="diff-options-bar">
-    <div class="mode-toggle-group">
-      <span class="mode-label">Compare Arrays:</span>
-      <div class="segmented-control">
-        <button
-          type="button"
-          class="seg-btn"
-          [class.active]="arrayMode() === 'key'"
-          (click)="setArrayMode('key')">
-          By Key Field
+
+  <!-- Clean, unified toolbar -->
+  <div class="toolbar-row">
+    <div class="format-actions">
+      <!-- View mode segmented switch -->
+      <div class="view-switch">
+        <button type="button" class="seg-btn" [class.active-mode]="viewMode() === 'visual'"
+          (click)="setViewMode('visual')" title="Visual code diff with side-by-side or inline view">
+          <mat-icon class="seg-icon">splitscreen</mat-icon>
+          <span>Visual Diff</span>
         </button>
-        <button
-          type="button"
-          class="seg-btn"
-          [class.active]="arrayMode() === 'index'"
-          (click)="setArrayMode('index')">
-          By Index
+        <button type="button" class="seg-btn" [class.active-mode]="viewMode() === 'semantic'"
+          (click)="setViewMode('semantic')" title="Structural JSON differences summary">
+          <mat-icon class="seg-icon">data_object</mat-icon>
+          <span>Semantic Diff</span>
         </button>
       </div>
+
+      <!-- Layout toggle only in Visual Diff mode -->
+      @if (viewMode() === 'visual') {
+        <button type="button" class="action-link-btn" (click)="toggleLayout()"
+          title="Toggle between side-by-side split and inline unified diff">
+          <mat-icon>{{ renderSideBySide() ? 'vertical_split' : 'view_stream' }}</mat-icon>
+          <span>{{ renderSideBySide() ? 'Side-by-Side' : 'Inline' }}</span>
+        </button>
+      }
+
+      <button type="button" class="action-link-btn" (click)="formatAndSort()"
+        title="Sort object keys recursively and format both inputs to prevent order-based false diffs">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>Format & Sort Keys</span>
+      </button>
     </div>
 
-    @if (arrayMode() === 'key') {
-      <div class="key-input-group">
-        <label for="array-key-field">Key field name:</label>
-        <input
-          id="array-key-field"
-          type="text"
-          class="key-input"
-          [ngModel]="arrayKeyField()"
-          (ngModelChange)="arrayKeyField.set($event); compare()"
-          placeholder="e.g. id, key, name" />
+    <!-- Right-aligned action + status -->
+    <div class="toolbar-right">
+      @if (errorMsg()) {
+        <span class="diff-badge badge-error" title="JSON syntax error">
+          <mat-icon>error_outline</mat-icon>
+          <span>Invalid JSON</span>
+        </span>
+      } @else if (isIdentical()) {
+        <span class="diff-badge badge-success" title="Both JSON documents are identical">
+          <mat-icon>check_circle</mat-icon>
+          <span>Identical</span>
+        </span>
+      } @else if (changeCount() !== null && changeCount()! > 0) {
+        <span class="diff-badge badge-warning" title="Differences detected">
+          <mat-icon>change_circle</mat-icon>
+          <span>{{ changeCount() }} {{ changeCount() === 1 ? 'difference' : 'differences' }}</span>
+        </span>
+      }
+
+      <button mat-flat-button color="primary" class="compare-btn" (click)="compare()">
+        <mat-icon>difference</mat-icon>
+        <span>Compare</span>
+      </button>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <div class="diff-error-banner">
+      <mat-icon class="error-icon">warning</mat-icon>
+      <span>{{ errorMsg() }}</span>
+    </div>
+  }
+
+  <!-- MAIN VIEW AREA -->
+  @if (viewMode() === 'visual') {
+    <div class="visual-diff-wrapper">
+      <app-diff-editor
+        [original]="comparedLeft()"
+        [modified]="comparedRight()"
+        originalTitle="JSON A (Original)"
+        modifiedTitle="JSON B (Modified)"
+        language="json"
+        [renderSideBySide]="renderSideBySide()"
+        ariaLabel="Monaco JSON Diff Editor"
+        (originalChange)="onLeftChange($event)"
+        (modifiedChange)="onRightChange($event)"
+      ></app-diff-editor>
+    </div>
+  }
+
+  @if (viewMode() === 'semantic') {
+    <div class="semantic-diff-container">
+      <!-- Side-by-side Input Editors -->
+      <div class="semantic-inputs-grid">
+        <div class="field">
+          <div class="field-header">
+            <label>JSON A (Original)</label>
+            <button type="button" class="action-link-btn" (click)="left.set(''); onLeftChange('')">
+              <mat-icon>clear_all</mat-icon>
+              <span>Clear</span>
+            </button>
+          </div>
+          <app-code-editor [value]="left()" language="json" ariaLabel="JSON A"
+            (valueChange)="onLeftChange($event)"></app-code-editor>
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>JSON B (Modified)</label>
+            <button type="button" class="action-link-btn" (click)="right.set(''); onRightChange('')">
+              <mat-icon>clear_all</mat-icon>
+              <span>Clear</span>
+            </button>
+          </div>
+          <app-code-editor [value]="right()" language="json" ariaLabel="JSON B"
+            (valueChange)="onRightChange($event)"></app-code-editor>
+        </div>
       </div>
-    }
 
-    <button mat-raised-button color="primary" class="compare-btn" (click)="compare()">
-      <mat-icon>difference</mat-icon> Compare JSON
-    </button>
-  </div>
-
-  <div class="diff-grid">
-    <div class="field">
-      <label>JSON A</label>
-      <app-code-editor [value]="left()" language="json" ariaLabel="JSON A" (valueChange)="left.set($event); compare()"></app-code-editor>
+      <!-- Semantic result panel -->
+      <div class="field grow semantic-result-field">
+        <div class="field-header">
+          <label>Semantic Differences</label>
+        </div>
+        <app-code-editor
+          [value]="result()"
+          language="plaintext"
+          ariaLabel="Semantic diff result"
+          [readOnly]="true"
+        ></app-code-editor>
+      </div>
     </div>
-    <div class="field">
-      <label>JSON B</label>
-      <app-code-editor [value]="right()" language="json" ariaLabel="JSON B" (valueChange)="right.set($event); compare()"></app-code-editor>
-    </div>
-  </div>
+  }
 
-  <div class="field grow">
-    <label>Differences</label>
-    <app-code-editor [value]="result()" language="plaintext" ariaLabel="Diff result" [readOnly]="true"></app-code-editor>
-  </div>
 </div>

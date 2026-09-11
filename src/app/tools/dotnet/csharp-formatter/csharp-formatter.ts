@@ -1,129 +1,76 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { formatCsharp, CsharpFormatOptions } from '../../../core/engines/csharp-formatter-engine';
+
+export { formatCsharp, type CsharpFormatOptions };
 
 @Component({
-  selector: 'app-csharp-formatter', standalone: true, imports: [MatButtonModule, CodeEditor],
-  templateUrl: './csharp-formatter.html', styleUrls: ['./csharp-formatter.css']
+  selector: 'app-csharp-formatter',
+  standalone: true,
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule, CodeEditor],
+  templateUrl: './csharp-formatter.html',
+  styleUrls: ['./csharp-formatter.css']
 })
-export class CsharpFormatter {
+export class CsharpFormatter implements OnInit {
   @Input({ required: true }) instanceId!: string;
+
   input = signal('public class User { public int Id { get; set; } public string Name { get; set; } }');
   result = signal('');
+  copied = signal(false);
+
+  constructor(private instanceService: InstanceService) {
+    effect(() => {
+      this.config();
+      this.format();
+    });
+  }
+
+  config = computed<CsharpFormatOptions>(() => {
+    const inst = this.instanceService.instances().find(i => i.id === this.instanceId);
+    const style = (inst?.config?.['braceStyle'] as 'allman' | 'kr') || 'allman';
+    const indent = inst?.config?.['indent'] === '2 spaces' ? 2 : 4;
+    return { braceStyle: style, indentSize: indent };
+  });
+
+  ngOnInit() {
+    this.format();
+  }
+
+  onInputChange(value: string) {
+    this.input.set(value);
+    this.format();
+  }
+
+  clear() {
+    this.input.set('');
+    this.result.set('');
+  }
+
+  copyResult() {
+    const text = this.result();
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.copied.set(true);
+        setTimeout(() => this.copied.set(false), 1500);
+      });
+    }
+  }
+
   format() {
-    this.result.set(formatCsharp(this.input()));
+    const raw = this.input();
+    if (!raw.trim()) {
+      this.result.set('');
+      return;
+    }
+    const cfg = this.config();
+    this.result.set(formatCsharp(raw, {
+      braceStyle: cfg.braceStyle ?? 'allman',
+      indentSize: cfg.indentSize ?? 4,
+    }));
   }
-}
-
-function formatCsharp(source: string): string {
-  const output: string[] = [];
-  let depth = 0;
-  let current = '';
-  let lineIndent: number | null = null;
-  let quote: '"' | "'" | null = null;
-  let escaped = false;
-  let lineComment = false;
-  let blockComment = false;
-
-  const flush = () => {
-    const line = current.trim();
-    if (line) output.push(`${'    '.repeat(lineIndent ?? depth)}${line}`);
-    current = '';
-    lineIndent = null;
-  };
-
-  for (let index = 0; index < source.length; index++) {
-    const character = source[index];
-    const next = source[index + 1];
-
-    if (lineComment) {
-      if (character === '\n') {
-        flush();
-        lineComment = false;
-      } else {
-        current += character;
-      }
-      continue;
-    }
-
-    if (blockComment) {
-      current += character;
-      if (character === '*' && next === '/') {
-        current += next;
-        index++;
-        blockComment = false;
-      }
-      if (character === '\n') flush();
-      continue;
-    }
-
-    if (quote) {
-      current += character;
-      if (escaped) escaped = false;
-      else if (character === '\\') escaped = true;
-      else if (character === quote) quote = null;
-      continue;
-    }
-
-    if ((character === '"' || character === "'") && !quote) {
-      quote = character;
-      current += character;
-    } else if (character === '/' && next === '/') {
-      lineComment = true;
-      current += '//';
-      index++;
-    } else if (character === '/' && next === '*') {
-      blockComment = true;
-      current += '/*';
-      index++;
-    } else if (character === '{') {
-      if (current.trim()) {
-        current = `${current.trim()} {`;
-        flush();
-      } else {
-        output.push(`${'    '.repeat(depth)}{`);
-      }
-      depth++;
-    } else if (character === '}') {
-      flush();
-      depth = Math.max(0, depth - 1);
-      output.push(`${'    '.repeat(depth)}}`);
-    } else if (character === ';') {
-      current += ';';
-      flush();
-    } else if (character === '\n' || character === '\r') {
-      if (character === '\n') flush();
-    } else {
-      current += character;
-    }
-  }
-
-  flush();
-  return collapseAutoProperties(output).join('\n');
-}
-
-function collapseAutoProperties(lines: string[]): string[] {
-  const formatted: string[] = [];
-
-  for (let index = 0; index < lines.length; index++) {
-    const property = lines[index];
-    if (!property.trimEnd().endsWith('{')) {
-      formatted.push(property);
-      continue;
-    }
-
-    let accessorIndex = index + 1;
-    while (/^\s*(?:get|set|init)\s*;\s*$/.test(lines[accessorIndex] ?? '')) accessorIndex++;
-    const hasAccessorBlock = accessorIndex > index + 1 && lines[accessorIndex]?.trim() === '}';
-    if (!hasAccessorBlock) {
-      formatted.push(property);
-      continue;
-    }
-
-    const accessors = lines.slice(index + 1, accessorIndex).map(line => line.trim()).join(' ');
-    formatted.push(`${property.trimEnd().slice(0, -1).trimEnd()} { ${accessors} }`);
-    index = accessorIndex;
-  }
-
-  return formatted;
 }

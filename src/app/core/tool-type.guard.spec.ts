@@ -3,11 +3,16 @@ import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@a
 import { toolTypeGuard } from './tool-type.guard';
 
 describe('toolTypeGuard', () => {
-  let router: Router;
+  const mockRouter = {
+    parseUrl: (url: string) => ({ toString: () => url } as unknown as UrlTree),
+  };
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    router = TestBed.inject(Router);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Router, useValue: mockRouter }
+      ]
+    });
   });
 
   it('allows navigation for valid tool type', () => {
@@ -16,9 +21,10 @@ describe('toolTypeGuard', () => {
         get: (key: string) => (key === 'toolType' ? 'json-formatter' : null)
       }
     } as unknown as ActivatedRouteSnapshot;
-    const state = {} as RouterStateSnapshot;
 
-    const result = TestBed.runInInjectionContext(() => toolTypeGuard(route, state));
+    const result = TestBed.runInInjectionContext(() =>
+      toolTypeGuard(route, {} as RouterStateSnapshot)
+    );
     expect(result).toBe(true);
   });
 
@@ -28,11 +34,11 @@ describe('toolTypeGuard', () => {
         get: (key: string) => (key === 'toolType' ? 'non-existent-tool' : null)
       }
     } as unknown as ActivatedRouteSnapshot;
-    const state = {} as RouterStateSnapshot;
 
-    const result = TestBed.runInInjectionContext(() => toolTypeGuard(route, state));
-    expect(result instanceof UrlTree).toBe(true);
-    expect((result as UrlTree).toString()).toBe('/');
+    const result = TestBed.runInInjectionContext(() =>
+      toolTypeGuard(route, {} as RouterStateSnapshot)
+    );
+    expect(result.toString()).toBe('/');
   });
 
   it('redirects to / when toolType parameter is missing', () => {
@@ -41,10 +47,11 @@ describe('toolTypeGuard', () => {
         get: () => null
       }
     } as unknown as ActivatedRouteSnapshot;
-    const state = {} as RouterStateSnapshot;
 
-    const result = TestBed.runInInjectionContext(() => toolTypeGuard(route, state));
-    expect(result instanceof UrlTree).toBe(true);
-    expect((result as UrlTree).toString()).toBe('/');
+    const result = TestBed.runInInjectionContext(() =>
+      toolTypeGuard(route, {} as RouterStateSnapshot)
+    );
+    expect(result.toString()).toBe('/');
   });
 });
+

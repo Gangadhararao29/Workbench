@@ -1,22 +1,42 @@
-import { pascalCase } from './code-naming';
-
-export function convertJsonToCsharp(name: string, value: Record<string, unknown>): string {
-  const nested: string[] = [];
-  const properties = Object.entries(value).map(([key, item]) =>
-    `    public ${inferType(pascalCase(key), item, nested)} ${pascalCase(key)} { get; set; }`
-  );
-  return [...nested, `public class ${name}\n{\n${properties.join('\n')}\n}`].join('\n\n');
+export interface JsonToCsharpOptions {
+  rootName?: string;
+  namespace?: string;
+  arrayType?: 'list' | 'array';
 }
 
-function inferType(name: string, value: unknown, nested: string[]): string {
-  if (value === null) return 'object?';
-  if (Array.isArray(value)) return value.length ? `List<${inferType(name, value[0], nested)}>` : 'List<object>';
-  if (typeof value === 'object') {
-    nested.push(convertJsonToCsharp(name, value as Record<string, unknown>));
-    return name;
-  }
-  if (typeof value === 'string') return 'string';
-  if (typeof value === 'number') return Number.isInteger(value) ? 'int' : 'double';
-  if (typeof value === 'boolean') return 'bool';
-  return 'object';
+export async function convertJsonToCsharp(
+  nameOrOptions: string | JsonToCsharpOptions,
+  value: Record<string, unknown> | string
+): Promise<string> {
+  const rootName = typeof nameOrOptions === 'string' ? nameOrOptions : (nameOrOptions.rootName || 'Root');
+  const namespace = typeof nameOrOptions === 'object' && nameOrOptions.namespace ? nameOrOptions.namespace : 'Workbench.Models';
+  const arrayType = typeof nameOrOptions === 'object' && nameOrOptions.arrayType ? nameOrOptions.arrayType : 'list';
+
+  const [{ quicktype }, { InputData, jsonInputForTargetLanguage }] = await Promise.all([
+    import('quicktype-core/dist/esm/Run.js'),
+    import('quicktype-core/dist/esm/input/Inputs.js'),
+  ]);
+
+  const sample = typeof value === 'string' ? value : JSON.stringify(value);
+  const jsonInput = jsonInputForTargetLanguage('csharp');
+  await jsonInput.addSource({
+    name: rootName.trim() || 'Root',
+    samples: [sample],
+  });
+
+  const inputData = new InputData();
+  inputData.addInput(jsonInput);
+
+  const result = await quicktype({
+    inputData,
+    lang: 'csharp',
+    rendererOptions: {
+      'just-types': 'true',
+      'csharp-version': '6',
+      'namespace': namespace.trim() || 'Workbench.Models',
+      'array-type': arrayType === 'array' ? 'array' : 'list',
+    },
+  });
+
+  return result.lines.join('\n').trim();
 }

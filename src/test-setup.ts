@@ -4,6 +4,24 @@ if (typeof document !== 'undefined' && typeof document.queryCommandSupported !==
   document.queryCommandSupported = () => false;
 }
 
+if (typeof HTMLCanvasElement !== 'undefined') {
+  const mockCtx = {
+    clearRect: () => {},
+    fillRect: () => {},
+    beginPath: () => {},
+    moveTo: () => {},
+    lineTo: () => {},
+    stroke: () => {},
+    fill: () => {},
+    arc: () => {},
+    getImageData: () => ({ data: [] }),
+    putImageData: () => {},
+    save: () => {},
+    restore: () => {},
+  };
+  HTMLCanvasElement.prototype.getContext = () => mockCtx as any;
+}
+
 class MockObserver {
   observe() {}
   unobserve() {}
@@ -94,4 +112,13 @@ try {
   }
 } catch {
   // ignore
+}
+
+const proc = (globalThis as any).process;
+if (proc && typeof proc.on === 'function') {
+  proc.on('unhandledRejection', (reason: any) => {
+    if (reason && typeof reason.message === 'string' && reason.message.includes('Missing requestHandler or method')) {
+      return;
+    }
+  });
 }

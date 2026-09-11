@@ -46,7 +46,7 @@
               }
             ],
             "styles": [
-              "src/material-theme.css",
+              "src/material-theme.scss",
               "src/styles.css",
               "node_modules/monaco-editor/min/vs/editor/editor.main.css"
             ],
@@ -55,12 +55,38 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "serviceWorker": "ngsw-config.json",
-              "allowedCommonJsDependencies": ["nearley", "@apidevtools/swagger-parser", "@apidevtools/json-schema-ref-parser", "@jsdevtools/ono", "js-yaml", "call-me-maybe", "ts-morph", "@ts-morph/common"],
+              "allowedCommonJsDependencies": [
+                "nearley",
+                "@apidevtools/swagger-parser",
+                "@apidevtools/json-schema-ref-parser",
+                "@jsdevtools/ono",
+                "js-yaml",
+                "call-me-maybe",
+                "ts-morph",
+                "@ts-morph/common",
+                "collection-utils",
+                "urijs",
+                "@glideapps/ts-necessities",
+                "is-url",
+                "readable-stream",
+                "pluralize",
+                "wordwrap",
+                "base64-js",
+                "unicode-trie",
+                "unicode-properties",
+                "lodash"
+              ],
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "8MB",
+                  "maximumWarning": "9MB",
                   "maximumError": "12MB"
                 },
                 {
