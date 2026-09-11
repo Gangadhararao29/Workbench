@@ -3,27 +3,135 @@
 @import 'tailwindcss';
 @import './styles/tool-common.css';
 
-/* Prevent Tailwind from adding a resize handle to Monaco Editor's hidden input */
-.monaco-editor textarea {
-  resize: none !important;
+/* CodeMirror 6 Global Base Styles */
+.cm-editor {
+  height: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13.5px;
 }
 
-/* Fix Tailwind CSS conflict with Monaco Editor layout and missing line numbers */
-.monaco-editor,
-.monaco-editor * {
-  box-sizing: content-box !important;
+.cm-editor.cm-focused {
+  outline: none;
 }
 
-.monaco-editor input,
-.monaco-editor textarea,
-.monaco-editor select,
-.monaco-editor button {
-  box-sizing: border-box !important;
+.cm-scroller {
+  font-family: inherit;
+  line-height: 1.5;
 }
 
-/* Ensure font and line-height metrics aren't skewed by Tailwind's preflight */
-.monaco-editor .margin-view-overlays * {
-  line-height: normal !important;
+/* ==========================================================================
+   CodeMirror 6 Diff & Merge View Themes (Dark Red & Dark Green)
+   ========================================================================== */
+
+/* Disable CodeMirror default 2px bottom underline gradient */
+.cm-editor .cm-changedText,
+.cm-editor .cm-deletedText,
+.cm-mergeView .cm-changedText,
+.cm-mergeView .cm-deletedText {
+  background-image: none !important;
+  text-decoration: none !important;
+}
+
+.cm-chunkButtons {
+  display: none !important;
+}
+
+.cm-deletedLine del {
+  text-decoration: none !important;
+}
+
+/* Dark Mode Palette */
+body.dark-theme .cm-merge-a .cm-changedLine,
+body.dark-theme .cm-deletedChunk,
+body.dark-theme .cm-deletedLine {
+  background-color: #381216 !important;
+  color: #fca5a5 !important;
+}
+
+body.dark-theme .cm-merge-a .cm-changedText,
+body.dark-theme .cm-deletedText,
+body.dark-theme .cm-deletedChunk .cm-deletedText {
+  background-color: #781d24 !important;
+  color: #fee2e2 !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.45);
+}
+
+body.dark-theme .cm-merge-b .cm-changedLine,
+body.dark-theme .cm-inlineChangedLine {
+  background-color: #0d2b17 !important;
+  color: #86efac !important;
+}
+
+body.dark-theme .cm-merge-b .cm-changedText,
+body.dark-theme .cm-changedText {
+  background-color: #17522c !important;
+  color: #dcfce7 !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.45);
+}
+
+body.dark-theme .cm-merge-a .cm-changedLineGutter,
+body.dark-theme .cm-deletedLineGutter {
+  background-color: #ef4444 !important;
+  width: 4px !important;
+}
+
+body.dark-theme .cm-merge-b .cm-changedLineGutter,
+body.dark-theme .cm-inlineChangedLineGutter {
+  background-color: #22c55e !important;
+  width: 4px !important;
+}
+
+/* Light Mode Palette */
+body:not(.dark-theme) .cm-merge-a .cm-changedLine,
+body:not(.dark-theme) .cm-deletedChunk,
+body:not(.dark-theme) .cm-deletedLine {
+  background-color: #ffebe9 !important;
+  color: #991b1b !important;
+}
+
+body:not(.dark-theme) .cm-merge-a .cm-changedText,
+body:not(.dark-theme) .cm-deletedText,
+body:not(.dark-theme) .cm-deletedChunk .cm-deletedText {
+  background-color: #ffc1c7 !important;
+  color: #7f1d1d !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3);
+}
+
+body:not(.dark-theme) .cm-merge-b .cm-changedLine,
+body:not(.dark-theme) .cm-inlineChangedLine {
+  background-color: #e6ffec !important;
+  color: #166534 !important;
+}
+
+body:not(.dark-theme) .cm-merge-b .cm-changedText,
+body:not(.dark-theme) .cm-changedText {
+  background-color: #abf2bc !important;
+  color: #14532d !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+}
+
+body:not(.dark-theme) .cm-merge-a .cm-changedLineGutter,
+body:not(.dark-theme) .cm-deletedLineGutter {
+  background-color: #cf222e !important;
+  width: 4px !important;
+}
+
+body:not(.dark-theme) .cm-merge-b .cm-changedLineGutter,
+body:not(.dark-theme) .cm-inlineChangedLineGutter {
+  background-color: #1a7f37 !important;
+  width: 4px !important;
 }
 
 /* Global Regex Match Highlights */

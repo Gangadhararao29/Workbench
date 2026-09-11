@@ -24,7 +24,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px;
+  padding: 6px 12px;
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
   border-bottom: none;
@@ -45,7 +45,17 @@
 }
 
 .diff-header-title.modified-title {
-  padding-left: 8px;
+  padding-left: 12px;
+}
+
+.unified-title {
+  gap: 8px;
+}
+
+.unified-arrow {
+  color: var(--mat-sys-outline);
+  font-size: 13px;
+  padding: 0 4px;
 }
 
 .diff-dot {
@@ -55,11 +65,11 @@
 }
 
 .diff-dot-orig {
-  background-color: var(--mat-sys-error);
+  background-color: var(--mat-sys-error, #ef4444);
 }
 
 .diff-dot-mod {
-  background-color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary, #22c55e);
 }
 
 .diff-editor {
@@ -75,4 +85,162 @@
 
 .diff-header-bar + .diff-editor {
   border-radius: 0 0 6px 6px;
+}
+
+/* ==========================================================================
+   CodeMirror Merge View Layout & Typography
+   ========================================================================== */
+
+.cm-mergeView {
+  height: 100%;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13.5px;
+}
+
+.cm-mergeViewEditors {
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.cm-mergeViewEditor {
+  height: 100%;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Crisp vertical divider between Original (Left) and Modified (Right) */
+.cm-mergeViewEditors > .cm-mergeViewEditor:first-child {
+  border-right: 1px solid var(--mat-sys-outline-variant);
+}
+
+/* Hide intrusive chunk accept/reject buttons */
+.cm-chunkButtons {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Diff Highlighting: Rich Dark Red & Dark Green (Dark Theme)
+   ========================================================================== */
+
+/* Dark Mode - Red (Original / Deletions) */
+body.dark-theme .cm-merge-a .cm-changedLine,
+:host-context(body.dark-theme) .cm-merge-a .cm-changedLine,
+body.dark-theme .cm-deletedChunk,
+:host-context(body.dark-theme) .cm-deletedChunk,
+body.dark-theme .cm-deletedLine,
+:host-context(body.dark-theme) .cm-deletedLine {
+  background-color: #381419 !important;
+  color: #fca5a5 !important;
+}
+
+body.dark-theme .cm-merge-a .cm-changedText,
+:host-context(body.dark-theme) .cm-merge-a .cm-changedText,
+body.dark-theme .cm-deletedText,
+:host-context(body.dark-theme) .cm-deletedText {
+  background: #781d24 !important;
+  color: #fee2e2 !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4);
+  font-weight: 500;
+}
+
+body.dark-theme .cm-merge-a .cm-changedLineGutter,
+body.dark-theme .cm-deletedLineGutter,
+:host-context(body.dark-theme) .cm-merge-a .cm-changedLineGutter,
+:host-context(body.dark-theme) .cm-deletedLineGutter {
+  background-color: #ef4444 !important;
+  width: 4px !important;
+}
+
+/* Dark Mode - Green (Modified / Insertions) */
+body.dark-theme .cm-merge-b .cm-changedLine,
+:host-context(body.dark-theme) .cm-merge-b .cm-changedLine,
+body.dark-theme .cm-inlineChangedLine,
+:host-context(body.dark-theme) .cm-inlineChangedLine {
+  background-color: #11331c !important;
+  color: #86efac !important;
+}
+
+body.dark-theme .cm-merge-b .cm-changedText,
+:host-context(body.dark-theme) .cm-merge-b .cm-changedText {
+  background: #1b5e32 !important;
+  color: #dcfce7 !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+  font-weight: 500;
+}
+
+body.dark-theme .cm-merge-b .cm-changedLineGutter,
+body.dark-theme .cm-inlineChangedLineGutter,
+:host-context(body.dark-theme) .cm-merge-b .cm-changedLineGutter,
+:host-context(body.dark-theme) .cm-inlineChangedLineGutter {
+  background-color: #22c55e !important;
+  width: 4px !important;
+}
+
+/* ==========================================================================
+   Diff Highlighting: Clean Red & Green (Light Theme)
+   ========================================================================== */
+
+.cm-merge-a .cm-changedLine,
+.cm-deletedChunk,
+.cm-deletedLine {
+  background-color: #ffebe9 !important;
+  color: #991b1b !important;
+}
+
+.cm-merge-a .cm-changedText,
+.cm-deletedText {
+  background: #ffc1c7 !important;
+  color: #7f1d1d !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25);
+  font-weight: 500;
+}
+
+.cm-merge-a .cm-changedLineGutter,
+.cm-deletedLineGutter {
+  background-color: #cf222e !important;
+  width: 4px !important;
+}
+
+.cm-merge-b .cm-changedLine,
+.cm-inlineChangedLine {
+  background-color: #e6ffec !important;
+  color: #166534 !important;
+}
+
+.cm-merge-b .cm-changedText {
+  background: #abf2bc !important;
+  color: #14532d !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
+  font-weight: 500;
+}
+
+.cm-merge-b .cm-changedLineGutter,
+.cm-inlineChangedLineGutter {
+  background-color: #1a7f37 !important;
+  width: 4px !important;
+}
+
+/* Unified diff view line styling */
+.cm-deletedChunk {
+  border-left: 4px solid #ef4444 !important;
+  padding-left: 2px;
+}
+
+.cm-deletedLine del {
+  text-decoration: none !important;
+}
+
+.cm-inlineChangedLine {
+  border-left: 4px solid #22c55e !important;
 }
