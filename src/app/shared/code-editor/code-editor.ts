@@ -10,66 +10,107 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import * as monaco from 'monaco-editor';
+import { EditorState, Compartment, Extension } from '@codemirror/state';
+import {
+  EditorView,
+  lineNumbers,
+  highlightActiveLineGutter,
+  highlightSpecialChars,
+  drawSelection,
+  dropCursor,
+  rectangularSelection,
+  crosshairCursor,
+  highlightActiveLine,
+  keymap,
+} from '@codemirror/view';
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+} from '@codemirror/commands';
+import {
+  bracketMatching,
+  foldGutter,
+  foldKeymap,
+  indentOnInput,
+  syntaxHighlighting,
+  defaultHighlightStyle,
+} from '@codemirror/language';
+import { languages } from '@codemirror/language-data';
+import { LanguageDescription } from '@codemirror/language';
+import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import {
+  autocompletion,
+  completionKeymap,
+  closeBrackets,
+  closeBracketsKeymap,
+} from '@codemirror/autocomplete';
+import { oneDark } from '@codemirror/theme-one-dark';
 
 // ---------------------------------------------------------------------------
-// Worker configuration
-// Monaco's editor.worker.js is a classic script (not ESM), so we must NOT
-// use { type: 'module' }. We also suppress the type error with a cast.
+// Themes tailored for Workbench
 // ---------------------------------------------------------------------------
 
-let workerConfigured = false;
+const workbenchBaseTheme = EditorView.theme({
+  '&': {
+    height: '100%',
+    fontSize: '13.5px',
+    backgroundColor: 'var(--mat-sys-surface, #ffffff)',
+    color: 'var(--mat-sys-on-surface, #1e293b)',
+  },
+  '.cm-content': {
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    padding: '8px 0',
+    caretColor: 'var(--mat-sys-primary, #2563eb)',
+  },
+  '.cm-cursor, .cm-dropCursor': {
+    borderLeftColor: 'var(--mat-sys-primary, #2563eb)',
+    borderLeftWidth: '2px',
+  },
+  '&.cm-focused .cm-selectionBackground, ::selection, .cm-selectionBackground': {
+    backgroundColor: 'rgba(59, 130, 246, 0.22) !important',
+  },
+  '.cm-gutters': {
+    backgroundColor: 'var(--mat-sys-surface-container-low, #f8fafc)',
+    color: 'var(--mat-sys-outline, #94a3b8)',
+    borderRight: '1px solid var(--mat-sys-outline-variant, #e2e8f0)',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  },
+  '.cm-activeLine': {
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    color: 'var(--mat-sys-on-surface, #0f172a)',
+  },
+  '.cm-scroller': {
+    overflow: 'auto',
+    fontFamily: 'inherit',
+  },
+});
 
-function monacoWorkerUrl(path: string): URL {
-  return new URL(`assets/monaco/vs/${path}`, document.baseURI);
-}
-
-function configureMonacoWorkers() {
-  if (workerConfigured) return;
-  (globalThis as any).MonacoEnvironment = {
-    getWorker(_: string, label: string) {
-      if (typeof Worker === 'undefined') {
-        return {
-          postMessage: () => {},
-          addEventListener: () => {},
-          removeEventListener: () => {},
-          terminate: () => {},
-          onmessage: null,
-          onerror: null,
-        } as any;
-      }
-      if (label === 'json') {
-        return new Worker(
-          monacoWorkerUrl('language/json/json.worker.js'),
-          { type: 'module' }
-        );
-      }
-      if (label === 'css' || label === 'scss' || label === 'less') {
-        return new Worker(
-          monacoWorkerUrl('language/css/css.worker.js'),
-          { type: 'module' }
-        );
-      }
-      if (label === 'html' || label === 'handlebars' || label === 'razor') {
-        return new Worker(
-          monacoWorkerUrl('language/html/html.worker.js'),
-          { type: 'module' }
-        );
-      }
-      if (label === 'typescript' || label === 'javascript') {
-        return new Worker(
-          monacoWorkerUrl('language/typescript/ts.worker.js'),
-          { type: 'module' }
-        );
-      }
-      return new Worker(
-        monacoWorkerUrl('editor/editor.worker.js'),
-        { type: 'module' }
-      );
-    },
-  };
-  workerConfigured = true;
-}
+const workbenchDarkTheme = EditorView.theme({
+  '&': {
+    backgroundColor: 'var(--mat-sys-surface, #121212) !important',
+    color: 'var(--mat-sys-on-surface, #e2e8f0) !important',
+  },
+  '.cm-gutters': {
+    backgroundColor: 'var(--mat-sys-surface-container-low, #18181b) !important',
+    color: 'var(--mat-sys-outline, #71717a) !important',
+    borderRight: '1px solid var(--mat-sys-outline-variant, #27272a) !important',
+  },
+  '.cm-activeLine': {
+    backgroundColor: 'rgba(255, 255, 255, 0.04) !important',
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: 'rgba(255, 255, 255, 0.07) !important',
+    color: '#f4f4f5 !important',
+  },
+  '&.cm-focused .cm-selectionBackground, ::selection, .cm-selectionBackground': {
+    backgroundColor: 'rgba(96, 165, 250, 0.3) !important',
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Component
@@ -118,15 +159,15 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   @Output() cursorOffsetChange = new EventEmitter<number>();
   @ViewChild('editorHost', { static: true }) editorHost!: ElementRef<HTMLDivElement>;
 
-  private editor?: monaco.editor.IStandaloneCodeEditor;
-  private changeSubscription?: monaco.IDisposable;
-  private clickSubscription?: monaco.IDisposable;
-  private cursorSubscription?: monaco.IDisposable;
-  private resizeObserver?: ResizeObserver;
-  private layoutRafId: number | null = null;
-  // Track the value we last pushed INTO the editor so we can avoid
-  // re-setting it when the change originated from the editor itself,
-  // which would otherwise create an infinite update loop.
+  private view?: EditorView;
+  private languageCompartment = new Compartment();
+  private themeCompartment = new Compartment();
+  private readOnlyCompartment = new Compartment();
+  private wordWrapCompartment = new Compartment();
+  private lineNumbersCompartment = new Compartment();
+  private themeObserver?: MutationObserver;
+
+  // Track the value last emitted or set from outside to prevent infinite update loops
   private lastPushedValue: string | undefined;
 
   isResizing = false;
@@ -135,73 +176,152 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
 
   constructor(private elementRef: ElementRef<HTMLElement>) {}
 
-  private scheduleLayout() {
-    if (this.layoutRafId !== null) {
-      cancelAnimationFrame(this.layoutRafId);
+  private getThemeExtensions(): Extension {
+    const isDark = typeof document !== 'undefined' && document.body.classList.contains('dark-theme');
+    if (isDark) {
+      return [workbenchBaseTheme, oneDark, workbenchDarkTheme];
     }
-    this.layoutRafId = requestAnimationFrame(() => {
-      this.layoutRafId = null;
-      this.editor?.layout();
+    return [workbenchBaseTheme];
+  }
+
+  private async resolveLanguage(langName: string): Promise<Extension> {
+    const norm = (langName || '').trim().toLowerCase();
+    if (!norm || norm === 'plaintext' || norm === 'text') {
+      return [];
+    }
+
+    let lookup = norm;
+    if (lookup === 'csharp' || lookup === 'c#' || lookup === 'cs') {
+      lookup = 'c#';
+    } else if (lookup === 'typescript' || lookup === 'ts') {
+      lookup = 'typescript';
+    } else if (lookup === 'javascript' || lookup === 'js') {
+      lookup = 'javascript';
+    } else if (lookup === 'shell' || lookup === 'bash' || lookup === 'sh' || lookup === 'curl') {
+      lookup = 'shell';
+    }
+
+    const desc =
+      LanguageDescription.matchLanguageName(languages, lookup, true) ||
+      LanguageDescription.matchFilename(languages, `file.${lookup}`);
+
+    if (desc) {
+      try {
+        return await desc.load();
+      } catch (e) {
+        console.warn(`[CodeEditor] Could not load language mode '${lookup}':`, e);
+      }
+    }
+    return [];
+  }
+
+  private updateLanguage() {
+    const currentLang = this.language;
+    this.resolveLanguage(currentLang).then((support) => {
+      if (this.view && this.language === currentLang) {
+        this.view.dispatch({
+          effects: this.languageCompartment.reconfigure(support),
+        });
+      }
     });
   }
 
   ngAfterViewInit() {
-    configureMonacoWorkers();
-    this.editor = monaco.editor.create(this.editorHost.nativeElement, {
-      value: this.value,
-      language: this.language,
-      readOnly: this.readOnly,
-      wordWrap: this.wordWrap,
-      lineNumbers: this.lineNumbers,
-      automaticLayout: true,
-      minimap: { enabled: false },
-      fontSize: 14,
-      padding: { top: 12, bottom: 12 },
-      scrollBeyondLastLine: false,
-      scrollbar: {
-        alwaysConsumeMouseWheel: false,
-      },
-      theme: document.body.classList.contains('dark-theme') ? 'vs-dark' : 'vs',
-      ariaLabel: this.ariaLabel,
-    });
-
-    this.resizeObserver = new ResizeObserver(() => this.scheduleLayout());
-    this.resizeObserver.observe(this.editorHost.nativeElement);
-    this.scheduleLayout();
-    setTimeout(() => this.scheduleLayout(), 50);
-    setTimeout(() => this.scheduleLayout(), 150);
-    setTimeout(() => this.scheduleLayout(), 400);
-
     this.lastPushedValue = this.value;
 
-    this.changeSubscription = this.editor.onDidChangeModelContent(() => {
-      const current = this.editor?.getValue() ?? '';
-      // Only emit if the change came from user interaction, not from us
-      // calling setValue() — avoids the infinite loop.
-      if (current !== this.lastPushedValue) {
-        this.valueChange.emit(current);
-      }
+    const baseExtensions: Extension[] = [
+      highlightActiveLineGutter(),
+      highlightSpecialChars(),
+      history(),
+      foldGutter(),
+      drawSelection(),
+      dropCursor(),
+      EditorState.allowMultipleSelections.of(true),
+      indentOnInput(),
+      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      bracketMatching(),
+      closeBrackets(),
+      autocompletion(),
+      rectangularSelection(),
+      crosshairCursor(),
+      highlightActiveLine(),
+      highlightSelectionMatches(),
+      keymap.of([
+        ...closeBracketsKeymap,
+        ...defaultKeymap,
+        ...searchKeymap,
+        ...historyKeymap,
+        ...foldKeymap,
+        ...completionKeymap,
+        indentWithTab,
+      ]),
+      this.languageCompartment.of([]),
+      this.themeCompartment.of(this.getThemeExtensions()),
+      this.readOnlyCompartment.of([
+        EditorState.readOnly.of(this.readOnly),
+        EditorView.editable.of(!this.readOnly),
+      ]),
+      this.wordWrapCompartment.of(
+        this.wordWrap === 'on' ? EditorView.lineWrapping : []
+      ),
+      this.lineNumbersCompartment.of(
+        this.lineNumbers === 'on' ? lineNumbers() : []
+      ),
+      EditorView.contentAttributes.of({
+        'aria-label': this.ariaLabel,
+      }),
+      EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+          const current = update.state.doc.toString();
+          if (current !== this.lastPushedValue) {
+            this.lastPushedValue = current;
+            this.valueChange.emit(current);
+          }
+        }
+        if (update.selectionSet) {
+          const head = update.state.selection.main.head;
+          this.cursorOffsetChange.emit(head);
+        }
+      }),
+      EditorView.domEventHandlers({
+        click: (event, view) => {
+          const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+          if (pos !== null) {
+            const line = view.state.doc.lineAt(pos);
+            this.editorClick.emit({
+              offset: pos,
+              lineNumber: line.number,
+              column: pos - line.from + 1,
+            });
+          }
+        },
+      }),
+    ];
+
+    const state = EditorState.create({
+      doc: this.value,
+      extensions: baseExtensions,
     });
 
-    this.clickSubscription = this.editor.onMouseDown((e) => {
-      const position = e.target.position;
-      if (!position) return;
-      const model = this.editor?.getModel();
-      if (!model) return;
-      const offset = model.getOffsetAt(position);
-      this.editorClick.emit({
-        offset,
-        lineNumber: position.lineNumber,
-        column: position.column,
+    this.view = new EditorView({
+      state,
+      parent: this.editorHost.nativeElement,
+    });
+
+    this.updateLanguage();
+
+    // Observe body theme changes to reconfigure theme dynamically
+    if (typeof document !== 'undefined') {
+      this.themeObserver = new MutationObserver(() => {
+        this.view?.dispatch({
+          effects: this.themeCompartment.reconfigure(this.getThemeExtensions()),
+        });
       });
-    });
-
-    this.cursorSubscription = this.editor.onDidChangeCursorPosition((e) => {
-      const model = this.editor?.getModel();
-      if (!model) return;
-      const offset = model.getOffsetAt(e.position);
-      this.cursorOffsetChange.emit(offset);
-    });
+      this.themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
   }
 
   onResizeStart(event: PointerEvent) {
@@ -227,7 +347,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
     const hostEl = this.elementRef.nativeElement;
     hostEl.style.height = `${newHeight}px`;
     hostEl.style.flex = 'none';
-    this.scheduleLayout();
+    this.view?.requestMeasure();
   }
 
   onResizeEnd(event: PointerEvent) {
@@ -239,7 +359,7 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
         target.releasePointerCapture(event.pointerId);
       } catch {}
     }
-    this.scheduleLayout();
+    this.view?.requestMeasure();
   }
 
   onResizeKeydown(event: KeyboardEvent) {
@@ -251,61 +371,62 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
       const newHeight = currentHeight + 24;
       hostEl.style.height = `${newHeight}px`;
       hostEl.style.flex = 'none';
-      this.scheduleLayout();
+      this.view?.requestMeasure();
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       const newHeight = Math.max(this.minHeight, currentHeight - 24);
       hostEl.style.height = `${newHeight}px`;
       hostEl.style.flex = 'none';
-      this.scheduleLayout();
+      this.view?.requestMeasure();
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!this.editor) return; // editor not yet initialised — skip
+    if (!this.view) return;
 
     if (changes['value']) {
       const incoming: string = changes['value'].currentValue ?? '';
-      // Only call setValue when the value genuinely differs from what the
-      // editor currently holds, to prevent cursor-jumping on every keystroke.
-      if (incoming !== this.editor.getValue()) {
+      const current = this.view.state.doc.toString();
+      if (incoming !== current) {
         this.lastPushedValue = incoming;
-        this.editor.setValue(incoming);
-        this.scheduleLayout();
-        setTimeout(() => this.scheduleLayout(), 50);
-        setTimeout(() => this.scheduleLayout(), 150);
+        this.view.dispatch({
+          changes: { from: 0, to: current.length, insert: incoming },
+        });
       }
     }
 
     if (changes['language']) {
-      const model = this.editor.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, this.language);
-      }
+      this.updateLanguage();
     }
 
     if (changes['readOnly']) {
-      this.editor.updateOptions({ readOnly: this.readOnly });
+      this.view.dispatch({
+        effects: this.readOnlyCompartment.reconfigure([
+          EditorState.readOnly.of(this.readOnly),
+          EditorView.editable.of(!this.readOnly),
+        ]),
+      });
     }
 
     if (changes['wordWrap']) {
-      this.editor.updateOptions({ wordWrap: this.wordWrap });
+      this.view.dispatch({
+        effects: this.wordWrapCompartment.reconfigure(
+          this.wordWrap === 'on' ? EditorView.lineWrapping : []
+        ),
+      });
     }
 
     if (changes['lineNumbers']) {
-      this.editor.updateOptions({ lineNumbers: this.lineNumbers });
+      this.view.dispatch({
+        effects: this.lineNumbersCompartment.reconfigure(
+          this.lineNumbers === 'on' ? lineNumbers() : []
+        ),
+      });
     }
   }
 
   ngOnDestroy() {
-    if (this.layoutRafId !== null) {
-      cancelAnimationFrame(this.layoutRafId);
-      this.layoutRafId = null;
-    }
-    this.resizeObserver?.disconnect();
-    this.changeSubscription?.dispose();
-    this.clickSubscription?.dispose();
-    this.cursorSubscription?.dispose();
-    this.editor?.dispose();
+    this.themeObserver?.disconnect();
+    this.view?.destroy();
   }
 }
