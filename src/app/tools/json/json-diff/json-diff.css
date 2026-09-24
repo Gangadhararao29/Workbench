@@ -6,6 +6,11 @@
   flex: 1 1 auto;
 }
 
+.action-link-btn {
+  border-radius: 6px !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+}
+
 .tool-surface-inner {
   overflow: hidden;
 }
@@ -28,7 +33,7 @@
 }
 
 .seg-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
   background: transparent;
@@ -45,7 +50,7 @@
 .seg-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
   line-height: 16px;
 }
 
@@ -57,7 +62,7 @@
 .seg-btn.active-mode {
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
-  font-weight: 600;
+  /* font-weight: 600; */
 }
 
 /* Status Badges - Using theme tokens */
@@ -74,7 +79,7 @@
 .diff-badge mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
 }
 
 .badge-success {
@@ -106,7 +111,7 @@
 .compare-btn mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 /* Error Banner */

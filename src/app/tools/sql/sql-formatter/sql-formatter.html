@@ -19,8 +19,7 @@
   <div class="toolbar-row">
     <div class="result-header">
       <span class="result-label">Formatted SQL</span>
-      <button mat-icon-button (click)="copyResult()" class="btn-copy-result" [class.copied]="copied()"
-        [matTooltip]="copied() ? 'Copied!' : 'Copy result'" aria-label="Copy result">
+      <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()" title="Copy result">
         <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
       </button>
     </div>

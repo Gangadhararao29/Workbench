@@ -145,7 +145,7 @@
 .tab-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .btn-action {
@@ -257,7 +257,7 @@
 .server-label mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
 }
 
 .server-edit-wrapper {
@@ -322,7 +322,7 @@
 .btn-server-action mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .btn-server-action:hover {
@@ -494,7 +494,7 @@
 .clear-search-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .method-filters {

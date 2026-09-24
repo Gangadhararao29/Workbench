@@ -127,7 +127,7 @@ body.dark-theme .btn-clear-search:hover {
 .btn-clear-search mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .toolbar-actions {
@@ -772,7 +772,7 @@ body.dark-theme .btn-copy-sql.copied {
 .btn-copy-sql mat-icon {
   font-size: 14px;
   width: 14px;
-  height: 14px;
+  height: auto;
 }
 
 /* ==========================================================================

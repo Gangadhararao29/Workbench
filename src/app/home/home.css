@@ -39,7 +39,7 @@
 .home-hero-icon mat-icon {
   font-size: 28px;
   width: 28px;
-  height: 28px;
+  height: auto;
   color: var(--mat-sys-primary);
 }
 
@@ -240,7 +240,7 @@
 .home-tab mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 /* ── Home Feature Card (Upcoming Features) ───────────────────────────────── */

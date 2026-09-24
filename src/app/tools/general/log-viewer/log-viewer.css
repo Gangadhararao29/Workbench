@@ -40,7 +40,7 @@
 .card-header mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
   color: var(--mat-sys-primary);
 }
 
@@ -136,7 +136,7 @@
 .format-badge mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 /* Workspace Card & Filters */
@@ -184,7 +184,7 @@
 .level-tab mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
   color: inherit;
 }
 
