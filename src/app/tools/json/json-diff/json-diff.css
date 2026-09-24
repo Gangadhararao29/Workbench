@@ -6,6 +6,11 @@
   flex: 1 1 auto;
 }
 
+.action-link-btn {
+  border-radius: 6px !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+}
+
 .tool-surface-inner {
   overflow: hidden;
 }
@@ -28,7 +33,7 @@
 }
 
 .seg-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
   background: transparent;
@@ -57,7 +62,7 @@
 .seg-btn.active-mode {
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
-  font-weight: 600;
+  /* font-weight: 600; */
 }
 
 /* Status Badges - Using theme tokens */

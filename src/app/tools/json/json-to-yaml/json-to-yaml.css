@@ -43,7 +43,7 @@
 .section-label mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .preset-pills {
@@ -125,7 +125,7 @@
 .mode-btn mat-icon {
   font-size: 17px;
   width: 17px;
-  height: 17px;
+  height: auto;
 }
 
 .mode-btn:hover {
@@ -156,7 +156,7 @@
 .swap-btn mat-icon {
   font-size: 19px;
   width: 19px;
-  height: 19px;
+  height: auto;
 }
 
 .swap-btn:hover {
@@ -186,7 +186,7 @@
 .action-btn mat-icon {
   font-size: 17px;
   width: 17px;
-  height: 17px;
+  height: auto;
 }
 
 .upload-btn {
@@ -269,7 +269,7 @@
 .pane-title mat-icon {
   font-size: 17px;
   width: 17px;
-  height: 17px;
+  height: auto;
   color: var(--mat-sys-primary, #818cf8);
 }
 
@@ -318,7 +318,7 @@
 .copy-btn mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
 }
 
 .copy-btn.copied {
@@ -337,7 +337,7 @@
 .download-btn mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
 }
 
 .editor-wrapper {

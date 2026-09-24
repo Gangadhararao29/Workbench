@@ -98,8 +98,7 @@
 }
 
 .builder-payload-editor {
-  height: 160px;
-  min-height: 100px;
+  min-height: 192px !important;
 }
 
 .jwt-grid {

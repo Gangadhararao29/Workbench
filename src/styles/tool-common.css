@@ -37,15 +37,14 @@
 
 /* Copy result button inside toolbar-row */
 .btn-copy-result {
-  /* display: inline-flex !important; */
-  /* align-items: center; */
-  /* justify-content: center; */
+  align-content: center;
+  display: flex;
+  padding: 4px 6px;
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--mat-sys-on-surface-variant);
   cursor: pointer;
-  padding: 4px 6px !important;
   transition: all 0.18s ease;
 }
 
