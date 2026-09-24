@@ -41,9 +41,11 @@ import { GuidGenerator } from '../../tools/general/guid-generator/guid-generator
 import { TimestampConverter } from '../../tools/general/timestamp-converter/timestamp-converter';
 import { RegexTester } from '../../tools/general/regex-tester/regex-tester';
 import { ScriptRunner } from '../../tools/general/script-runner/script-runner';
-import { DocumentationHub } from '../../tools/general/documentation-hub/documentation-hub';
 import { TerminalTool } from '../../tools/general/terminal/terminal';
 import { LogViewer } from '../../tools/general/log-viewer/log-viewer';
+
+// Other Tools
+import { OtherTools } from '../../tools/other/other-tools/other-tools';
 
 export interface ToolDefinition<TConfig = Record<string, any>> {
   type: string;
@@ -88,6 +90,7 @@ export const GROUP_METADATA: Record<string, { label: string; icon: string; order
   api: { label: 'API', icon: 'api', order: 5 },
   frontend: { label: 'Frontend', icon: 'web', order: 6 },
   general: { label: 'General', icon: 'apps', order: 7 },
+  other: { label: 'Other tools', icon: 'handyman', order: 8 },
 };
 
 export function registerTool(tool: ToolDefinition): void {
@@ -528,17 +531,6 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     component: ScriptRunner,
   },
   {
-    type: 'documentation-hub',
-    groupId: 'general',
-    name: 'Documentation hub',
-    label: 'Documentation hub',
-    description: 'Keep useful development documentation close at hand.',
-    keywords: ['docs', 'documentation', 'cheatsheet', 'reference', 'markdown', 'links', 'guide', 'manual', 'handbook'],
-    hasSidebarOptions: false,
-    defaultSidebarOpen: false,
-    component: DocumentationHub,
-  },
-  {
     type: 'terminal',
     groupId: 'general',
     name: 'Terminal',
@@ -559,6 +551,32 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     hasSidebarOptions: false,
     defaultSidebarOpen: false,
     component: LogViewer,
+  },
+  {
+    type: 'other-tools',
+    groupId: 'other',
+    name: 'Other tools',
+    label: 'Other tools',
+    description: 'Curated directory of external developer utilities, generators, converters, and web resources.',
+    keywords: [
+      'other', 'tools', 'generators', 'resources', 'utilities', 'external', 'online', 'web', 'links',
+      'lipsum', 'favicon', 'mockaroo', 'mockuphone', 'logaster', 'uuid', 'guid', 'hash', 'sha256', 'webcode',
+      'stock', 'images', 'pexels', 'unsplash', 'freepik', 'placeholder', 'icons', 'iconfinder', 'vectors',
+      'minify', 'minifier', 'codebeautify', 'diffchecker', 'diff',
+      'compiler', 'babel', 'sass', 'sassmeister', 'less', 'markdown', 'stackedit', 'jade', 'pug',
+      'compression', 'compressor', 'jpeg-optimizer', 'tinypng',
+      'validator', 'html', 'css', 'w3c', 'caniuse', 'compatibility', 'compat', 'es6',
+      'codepen', 'jsfiddle', 'liveweave', 'replit', 'coding', 'editor', 'sandbox',
+      'gist', 'pastebin', 'snippet',
+      'color', 'design', 'hailpixel', 'stylifyme', 'uigradients', 'css3', 'button', 'entity',
+      'responsive', 'responsinator', 'browser-size', 'viewport',
+      'wireframe', 'moqups', 'wireframe.cc', 'mockup',
+      'speed', 'pingdom', 'keycdn', 'performance',
+      'apis', 'public-apis', 'devdocs', 'docs'
+    ],
+    hasSidebarOptions: false,
+    defaultSidebarOpen: false,
+    component: OtherTools,
   },
 ];
 
