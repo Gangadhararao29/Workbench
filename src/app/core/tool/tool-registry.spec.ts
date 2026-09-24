@@ -30,6 +30,8 @@ describe('tool-registry', () => {
     expect(isValidToolType('json-formatter')).toBe(true);
     expect(isValidToolType('sql-formatter')).toBe(true);
     expect(isValidToolType('csharp-to-typescript')).toBe(true);
+    expect(isValidToolType('other-tools')).toBe(true);
+    expect(isValidToolType('documentation-hub')).toBe(false);
     expect(isValidToolType('non-existent-tool')).toBe(false);
     expect(isValidToolType('')).toBe(false);
   });
@@ -39,9 +41,15 @@ describe('tool-registry', () => {
     expect(res).not.toBeNull();
     expect(res?.tool.type).toBe('json-formatter');
     expect(res?.group.id).toBe('json');
+
+    const otherRes = findToolDefinition('other-tools');
+    expect(otherRes).not.toBeNull();
+    expect(otherRes?.tool.type).toBe('other-tools');
+    expect(otherRes?.group.id).toBe('other');
   });
 
   it('findToolDefinition returns null for invalid tool type', () => {
+    expect(findToolDefinition('documentation-hub')).toBeNull();
     const res = findToolDefinition('unknown-tool');
     expect(res).toBeNull();
   });

@@ -9,28 +9,14 @@
 
     <div class="tab-group">
       <span class="toolbar-label">Output Format:</span>
-      <button
-        mat-button
-        class="mode-btn"
-        [class.active]="activeTab() === 'fluent'"
-        (click)="setTab('fluent')"
-      >
+      <button mat-button class="mode-btn" [class.active]="activeTab() === 'fluent'" (click)="setTab('fluent')">
         Fluent API
       </button>
-      <button
-        mat-button
-        class="mode-btn"
-        [class.active]="activeTab() === 'annotations'"
-        (click)="setTab('annotations')"
-      >
+      <button mat-button class="mode-btn" [class.active]="activeTab() === 'annotations'"
+        (click)="setTab('annotations')">
         Data Annotations
       </button>
-      <button
-        mat-button
-        class="mode-btn"
-        [class.active]="activeTab() === 'both'"
-        (click)="setTab('both')"
-      >
+      <button mat-button class="mode-btn" [class.active]="activeTab() === 'both'" (click)="setTab('both')">
         Both
       </button>
     </div>
@@ -39,39 +25,28 @@
   <div class="editor-split">
     <div class="editor-pane field">
       <div class="pane-header">
-        <label>C# Entity Classes (POCOs)</label>
-        <span class="pane-subtitle">Paste classes, records, or enums with navigation properties</span>
+        <div>
+          <label>C# Entity Classes (POCOs)</label>
+          <span class="pane-subtitle">Paste classes, records, or enums with navigation properties</span>
+        </div>
       </div>
-      <app-code-editor
-        [value]="input()"
-        language="csharp"
-        ariaLabel="C# entity input"
-        (valueChange)="onInputChange($event)"
-      ></app-code-editor>
+      <app-code-editor [value]="input()" language="csharp" ariaLabel="C# entity input"
+        (valueChange)="onInputChange($event)"></app-code-editor>
     </div>
 
-    <div class="editor-pane field grow">
+    <div class="editor-pane field">
       <div class="pane-header">
         <div>
           <label>EF Core Output</label>
           <span class="pane-subtitle">Generated entity configurations with keys, relations, and indexes</span>
         </div>
-        <button
-          class="btn-copy-result"
-          [class.copied]="copied()"
-          (click)="copyResult()"
-          [matTooltip]="copied() ? 'Copied!' : 'Copy result'"
-          aria-label="Copy result"
-        >
+        <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()"
+          [matTooltip]="copied() ? 'Copied!' : 'Copy result'" aria-label="Copy result">
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
         </button>
       </div>
-      <app-code-editor
-        [value]="result()"
-        language="csharp"
-        ariaLabel="EF configuration output"
-        [readOnly]="true"
-      ></app-code-editor>
+      <app-code-editor [value]="result()" language="csharp" ariaLabel="EF configuration output"
+        [readOnly]="true"></app-code-editor>
     </div>
   </div>
 </div>

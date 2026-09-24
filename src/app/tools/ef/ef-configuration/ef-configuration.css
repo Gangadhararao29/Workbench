@@ -47,7 +47,9 @@
   border-radius: 6px !important;
   color: var(--mat-sys-on-surface) !important;
   border-color: var(--mat-sys-outline-variant) !important;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .preset-btn:hover {
@@ -81,7 +83,7 @@
 .editor-split {
   display: flex;
   flex: 1;
-  gap: 12px;
+  gap: 8px;
   min-height: 0;
 }
 
@@ -97,7 +99,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
   min-height: 28px;
 }
 
@@ -126,5 +127,3 @@ app-code-editor {
     flex-direction: column;
   }
 }
-
-

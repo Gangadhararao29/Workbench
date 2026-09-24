@@ -16,7 +16,8 @@ The home page groups tools into the following areas:
 - **SQL:** Formatter, SQL to C#, SQL generator (DDL parser, SSMS grid data import, CRUD, UPSERT/MERGE, and batch queries), Search, and Query builder
 - **API:** OpenAPI inspector, HTTP request builder, JWT inspector (claims, headers, expiry validation), and cURL converter
 - **Frontend:** API client generator (Angular, React, Vue, Fetch/Axios)
-- **General:** GUID generator, Timestamp converter (multi-format parsing, live clock/tickers, unit auto-detection), Regex tester (interactive regex testing with cheat sheet and common presets), Script runner, Documentation hub, Terminal command snippets, and Log viewer
+- **General:** GUID generator, Timestamp converter (multi-format parsing, live clock/tickers, unit auto-detection), Regex tester (interactive regex testing with cheat sheet and common presets), Script runner, Terminal command snippets, and Log viewer
+- **Other tools:** Curated directory of 48+ external developer utilities, generators, converters, image resources, code optimizers, validation, and design tools
 
 Tools open as dedicated tool pages (`/tools/:toolType`) in the central workspace. Multiple scoped instances can be open per tool, tabs can be added, cloned, or renamed, and recently closed instances are preserved in history. The left sidebar supports search and favorites. Tool state, instance configurations, favorites, and light/dark theme preference are persisted in browser storage. An options panel is available for configurable formatting, generation settings, and regex quick-reference.
 
