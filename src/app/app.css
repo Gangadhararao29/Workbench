@@ -145,7 +145,7 @@ mat-icon svg {
 .search-clear-btn mat-icon {
   font-size: 14px;
   width: 14px;
-  height: 14px;
+  height: auto;
 }
 
 /* ── Body / sidenav ────────────────────────────────────────────────────── */

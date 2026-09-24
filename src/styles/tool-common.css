@@ -51,7 +51,7 @@
 .btn-copy-result mat-icon {
   font-size: 17px;
   width: 17px;
-  height: 17px;
+  height: auto;
 }
 
 .btn-copy-result:hover {
@@ -86,7 +86,7 @@
 .format-actions button mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto !important;
   margin: 0;
 }
 
@@ -142,7 +142,7 @@
 .action-link-btn mat-icon {
   font-size: 14px;
   width: 14px;
-  height: 14px;
+  height: auto;
 }
 
 /* ── Field header: label row above code editor ────────────────────────── */
@@ -182,7 +182,7 @@
 .btn-icon-copy mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
 }
 
 .btn-icon-copy:hover {
@@ -293,7 +293,7 @@ app-code-editor.result-editor {
 .actions button mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
   margin: 0;
 }
 
@@ -533,7 +533,7 @@ body.dark-theme .required-badge {
   color: var(--mat-sys-error);
   font-size: 20px;
   width: 20px;
-  height: 20px;
+  height: auto;
   flex-shrink: 0;
 }
 
@@ -684,7 +684,7 @@ body.dark-theme .required-badge {
 .icon-btn-del mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .icon-btn-del:hover {
@@ -709,7 +709,7 @@ body.dark-theme .required-badge {
 .text-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .text-btn:hover {

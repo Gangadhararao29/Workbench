@@ -162,7 +162,7 @@
 .cheat-sheet-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .evaluate-btn {

@@ -44,7 +44,7 @@
 .action-tab mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .action-tab:hover {
@@ -198,7 +198,7 @@
 .info-callout mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
   color: var(--mat-sys-primary);
 }
 

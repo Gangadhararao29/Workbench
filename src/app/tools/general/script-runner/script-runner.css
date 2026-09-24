@@ -113,7 +113,7 @@
 .card-title mat-icon {
   font-size: 20px;
   width: 20px;
-  height: 20px;
+  height: auto;
   color: var(--mat-sys-primary);
 }
 
@@ -218,7 +218,7 @@
 .console-placeholder mat-icon {
   font-size: 36px;
   width: 36px;
-  height: 36px;
+  height: auto;
   margin-bottom: 8px;
   color: color-mix(in srgb, var(--mat-sys-on-surface-variant) 30%, transparent);
 }

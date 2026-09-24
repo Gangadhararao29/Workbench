@@ -229,7 +229,7 @@ body.dark-theme .replacement-field .text-input:focus {
 .regex-error-banner mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
   color: #dc2626;
   flex-shrink: 0;
 }
@@ -286,7 +286,7 @@ body.dark-theme .header-hint {
 .btn-add-test mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 /* ==========================================================================
@@ -427,7 +427,7 @@ body.dark-theme .btn-delete-case:hover {
 .btn-delete-case mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .test-textarea {

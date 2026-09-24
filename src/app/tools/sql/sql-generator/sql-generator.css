@@ -122,7 +122,7 @@
 .tab-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 /* Badges */
@@ -669,7 +669,7 @@
 .tool-btn mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
   margin-right: 3px;
 }
 
@@ -683,7 +683,7 @@
 .copy-btn mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
   margin-right: 3px;
 }
 
@@ -771,7 +771,7 @@
 .parse-error-hint mat-icon {
   font-size: 15px;
   width: 15px;
-  height: 15px;
+  height: auto;
   flex-shrink: 0;
 }
 

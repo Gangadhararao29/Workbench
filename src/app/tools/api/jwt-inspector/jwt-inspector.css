@@ -31,7 +31,7 @@
 .tab-btn mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .tab-btn:hover {
@@ -209,7 +209,7 @@
 .verify-banner mat-icon {
   font-size: 20px;
   width: 20px;
-  height: 20px;
+  height: auto;
   flex-shrink: 0;
 }
 
@@ -321,7 +321,7 @@
 .cmp-badge mat-icon {
   font-size: 13px;
   width: 13px;
-  height: 13px;
+  height: auto;
 }
 
 .cmp-match {

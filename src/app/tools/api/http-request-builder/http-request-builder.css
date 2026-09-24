@@ -86,7 +86,7 @@
 .action-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .action-btn:hover {
@@ -132,7 +132,7 @@
 .panel-title mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .panel-header-actions {
@@ -175,7 +175,7 @@
 .icon-close-btn mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .icon-close-btn:hover {
@@ -359,7 +359,7 @@
 .send-btn mat-icon {
   font-size: 18px !important;
   width: 18px !important;
-  height: 18px !important;
+  height: auto !important;
   line-height: 18px !important;
   margin: 0 !important;
 }
@@ -567,7 +567,7 @@
 .btn-sm mat-icon {
   font-size: 14px;
   width: 14px;
-  height: 14px;
+  height: auto;
 }
 
 .btn-sm:hover {
@@ -668,7 +668,7 @@
 .btn-action mat-icon {
   font-size: 14px;
   width: 14px;
-  height: 14px;
+  height: auto;
 }
 
 .btn-action:hover {
