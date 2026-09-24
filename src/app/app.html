@@ -4,7 +4,8 @@
   <mat-toolbar class="app-toolbar">
     <div class="toolbar-left">
       <mat-icon class="app-icon">terminal</mat-icon>
-      <button class="toolbar-brand" (click)="goHome()" matTooltip="Workbench Home" aria-label="Go to Workbench home">
+      <button class="toolbar-brand" (click)="closeAllTools()" matTooltip="Workbench Home"
+        aria-label="Go to Workbench home">
         Workbench
       </button>
     </div>
@@ -12,36 +13,22 @@
     <div class="toolbar-right">
       <div class="search-box">
         <mat-icon class="search-box-icon">search</mat-icon>
-        <input
-          type="text"
-          placeholder="Search tools by name, description, keywords…"
-          class="search-input"
+        <input type="text" placeholder="Search tools by name, description, keywords…" class="search-input"
           [value]="instanceService.searchQuery()"
-          (input)="instanceService.searchQuery.set($any($event.target).value)"
-        />
+          (input)="instanceService.searchQuery.set($any($event.target).value)" />
         @if (instanceService.searchQuery()) {
-          <button
-            type="button"
-            class="search-clear-btn"
-            (click)="instanceService.searchQuery.set('')"
-            matTooltip="Clear search"
-            aria-label="Clear search"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
+        <button type="button" class="search-clear-btn" (click)="instanceService.searchQuery.set('')"
+          matTooltip="Clear search" aria-label="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
         }
       </div>
 
       <button mat-icon-button (click)="toggleLeft()" matTooltip="Toggle tools panel" aria-label="Toggle tools panel">
         <mat-icon>dock_to_right</mat-icon>
       </button>
-      <button
-        mat-icon-button
-        (click)="toggleRight()"
-        [disabled]="!instanceService.hasOptions()"
-        matTooltip="Toggle options panel"
-        aria-label="Toggle options panel"
-      >
+      <button mat-icon-button (click)="toggleRight()" [disabled]="!instanceService.hasOptions()"
+        matTooltip="Toggle options panel" aria-label="Toggle options panel">
         <mat-icon>dock_to_left</mat-icon>
       </button>
       <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme" aria-label="Toggle theme">
@@ -55,13 +42,9 @@
 
     <!-- Left Drawer (Sidebar) -->
     <mat-sidenav #leftDrawer mode="side" opened class="left-panel">
-      <app-tool-sidebar
-        [searchQuery]="instanceService.searchQuery()"
-        [hasOpenTools]="instanceService.instances().length > 0"
-        (openTool)="openTool($event.toolType, $event.groupId)"
-        (closeAll)="closeAllTools()"
-        (home)="goHome()"
-      />
+      <app-tool-sidebar [searchQuery]="instanceService.searchQuery()"
+        [hasOpenTools]="instanceService.instances().length > 0" (openTool)="openTool($event.toolType, $event.groupId)"
+        (closeAll)="closeAllTools()" (home)="goHome()" />
     </mat-sidenav>
 
     <!-- Center Content (Router Outlet) -->
@@ -70,16 +53,10 @@
     </mat-sidenav-content>
 
     <!-- Right Drawer (Options Panel) -->
-    <mat-sidenav
-      #rightDrawer
-      mode="side"
-      [opened]="instanceService.rightDrawerOpened()"
-      (openedChange)="instanceService.setRightDrawer($event)"
-      position="end"
-      class="right-panel"
-    >
+    <mat-sidenav #rightDrawer mode="side" [opened]="instanceService.rightDrawerOpened()"
+      (openedChange)="instanceService.setRightDrawer($event)" position="end" class="right-panel">
       @if (instanceService.selectedInstance()) {
-        <app-options-panel [instance]="instanceService.selectedInstance()!" />
+      <app-options-panel [instance]="instanceService.selectedInstance()!" />
       }
     </mat-sidenav>
 
