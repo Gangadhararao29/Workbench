@@ -1,4 +1,4 @@
-.tool-surface-inner {
+﻿.tool-surface-inner {
   max-width: 100vw;
   gap: 20px;
 }
@@ -345,5 +345,5 @@
 .toggle-btn.active {
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--mat-sys-shadow) 15%, transparent);
 }

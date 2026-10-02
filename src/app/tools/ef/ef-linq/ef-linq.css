@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -35,7 +35,6 @@
   font-size: 12px !important;
   height: 32px !important;
   line-height: 32px !important;
-  padding: 0 12px !important;
   border-radius: 6px;
   color: var(--mat-sys-on-surface-variant);
   transition: all 0.15s ease;
@@ -56,7 +55,7 @@
   background: var(--mat-sys-primary) !important;
   color: var(--mat-sys-on-primary) !important;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--mat-sys-shadow) 12%, transparent);
 }
 
 .syntax-switch {
@@ -192,7 +191,9 @@
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .form-row input::placeholder {
@@ -273,7 +274,9 @@ app-code-editor {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   padding: 6px 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .search-bar-row:focus-within {
@@ -419,5 +422,3 @@ app-code-editor {
     grid-template-columns: 1fr;
   }
 }
-
-

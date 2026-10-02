@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -192,7 +192,7 @@
   padding: 4px 8px;
   border-radius: 6px;
   background: rgba(244, 67, 54, 0.1);
-  color: #d32f2f;
+  color: var(--mat-sys-error);
   font-size: 13px;
   border: 1px solid rgba(244, 67, 54, 0.3);
 }
@@ -221,13 +221,13 @@
 
 .verify-valid {
   background: rgba(46, 125, 50, 0.12);
-  color: #2e7d32;
+  color: var(--color-success);
   border: 1px solid rgba(46, 125, 50, 0.3);
 }
 
 .verify-invalid {
   background: rgba(211, 47, 47, 0.12);
-  color: #d32f2f;
+  color: var(--mat-sys-error);
   border: 1px solid rgba(211, 47, 47, 0.3);
 }
 
@@ -326,17 +326,17 @@
 
 .cmp-match {
   background: rgba(46, 125, 50, 0.15);
-  color: #2e7d32;
+  color: var(--color-success);
 }
 
 .cmp-mismatch {
   background: rgba(211, 47, 47, 0.15);
-  color: #d32f2f;
+  color: var(--mat-sys-error);
 }
 
 .cmp-only {
   background: rgba(230, 81, 0, 0.15);
-  color: #e65100;
+  color: var(--mat-sys-tertiary);
 }
 
 .empty-state {

@@ -1,4 +1,4 @@
-.tool-surface-inner {
+﻿.tool-surface-inner {
   max-width: 100vw;
   gap: 20px;
 }
@@ -196,21 +196,21 @@
 }
 
 .level-tab.lvl-warn.active {
-  background: #ff9800;
-  color: #fff;
-  border-color: #ff9800;
+  background: var(--color-warning);
+  color: var(--mat-sys-on-primary);
+  border-color: var(--color-warning);
 }
 
 .level-tab.lvl-info.active {
-  background: #4caf50;
-  color: #fff;
-  border-color: #4caf50;
+  background: var(--color-success);
+  color: var(--mat-sys-on-primary);
+  border-color: var(--color-success);
 }
 
 .level-tab.lvl-debug.active {
-  background: #2196f3;
-  color: #fff;
-  border-color: #2196f3;
+  background: var(--color-info);
+  color: var(--mat-sys-on-primary);
+  border-color: var(--color-info);
 }
 
 .level-tab.lvl-unknown.active {
@@ -367,19 +367,19 @@
 
 .level-badge.warn {
   background: rgba(255, 152, 0, 0.15);
-  color: #ff9800;
+  color: var(--color-warning);
   border-color: rgba(255, 152, 0, 0.25);
 }
 
 .level-badge.info {
   background: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
+  color: var(--color-success);
   border-color: rgba(76, 175, 80, 0.25);
 }
 
 .level-badge.debug {
   background: rgba(33, 150, 243, 0.15);
-  color: #2196f3;
+  color: var(--color-info);
   border-color: rgba(33, 150, 243, 0.25);
 }
 

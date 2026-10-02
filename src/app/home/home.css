@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -305,7 +305,7 @@
 }
 
 .github-link-btn:hover {
-  background: color-mix(in srgb, var(--mat-sys-primary) 85%, #000000);
+  background: color-mix(in srgb, var(--mat-sys-primary) 85%, var(--mat-sys-shadow));
   transform: translateY(-2px);
   box-shadow: 0 6px 16px color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
 }

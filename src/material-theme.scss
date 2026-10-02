@@ -60,6 +60,70 @@ html {
   --mat-sys-outline: #74777f;
   --mat-sys-outline-variant: #c4c6cf;
   --mat-sys-shadow: #000000;
+
+  /* ── Custom semantic tokens (not in M3 spec) ── */
+  /* Success (green) */
+  --color-success:            #16a34a;
+  --color-on-success:         #ffffff;
+  --color-success-container:  rgba(34, 197, 94, 0.12);
+  --color-success-border:     rgba(34, 197, 94, 0.30);
+
+  /* Warning (amber) */
+  --color-warning:            #b45309;
+  --color-on-warning:         #ffffff;
+  --color-warning-container:  rgba(245, 158, 11, 0.12);
+  --color-warning-border:     rgba(245, 158, 11, 0.30);
+
+  /* Info (blue) */
+  --color-info:               #1d4ed8;
+  --color-on-info:            #ffffff;
+  --color-info-container:     rgba(59, 130, 246, 0.12);
+  --color-info-border:        rgba(59, 130, 246, 0.30);
+
+  /* HTTP Method tokens */
+  --method-get-bg:            rgba(34, 197, 94, 0.15);
+  --method-get-fg:            #16a34a;
+  --method-get-border:        rgba(34, 197, 94, 0.30);
+
+  --method-post-bg:           rgba(59, 130, 246, 0.15);
+  --method-post-fg:           #2563eb;
+  --method-post-border:       rgba(59, 130, 246, 0.30);
+
+  --method-put-bg:            rgba(245, 158, 11, 0.15);
+  --method-put-fg:            #d97706;
+  --method-put-border:        rgba(245, 158, 11, 0.30);
+
+  --method-patch-bg:          rgba(147, 51, 234, 0.15);
+  --method-patch-fg:          #9333ea;
+  --method-patch-border:      rgba(147, 51, 234, 0.30);
+
+  --method-delete-bg:         rgba(239, 68, 68, 0.15);
+  --method-delete-fg:         #dc2626;
+  --method-delete-border:     rgba(239, 68, 68, 0.30);
+
+  --method-head-bg:           rgba(8, 145, 178, 0.15);
+  --method-head-fg:           #0891b2;
+  --method-head-border:       rgba(8, 145, 178, 0.30);
+
+  --method-options-bg:        rgba(124, 58, 237, 0.15);
+  --method-options-fg:        #7c3aed;
+  --method-options-border:    rgba(124, 58, 237, 0.30);
+
+  /* Parameter location tokens */
+  --param-path-bg:            rgba(245, 158, 11, 0.15);
+  --param-path-fg:            #b45309;
+  --param-query-bg:           rgba(59, 130, 246, 0.15);
+  --param-query-fg:           #1d4ed8;
+  --param-header-bg:          rgba(168, 85, 247, 0.15);
+  --param-header-fg:          #7e22ce;
+  --param-cookie-bg:          rgba(20, 184, 166, 0.15);
+  --param-cookie-fg:          #0f766e;
+
+  /* Regex / highlight mark */
+  --mark-bg:                  rgba(234, 179, 8, 0.25);
+  --mark-fg:                  #713f12;
+  --mark-border:              rgba(202, 138, 4, 0.40);
+  --mark-border-bottom:       #ca8a04;
 }
 
 body {
@@ -104,6 +168,44 @@ body.dark-theme {
   --mat-sys-outline: #8e9099;
   --mat-sys-outline-variant: #44474e;
   --mat-sys-shadow: #000000;
+
+  /* ── Custom semantic tokens — dark overrides ── */
+  --color-success:            #22c55e;
+  --color-on-success:         #052e16;
+  --color-success-container:  rgba(34, 197, 94, 0.18);
+  --color-success-border:     rgba(34, 197, 94, 0.35);
+
+  --color-warning:            #fbbf24;
+  --color-on-warning:         #451a03;
+  --color-warning-container:  rgba(245, 158, 11, 0.20);
+  --color-warning-border:     rgba(251, 191, 36, 0.40);
+
+  --color-info:               #60a5fa;
+  --color-on-info:            #1e3a8a;
+  --color-info-container:     rgba(59, 130, 246, 0.18);
+  --color-info-border:        rgba(96, 165, 250, 0.40);
+
+  /* HTTP method tokens — dark */
+  --method-get-fg:            #4ade80;
+  --method-post-fg:           #60a5fa;
+  --method-put-fg:            #fbbf24;
+  --method-patch-fg:          #c084fc;
+  --method-delete-fg:         #f87171;
+  --method-head-fg:           #22d3ee;
+  --method-options-fg:        #c084fc;
+
+  /* Parameter location tokens — dark */
+  --param-path-fg:            #fbbf24;
+  --param-query-fg:           #60a5fa;
+  --param-header-fg:          #c084fc;
+  --param-cookie-fg:          #2dd4bf;
+
+  /* Regex mark — dark */
+  --mark-bg:                  rgba(234, 179, 8, 0.28);
+  --mark-fg:                  #fde047;
+  --mark-border:              rgba(250, 204, 21, 0.40);
+  --mark-border-bottom:       #facc15;
+
   background: var(--mat-sys-background);
   background-color: var(--mat-sys-surface);
 }

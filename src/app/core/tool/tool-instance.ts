@@ -82,7 +82,7 @@ export class ToolInstanceService {
       id: crypto.randomUUID(),
       toolType,
       groupId: resolvedGroup,
-      label: `${toolLabelFor(toolType)} ${count + 1}`,
+      label: `${toolLabelFor(toolType)} ${count > 0 ? count : ''}`,
       config: defaultConfigFor(toolType),
       state: {},
       version: 1,

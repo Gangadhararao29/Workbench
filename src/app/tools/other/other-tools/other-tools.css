@@ -1,4 +1,4 @@
-/* Header Area */
+﻿/* Header Area */
 .hub-header {
   display: flex;
   flex-direction: column;
@@ -7,7 +7,7 @@
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--mat-sys-shadow) 4%, transparent);
 }
 
 .hub-header-main {
@@ -271,11 +271,11 @@
 
 /* Starred Section Accent */
 .starred-section .section-title-row {
-  border-bottom-color: color-mix(in srgb, #f59e0b 35%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
 }
 
 .starred-icon {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 /* Tools Grid */
@@ -304,11 +304,11 @@
 .tool-card:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--mat-sys-primary) 50%, var(--mat-sys-outline-variant));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--mat-sys-shadow) 6%, transparent);
 }
 
 .tool-card.starred-card {
-  border-left: 3px solid #f59e0b;
+  border-left: 3px solid var(--color-warning);
 }
 
 /* Card Header */
@@ -381,11 +381,11 @@
 
 .star-btn:hover {
   background: var(--mat-sys-surface-container-highest);
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .star-btn.active {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .star-btn mat-icon {
@@ -461,9 +461,9 @@
 }
 
 .copy-btn.copied {
-  color: #10b981;
-  border-color: #10b981;
-  background: color-mix(in srgb, #10b981 12%, transparent);
+  color: var(--color-success);
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 
 .copy-btn mat-icon {
