@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InstanceService } from './core/tool/tool-instance';
+import { GoogleAnalyticsService } from './core/google-analytics.service';
 import { ToolSidebar } from './shell/tool-sidebar/tool-sidebar';
 import { OptionsPanel } from './shell/options-panel/options-panel';
 
@@ -35,6 +36,7 @@ export class App {
   @ViewChild('rightDrawer') rightDrawer!: MatSidenav;
 
   public instanceService = inject(InstanceService);
+  private readonly googleAnalytics = inject(GoogleAnalyticsService);
   private router = inject(Router);
 
   isDark = signal(this.loadTheme());
