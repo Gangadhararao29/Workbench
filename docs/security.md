@@ -3,7 +3,8 @@
 ## 1. Security Philosophy
 Workbench operates on a **Local-First / Zero-Exfiltration** model:
 - No user code, database schemas, SQL queries, or JWT credentials leave the browser.
-- Network requests are restricted to user-initiated HTTP builder calls or documentation downloads.
+- In production, Google Analytics receives page paths (without query strings or fragments) and the document title for usage measurement. Google may also collect standard browser and device data.
+- Other than production analytics, network requests are restricted to user-initiated HTTP builder calls or documentation downloads.
 - Storage is localized to the client device (`IndexedDB` via Dexie and `localStorage`).
 
 ---
