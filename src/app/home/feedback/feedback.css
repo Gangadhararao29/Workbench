@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   width: 100%;
 }
@@ -14,7 +14,7 @@
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 12px;
   padding: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--mat-sys-shadow) 5%, transparent);
 }
 
 .feedback-header {
@@ -43,7 +43,7 @@
   gap: 8px;
   margin-bottom: 24px;
   padding: 4px;
-  background: var(--mat-sys-surface-container-high, rgba(255, 255, 255, 0.05));
+  background: var(--mat-sys-surface-container-high);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 10px;
   width: fit-content;
@@ -122,7 +122,7 @@
 }
 
 .req {
-  color: #ef4444;
+  color: var(--mat-sys-error);
   font-weight: bold;
 }
 
@@ -143,7 +143,7 @@ select {
   padding: 6px 8px;
   font-family: inherit;
   font-size: 0.875rem;
-  background: var(--mat-sys-surface, #1e1e1e);
+  background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
@@ -203,7 +203,7 @@ textarea {
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface, #1e1e1e);
+  background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   cursor: pointer;
   font-family: inherit;
@@ -236,16 +236,16 @@ textarea {
 }
 
 .severity-pill.low .severity-dot {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 .severity-pill.medium .severity-dot {
-  background: #eab308;
+  background: var(--color-warning);
 }
 .severity-pill.high .severity-dot {
-  background: #f97316;
+  background: var(--mat-sys-tertiary);
 }
 .severity-pill.critical .severity-dot {
-  background: #ef4444;
+  background: var(--mat-sys-error);
 }
 
 .severity-pill:hover {
@@ -254,20 +254,20 @@ textarea {
 }
 
 .severity-pill.active.low {
-  border-color: #3b82f6;
-  background: color-mix(in srgb, #3b82f6 15%, transparent);
+  border-color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 15%, transparent);
 }
 .severity-pill.active.medium {
-  border-color: #eab308;
-  background: color-mix(in srgb, #eab308 15%, transparent);
+  border-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
 }
 .severity-pill.active.high {
-  border-color: #f97316;
-  background: color-mix(in srgb, #f97316 15%, transparent);
+  border-color: var(--mat-sys-tertiary);
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 15%, transparent);
 }
 .severity-pill.active.critical {
-  border-color: #ef4444;
-  background: color-mix(in srgb, #ef4444 15%, transparent);
+  border-color: var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 15%, transparent);
 }
 
 /* ── Star Rating (Feedback Mode) ─────────────────────────────────── */
@@ -284,7 +284,7 @@ textarea {
   border: none;
   padding: 4px;
   cursor: pointer;
-  color: var(--mat-sys-outline, #666);
+  color: var(--mat-sys-outline);
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -302,11 +302,11 @@ textarea {
 
 .star-btn:hover {
   transform: scale(1.15);
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .star-btn.filled {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .rating-label {
@@ -323,7 +323,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: var(--mat-sys-surface, #1e1e1e);
+  background: var(--mat-sys-surface);
   border: 1px dashed var(--mat-sys-outline-variant);
   border-radius: 8px;
   height: 42px;
@@ -373,7 +373,7 @@ textarea {
 .system-info-preview {
   margin-top: -6px;
   padding: 8px 10px;
-  background: var(--mat-sys-surface, #181818);
+  background: var(--mat-sys-surface);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   font-size: 0.78rem;
@@ -435,9 +435,9 @@ textarea {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: color-mix(in srgb, #ef4444 15%, transparent);
-  border: 1px solid #ef4444;
-  color: #f87171;
+  background: color-mix(in srgb, var(--mat-sys-error) 15%, transparent);
+  border: 1px solid var(--mat-sys-error);
+  color: var(--mat-sys-error);
   font-size: 0.85rem;
 }
 
@@ -504,7 +504,7 @@ textarea {
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+  border-top-color: var(--mat-sys-on-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -533,7 +533,7 @@ textarea {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: color-mix(in srgb, #22c55e 15%, transparent);
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -544,7 +544,7 @@ textarea {
   font-size: 38px;
   width: 38px;
   height: 38px;
-  color: #22c55e;
+  color: var(--color-success);
 }
 
 .feedback-success-card h2 {

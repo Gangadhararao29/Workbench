@@ -13,9 +13,10 @@ describe('EfMigrations', () => {
     }).compileComponents();
 
     instanceService = TestBed.inject(InstanceService);
+    const instance = instanceService.open('ef-migrations');
     fixture = TestBed.createComponent(EfMigrations);
     component = fixture.componentInstance;
-    component.instanceId = 'test-ef-migrations';
+    component.instanceId = instance.id;
     await fixture.whenStable();
   });
 
@@ -78,19 +79,18 @@ describe('EfMigrations', () => {
     expect(code).toContain('migrationBuilder.DeleteData(');
   });
 
-  it('should sync project configuration changes with instanceService', () => {
-    const updateSpy = vi.spyOn(instanceService, 'updateConfig');
+  it('should sync project options with ToolState', () => {
+    component.ngOnInit();
     component.project = 'src/Data';
     component.startupProject = 'src/Api';
     component.contextName = 'MainDbContext';
-    component.syncConfig();
+    component.syncOptions();
 
-    expect(updateSpy).toHaveBeenCalledWith('test-ef-migrations', {
+    expect(instanceService.getState(component.instanceId)?.options).toMatchObject({
       project: 'src/Data',
       startupProject: 'src/Api',
       contextName: 'MainDbContext',
       provider: component.provider,
-      connectionString: component.connectionString,
     });
   });
 

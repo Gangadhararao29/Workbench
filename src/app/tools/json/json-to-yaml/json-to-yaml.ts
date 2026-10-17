@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import {
   jsonToYaml,
@@ -24,6 +26,8 @@ import {
 import { formatJson, minifyJson } from '../../../core/engines/json-engine';
 
 export type ConversionMode = 'json-to-yaml' | 'yaml-to-json';
+
+const DEFAULT_STATE = defaultToolStateFor('json-to-yaml')!;
 
 @Component({
   selector: 'app-json-to-yaml',
@@ -43,30 +47,32 @@ export type ConversionMode = 'json-to-yaml' | 'yaml-to-json';
 export class JsonToYaml implements OnInit {
   @Input({ required: true }) instanceId!: string;
 
-  mode = signal<ConversionMode>('json-to-yaml');
-  input = signal<string>('');
-  result = signal<string>('');
-  errorMessage = signal<string>('');
+  private toolState = signal<ToolState | null>(null);
+  mode = computed<ConversionMode>(() => this.toolState()?.state().options['mode'] ?? DEFAULT_STATE.options['mode']);
+  input = computed<string>(() => this.toolState()?.state().input['document'] ?? DEFAULT_STATE.input['document']);
+  result = computed<string>(() => this.toolState()?.state().output['document'] ?? '');
+  errorMessage = computed<string>(() => this.toolState()?.state().output['errorMessage'] ?? '');
   copied = signal<boolean>(false);
-  activePreset = signal<string>('App Config');
+  activePreset = computed<string>(() => this.toolState()?.state().input['activePreset'] ?? DEFAULT_STATE.input['activePreset']);
+  private lastConversionSignature = '';
 
   presets: YamlPreset[] = YAML_PRESETS;
 
   constructor(private instanceService: InstanceService) {
     // Re-run conversion when configuration changes
     effect(() => {
-      const cfg = this.config();
-      // Track input and mode changes as well
+      const cfg = this.options();
       const curInput = this.input();
       const curMode = this.mode();
-      if (curInput) {
-        this.runConversion(curInput, curMode, cfg);
-      }
+      const signature = JSON.stringify([curInput, curMode, cfg]);
+      if (signature === this.lastConversionSignature) return;
+      this.lastConversionSignature = signature;
+      this.runConversion(curInput, curMode, cfg);
     });
   }
 
-  config = computed(() => {
-    return this.instanceService.instances().find(i => i.id === this.instanceId)?.config ?? {};
+  options = computed(() => {
+    return this.toolState()?.state().options ?? DEFAULT_STATE.options;
   });
 
   inputLanguage = computed(() => (this.mode() === 'json-to-yaml' ? 'json' : 'yaml'));
@@ -93,13 +99,8 @@ export class JsonToYaml implements OnInit {
   });
 
   ngOnInit(): void {
-    const cfg = this.config();
-    if (cfg['mode'] && (cfg['mode'] === 'json-to-yaml' || cfg['mode'] === 'yaml-to-json')) {
-      this.mode.set(cfg['mode']);
-    }
-
-    // Default to the first preset
-    this.loadPreset('App Config');
+    this.toolState.set(new ToolState(this.instanceService, this.instanceId));
+    this.convert();
   }
 
   setMode(newMode: ConversionMode): void {
@@ -118,34 +119,36 @@ export class JsonToYaml implements OnInit {
     const currentPreset = this.activePreset();
     const preset = this.presets.find(p => p.name === currentPreset);
 
-    this.mode.set(newMode);
-    this.instanceService.updateConfig(this.instanceId, { mode: newMode });
+    this.toolState()?.updateOptions({ mode: newMode });
 
     if (prevResult && !this.errorMessage()) {
-      this.input.set(prevResult);
-      this.runConversion(prevResult, newMode, this.config());
+      this.updateInput(prevResult);
+      this.runConversion(prevResult, newMode, this.options());
     } else if (preset && prevInput === (newMode === 'yaml-to-json' ? preset.json : preset.yaml)) {
       const nextInput = newMode === 'yaml-to-json' ? preset.yaml : preset.json;
-      this.input.set(nextInput);
-      this.runConversion(nextInput, newMode, this.config());
+      this.updateInput(nextInput);
+      this.runConversion(nextInput, newMode, this.options());
     } else if (prevInput) {
-      this.runConversion(prevInput, newMode, this.config());
+      this.runConversion(prevInput, newMode, this.options());
     }
   }
 
   onInputChange(val: string): void {
-    this.input.set(val);
-    this.runConversion(val, this.mode(), this.config());
+    this.updateInput(val);
+    this.runConversion(val, this.mode(), this.options());
+  }
+
+  private updateInput(document: string, activePreset = this.activePreset()): void {
+    this.toolState()?.updateInput({ document, activePreset });
   }
 
   convert(): void {
-    this.runConversion(this.input(), this.mode(), this.config());
+    this.runConversion(this.input(), this.mode(), this.options());
   }
 
   private runConversion(inputVal: string, mode: ConversionMode, cfg: Record<string, any>): void {
     if (!inputVal || !inputVal.trim()) {
-      this.result.set('');
-      this.errorMessage.set('');
+      this.toolState()?.updateOutput({ document: '', errorMessage: '' });
       return;
     }
 
@@ -164,8 +167,7 @@ export class JsonToYaml implements OnInit {
           flowLevel,
           forceQuotes
         });
-        this.result.set(converted);
-        this.errorMessage.set('');
+        this.toolState()?.updateOutput({ document: converted, errorMessage: '' });
       } else {
         const indent = cfg['indent'] === '4 spaces' ? 4 : 2;
         const sortKeys = Boolean(cfg['sortKeys']);
@@ -176,23 +178,21 @@ export class JsonToYaml implements OnInit {
           sortKeys,
           compact
         });
-        this.result.set(converted);
-        this.errorMessage.set('');
+        this.toolState()?.updateOutput({ document: converted, errorMessage: '' });
       }
     } catch (err) {
-      this.errorMessage.set((err as Error).message);
+      this.toolState()?.updateOutput({ errorMessage: (err as Error).message });
     }
   }
 
   loadPreset(name: string): void {
     const preset = this.presets.find(p => p.name === name);
     if (!preset) return;
-    this.activePreset.set(name);
 
     if (this.mode() === 'json-to-yaml') {
-      this.input.set(preset.json);
+      this.updateInput(preset.json, name);
     } else {
-      this.input.set(preset.yaml);
+      this.updateInput(preset.yaml, name);
     }
     this.convert();
   }
@@ -203,17 +203,17 @@ export class JsonToYaml implements OnInit {
 
     try {
       if (this.mode() === 'json-to-yaml') {
-        const indent = this.config()['indent'] === '4 spaces' ? 4 : 2;
-        this.input.set(formatJson(val, { indent }));
+        const indent = this.options()['indent'] === '4 spaces' ? 4 : 2;
+        this.updateInput(formatJson(val, { indent }));
       } else {
         // Beautify YAML via js-yaml dump
-        const indent = this.config()['indent'] === '4 spaces' ? 4 : 2;
+        const indent = this.options()['indent'] === '4 spaces' ? 4 : 2;
         const converted = jsonToYaml(yamlToJson(val), { indent });
-        this.input.set(converted);
+        this.updateInput(converted);
       }
-      this.errorMessage.set('');
+      this.toolState()?.updateOutput({ errorMessage: '' });
     } catch (err) {
-      this.errorMessage.set(`Cannot format input: ${(err as Error).message}`);
+      this.toolState()?.updateOutput({ errorMessage: `Cannot format input: ${(err as Error).message}` });
     }
   }
 
@@ -223,23 +223,21 @@ export class JsonToYaml implements OnInit {
 
     try {
       if (this.mode() === 'json-to-yaml') {
-        this.input.set(minifyJson(val));
+        this.updateInput(minifyJson(val));
       } else {
         // For YAML, compact flow mode
         const converted = jsonToYaml(yamlToJson(val), { flowLevel: 0 });
-        this.input.set(converted);
+        this.updateInput(converted);
       }
-      this.errorMessage.set('');
+      this.toolState()?.updateOutput({ errorMessage: '' });
     } catch (err) {
-      this.errorMessage.set(`Cannot minify input: ${(err as Error).message}`);
+      this.toolState()?.updateOutput({ errorMessage: `Cannot minify input: ${(err as Error).message}` });
     }
   }
 
   clear(): void {
-    this.input.set('');
-    this.result.set('');
-    this.errorMessage.set('');
-    this.activePreset.set('');
+    this.updateInput('', '');
+    this.toolState()?.updateOutput({ document: '', errorMessage: '' });
   }
 
   async copyResult(): Promise<void> {
@@ -282,20 +280,18 @@ export class JsonToYaml implements OnInit {
       if (content) {
         // Auto-detect direction based on file extension or content
         if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
-          this.mode.set('yaml-to-json');
-          this.instanceService.updateConfig(this.instanceId, { mode: 'yaml-to-json' });
+          this.toolState()?.updateOptions({ mode: 'yaml-to-json' });
         } else if (file.name.endsWith('.json')) {
-          this.mode.set('json-to-yaml');
-          this.instanceService.updateConfig(this.instanceId, { mode: 'json-to-yaml' });
+          this.toolState()?.updateOptions({ mode: 'json-to-yaml' });
         } else {
           const detected = detectFormat(content);
           if (detected === 'yaml') {
-            this.mode.set('yaml-to-json');
+            this.toolState()?.updateOptions({ mode: 'yaml-to-json' });
           } else if (detected === 'json') {
-            this.mode.set('json-to-yaml');
+            this.toolState()?.updateOptions({ mode: 'json-to-yaml' });
           }
         }
-        this.input.set(content);
+        this.updateInput(content, '');
         this.convert();
       }
       target.value = '';

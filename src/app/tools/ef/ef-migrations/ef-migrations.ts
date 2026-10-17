@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,6 +7,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 
 type CliAction = 'add' | 'update' | 'script' | 'remove' | 'scaffold' | 'bundle' | 'custom-cs';
 type CliMode = 'dotnet' | 'pmc';
@@ -64,54 +66,105 @@ export class EfMigrations implements OnInit {
 
   result = signal('');
   copied = signal(false);
+  private toolState = signal<ToolState | null>(null);
 
-  constructor(private instanceService: InstanceService) {
+  constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
-      const conf = this.config();
-      if (conf['project'] !== undefined && conf['project'] !== this.project) {
-        this.project = conf['project'];
-      }
-      if (conf['startupProject'] !== undefined && conf['startupProject'] !== this.startupProject) {
-        this.startupProject = conf['startupProject'];
-      }
-      if (conf['contextName'] !== undefined && conf['contextName'] !== this.contextName) {
-        this.contextName = conf['contextName'];
-      }
-      if (conf['provider'] !== undefined && conf['provider'] !== this.provider) {
-        this.provider = conf['provider'];
-      }
-      if (conf['connectionString'] !== undefined && conf['connectionString'] !== this.connectionString) {
-        this.connectionString = conf['connectionString'];
-      }
+      this.applyOptions(this.options());
       this.generate();
     });
   }
 
-  config = computed(() =>
-    this.instanceService.instances().find(i => i.id === this.instanceId)?.config ?? {}
+  options = computed(() =>
+    this.toolState()?.state().options ?? defaultToolStateFor('ef-migrations')!.options
   );
 
   ngOnInit() {
-    // Populate defaults from instance config if present
-    const conf = this.config();
-    if (conf['project']) this.project = conf['project'];
-    if (conf['startupProject']) this.startupProject = conf['startupProject'];
-    if (conf['contextName']) this.contextName = conf['contextName'];
-    if (conf['provider']) this.provider = conf['provider'];
-    if (conf['connectionString']) this.connectionString = conf['connectionString'];
-
+    const toolState = new ToolState(this.instanceService, this.instanceId, 'ef-migrations');
+    this.toolState.set(toolState);
+    toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+    this.applyOptions(this.options());
     this.generate();
   }
 
-  syncConfig(): void {
-    this.instanceService.updateConfig(this.instanceId, {
+  syncOptions(): void {
+    this.toolState()?.updateOptions({
       project: this.project,
       startupProject: this.startupProject,
       contextName: this.contextName,
       provider: this.provider,
-      connectionString: this.connectionString,
     });
     this.generate();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        migrationName: this.migrationName,
+        targetMigration: this.targetMigration,
+        fromMigration: this.fromMigration,
+        toMigration: this.toMigration,
+        outputDir: this.outputDir,
+        connectionString: this.connectionString,
+        runtime: this.runtime,
+        scriptOutputFile: this.scriptOutputFile,
+        bundleOutputFile: this.bundleOutputFile,
+        customSnippetType: this.customSnippetType,
+        customSqlUp: this.customSqlUp,
+        customSqlDown: this.customSqlDown,
+        customTable: this.customTable,
+        customColumn: this.customColumn,
+        customType: this.customType,
+      },
+      output: { document: this.result() },
+      options: {
+        ...this.options(),
+        activeAction: this.activeAction(),
+        cliMode: this.cliMode(),
+        idempotent: this.idempotent,
+        noBuild: this.noBuild,
+        verbose: this.verbose,
+        force: this.force,
+        useDataAnnotations: this.useDataAnnotations,
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.migrationName = state.input['migrationName'];
+    this.targetMigration = state.input['targetMigration'];
+    this.fromMigration = state.input['fromMigration'];
+    this.toMigration = state.input['toMigration'];
+    this.outputDir = state.input['outputDir'];
+    this.connectionString = state.input['connectionString'];
+    this.runtime = state.input['runtime'];
+    this.scriptOutputFile = state.input['scriptOutputFile'];
+    this.bundleOutputFile = state.input['bundleOutputFile'];
+    this.customSnippetType = state.input['customSnippetType'];
+    this.customSqlUp = state.input['customSqlUp'];
+    this.customSqlDown = state.input['customSqlDown'];
+    this.customTable = state.input['customTable'];
+    this.customColumn = state.input['customColumn'];
+    this.customType = state.input['customType'];
+    this.activeAction.set(state.options['activeAction']);
+    this.cliMode.set(state.options['cliMode']);
+    this.idempotent = state.options['idempotent'];
+    this.noBuild = state.options['noBuild'];
+    this.verbose = state.options['verbose'];
+    this.force = state.options['force'];
+    this.useDataAnnotations = state.options['useDataAnnotations'];
+    this.result.set(state.output['document']);
+  }
+
+  private applyOptions(options: Record<string, any>): void {
+    this.project = options['project'] ?? this.project;
+    this.startupProject = options['startupProject'] ?? this.startupProject;
+    this.contextName = options['contextName'] ?? this.contextName;
+    this.provider = options['provider'] ?? this.provider;
   }
 
   copyResult(): void {
@@ -140,6 +193,7 @@ export class EfMigrations implements OnInit {
 
     if (action === 'custom-cs') {
       this.generateCustomCs();
+      this.toolState()?.save(this.readToolState());
       return;
     }
 
@@ -148,6 +202,7 @@ export class EfMigrations implements OnInit {
     } else {
       this.generatePmc(action);
     }
+    this.toolState()?.save(this.readToolState());
   }
 
   private generateDotnetCli(action: CliAction) {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,6 +11,8 @@ import {
   EfConfigurationOptions,
 } from '../../../core/engines/ef-configuration-engine';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 
 @Component({
   selector: 'app-ef-configuration',
@@ -26,27 +28,42 @@ export class EfConfiguration implements OnInit {
   result = signal('');
   activeTab = signal<'fluent' | 'annotations' | 'both'>('fluent');
   copied = signal(false);
+  private toolState = signal<ToolState | null>(null);
 
-  constructor(private instanceService: InstanceService) {
+  constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
       // Re-run whenever config changes in the options panel
-      this.config();
+      this.options();
       this.generate();
     });
   }
 
-  config = computed(
-    () =>
-      (this.instanceService.instances().find((i) => i.id === this.instanceId)?.config ??
-        {}) as EfConfigurationOptions,
+  options = computed<EfConfigurationOptions>(
+    () => (this.toolState()?.state().options ?? defaultToolStateFor('ef-configuration')!.options) as EfConfigurationOptions,
   );
 
   ngOnInit(): void {
+    const toolState = new ToolState(this.instanceService, this.instanceId, 'ef-configuration');
+    this.toolState.set(toolState);
+    toolState.connect(
+      () => ({
+        input: { document: this.input() },
+        output: { document: this.result() },
+        options: { ...this.options(), activeTab: this.activeTab() },
+      }),
+      (state) => {
+        this.input.set(state.input['document']);
+        this.result.set(state.output['document']);
+        this.activeTab.set(state.options['activeTab']);
+      },
+      this.injector,
+    );
     this.generate();
   }
 
   onInputChange(val: string): void {
     this.input.set(val);
+    this.toolState()?.updateInput({ document: val });
     this.generate();
   }
 
@@ -65,6 +82,7 @@ export class EfConfiguration implements OnInit {
 
   setTab(tab: 'fluent' | 'annotations' | 'both'): void {
     this.activeTab.set(tab);
+    this.toolState()?.updateOptions({ activeTab: tab });
     this.generate();
   }
 
@@ -79,7 +97,8 @@ export class EfConfiguration implements OnInit {
   }
 
   generate(): void {
-    const generated = generateEfConfiguration(this.input(), this.config(), this.activeTab());
+    const generated = generateEfConfiguration(this.input(), this.options(), this.activeTab());
     this.result.set(generated);
+    this.toolState()?.updateOutput({ document: generated });
   }
 }

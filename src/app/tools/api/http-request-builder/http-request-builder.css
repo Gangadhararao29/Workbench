@@ -111,7 +111,7 @@
   border-radius: 8px;
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--mat-sys-shadow) 5%, transparent);
 }
 
 .panel-header {
@@ -224,13 +224,13 @@
 }
 
 .history-status.success {
-  background: rgba(34, 197, 94, 0.15);
-  color: #16a34a;
+  background: var(--color-success-container);
+  color: var(--color-success);
 }
 
 .history-status.error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
+  background: color-mix(in srgb, var(--mat-sys-error) 15%, transparent);
+  color: var(--mat-sys-error);
 }
 
 .history-time {
@@ -248,7 +248,7 @@
   border-radius: 8px;
   background: var(--mat-sys-surface-container);
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--mat-sys-shadow) 4%, transparent);
 }
 
 .method-select-wrapper {
@@ -268,62 +268,62 @@
   font-size: 13px;
   cursor: pointer;
   outline: none;
-  color: #2563eb;
+  color: var(--color-info);
 }
 
 .method-select-wrapper[data-method='GET'] .method-select {
-  color: #16a34a;
+  color: var(--color-success);
 }
 .method-select-wrapper[data-method='POST'] .method-select {
-  color: #2563eb;
+  color: var(--color-info);
 }
 .method-select-wrapper[data-method='PUT'] .method-select {
-  color: #d97706;
+  color: var(--color-warning);
 }
 .method-select-wrapper[data-method='PATCH'] .method-select {
-  color: #9333ea;
+  color: var(--param-header-fg);
 }
 .method-select-wrapper[data-method='DELETE'] .method-select {
-  color: #dc2626;
+  color: var(--mat-sys-error);
 }
 .method-select-wrapper[data-method='HEAD'] .method-select {
-  color: #0891b2;
+  color: var(--method-head-fg);
 }
 .method-select-wrapper[data-method='OPTIONS'] .method-select {
-  color: #64748b;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .method-select option {
   background: var(--mat-sys-surface-container-high);
-  color: #334155;
+  color: var(--mat-sys-on-surface);
 }
 
 .method-select option[value='GET'] {
-  color: #16a34a;
+  color: var(--color-success);
 }
 
 .method-select option[value='POST'] {
-  color: #2563eb;
+  color: var(--color-info);
 }
 
 .method-select option[value='PUT'] {
-  color: #d97706;
+  color: var(--color-warning);
 }
 
 .method-select option[value='PATCH'] {
-  color: #9333ea;
+  color: var(--param-header-fg);
 }
 
 .method-select option[value='DELETE'] {
-  color: #dc2626;
+  color: var(--mat-sys-error);
 }
 
 .method-select option[value='HEAD'] {
-  color: #0891b2;
+  color: var(--method-head-fg);
 }
 
 .method-select option[value='OPTIONS'] {
-  color: #64748b;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .url-input-wrapper {

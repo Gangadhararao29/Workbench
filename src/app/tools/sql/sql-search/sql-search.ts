@@ -1,9 +1,11 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 export interface Pattern {
   title: string;
@@ -43,7 +45,7 @@ const PATTERNS: Pattern[] = [
 export class SqlSearch implements OnInit {
   @Input({ required: true }) instanceId!: string;
 
-  query = '';
+  query = signal('');
   favorites = signal<Set<string>>(new Set());
   showFavoritesOnly = signal(false);
   userSnippets = signal<Pattern[]>([]);
@@ -59,36 +61,63 @@ export class SqlSearch implements OnInit {
   formError = '';
 
   copiedTitle = signal<string | null>(null);
+  private toolState: ToolState | null = null;
+
+  constructor(private instanceService: InstanceService, private injector: Injector) {}
 
   allPatterns = computed(() => [...this.userSnippets(), ...PATTERNS]);
   results = signal<Pattern[]>(PATTERNS);
 
   ngOnInit() {
-    this.loadFavorites();
-    this.loadSnippets();
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'sql-search');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
     this.search();
   }
 
-  loadFavorites() {
-    try {
-      const stored = localStorage.getItem('sql_search_favorites');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          this.favorites.set(new Set(parsed));
-        }
-      }
-    } catch {
-      // ignore
-    }
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        query: this.query(),
+        userSnippets: this.userSnippets(),
+        showAddForm: this.showAddForm(),
+        formTitle: this.formTitle,
+        formCategory: this.formCategory,
+        formDatabase: this.formDatabase,
+        formDescription: this.formDescription,
+        formTags: this.formTags,
+        formSql: this.formSql,
+        formError: this.formError,
+      },
+      output: { results: this.results() },
+      options: {
+        favorites: Array.from(this.favorites()),
+        showFavoritesOnly: this.showFavoritesOnly(),
+      },
+    };
   }
 
-  saveFavorites() {
-    try {
-      localStorage.setItem('sql_search_favorites', JSON.stringify(Array.from(this.favorites())));
-    } catch {
-      // ignore
-    }
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.query.set(state.input['query']);
+    this.userSnippets.set(state.input['userSnippets']);
+    this.showAddForm.set(state.input['showAddForm']);
+    this.formTitle = state.input['formTitle'];
+    this.formCategory = state.input['formCategory'];
+    this.formDatabase = state.input['formDatabase'];
+    this.formDescription = state.input['formDescription'];
+    this.formTags = state.input['formTags'];
+    this.formSql = state.input['formSql'];
+    this.formError = state.input['formError'];
+    this.favorites.set(new Set(state.options['favorites']));
+    this.showFavoritesOnly.set(state.options['showFavoritesOnly']);
+  }
+
+  onQueryChange(query: string): void {
+    this.query.set(query);
+    this.search();
   }
 
   toggleFavorite(title: string, event?: Event) {
@@ -100,7 +129,6 @@ export class SqlSearch implements OnInit {
       current.add(title);
     }
     this.favorites.set(current);
-    this.saveFavorites();
     this.search();
   }
 
@@ -111,28 +139,6 @@ export class SqlSearch implements OnInit {
   toggleFavoritesFilter() {
     this.showFavoritesOnly.set(!this.showFavoritesOnly());
     this.search();
-  }
-
-  loadSnippets() {
-    try {
-      const stored = localStorage.getItem('sql_search_custom_snippets');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          this.userSnippets.set(parsed.map(p => ({ ...p, isCustom: true })));
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  saveSnippets() {
-    try {
-      localStorage.setItem('sql_search_custom_snippets', JSON.stringify(this.userSnippets()));
-    } catch {
-      // ignore
-    }
   }
 
   openAddForm() {
@@ -174,7 +180,6 @@ export class SqlSearch implements OnInit {
 
     const updated = [newSnippet, ...this.userSnippets()];
     this.userSnippets.set(updated);
-    this.saveSnippets();
     this.showAddForm.set(false);
     this.search();
   }
@@ -183,7 +188,6 @@ export class SqlSearch implements OnInit {
     if (event) event.stopPropagation();
     const updated = this.userSnippets().filter(s => s.title !== title);
     this.userSnippets.set(updated);
-    this.saveSnippets();
     this.search();
   }
 
@@ -200,7 +204,7 @@ export class SqlSearch implements OnInit {
 
   search() {
     const list = this.allPatterns();
-    const terms = this.query.toLowerCase().split(/\s+/).filter(Boolean);
+    const terms = this.query().toLowerCase().split(/\s+/).filter(Boolean);
     const filterFavs = this.showFavoritesOnly();
 
     let pool = list;

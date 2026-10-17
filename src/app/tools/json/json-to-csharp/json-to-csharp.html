@@ -3,7 +3,7 @@
   <div class="field">
     <div class="field-header"><label>JSON Input</label></div>
     <app-code-editor [value]="input()" language="json" ariaLabel="JSON input"
-      (valueChange)="input.set($event)"></app-code-editor>
+      (valueChange)="onInputChange($event)"></app-code-editor>
   </div>
 
   <div class="toolbar-row">

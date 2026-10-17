@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { formatSql, compactSql, minifySql } from '../../../core/engines/sql-formatter-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 export interface JoinClause {
   type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL' | 'CROSS';
@@ -42,8 +44,11 @@ export type SqlOutputFormat = 'formatted' | 'compact' | 'minified';
   templateUrl: './sql-query-builder.html',
   styleUrls: ['./sql-query-builder.css']
 })
-export class SqlQueryBuilder {
+export class SqlQueryBuilder implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private readonly instanceService = inject(InstanceService);
+  private readonly injector = inject(Injector);
+  private toolState: ToolState | null = null;
 
   queryType = signal<'select' | 'insert' | 'update' | 'delete'>('select');
   tableName = signal('users');
@@ -81,6 +86,56 @@ export class SqlQueryBuilder {
     const activeFilters = this.wheres().filter(w => w.column.trim().length > 0);
     return activeFilters.length === 0;
   });
+
+  ngOnInit(): void {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'sql-query-builder');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        tableName: this.tableName(),
+        distinct: this.distinct(),
+        columns: this.columns(),
+        joins: this.joins(),
+        wheres: this.wheres(),
+        groupBy: this.groupBy(),
+        having: this.having(),
+        orderBys: this.orderBys(),
+        limit: this.limit(),
+        offset: this.offset(),
+        dataPairs: this.dataPairs(),
+      },
+      output: { document: this.generatedSql() },
+      options: {
+        queryType: this.queryType(),
+        dialect: this.dialect(),
+        outputFormat: this.outputFormat(),
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.tableName.set(state.input['tableName']);
+    this.distinct.set(state.input['distinct']);
+    this.columns.set(state.input['columns']);
+    this.joins.set(state.input['joins']);
+    this.wheres.set(state.input['wheres']);
+    this.groupBy.set(state.input['groupBy']);
+    this.having.set(state.input['having']);
+    this.orderBys.set(state.input['orderBys']);
+    this.limit.set(state.input['limit']);
+    this.offset.set(state.input['offset']);
+    this.dataPairs.set(state.input['dataPairs']);
+    this.queryType.set(state.options['queryType']);
+    this.dialect.set(state.options['dialect']);
+    this.outputFormat.set(state.options['outputFormat']);
+  }
 
   setQueryType(type: 'select' | 'insert' | 'update' | 'delete') {
     this.queryType.set(type);

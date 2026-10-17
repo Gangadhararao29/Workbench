@@ -54,12 +54,14 @@ describe('tool-registry', () => {
     expect(res).toBeNull();
   });
 
-  it('defaultConfigFor returns defaults for configured tools and empty object for others', () => {
-    const jsonDefaults = defaultConfigFor('json-formatter');
-    expect(jsonDefaults).toEqual({ indent: '2 spaces', sortKeys: false });
-
-    const sqlDefaults = defaultConfigFor('sql-formatter');
-    expect(sqlDefaults['dialect']).toBe('Standard SQL');
+  it('defaultConfigFor returns empty objects for migrated tool groups', () => {
+    expect(defaultConfigFor('json-formatter')).toEqual({});
+    expect(defaultConfigFor('sql-formatter')).toEqual({});
+    expect(defaultConfigFor('csharp-formatter')).toEqual({});
+    expect(defaultConfigFor('sql-to-csharp')).toEqual({});
+    expect(defaultConfigFor('ef-configuration')).toEqual({});
+    expect(defaultConfigFor('ef-migrations')).toEqual({});
+    expect(defaultConfigFor('ef-dbcontext')).toEqual({});
 
     const unknownDefaults = defaultConfigFor('unknown-tool');
     expect(unknownDefaults).toEqual({});

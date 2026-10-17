@@ -47,13 +47,39 @@ describe('SqlFormatter', () => {
     expect(component.result()).toBe('SELECT id, name, email FROM users WHERE active = 1;');
   });
 
+  it('restores the saved query and mode for its instance', () => {
+    instanceService.updateState(component.instanceId, {
+      input: { document: 'select id from saved_users;' },
+      output: { document: '' },
+      options: { ...component.options(), mode: 'compact' },
+    });
+    component.ngOnInit();
+
+    expect(component.input()).toBe('select id from saved_users;');
+    expect(component.mode()).toBe('compact');
+    expect(component.result()).toContain('FROM saved_users');
+  });
+
+  it('persists editor input and selected mode to its instance state', () => {
+    component.onInputChange('select id from current_users;');
+    component.setMode('minified');
+
+    expect(instanceService.getState(component.instanceId)).toEqual({
+      input: { document: 'select id from current_users;' },
+      output: { document: 'select id from current_users;' },
+      options: { ...component.options(), mode: 'minified' },
+    });
+  });
+
   it('should automatically re-format when options change in InstanceService', async () => {
     component.input.set('select id from users;');
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component.result()).toContain('SELECT');
 
-    instanceService.updateConfig(component.instanceId, { keywordCase: 'lower' });
+    instanceService.updateState(component.instanceId, {
+      options: { ...component.options(), keywordCase: 'lower' },
+    });
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component.result()).toContain('select');

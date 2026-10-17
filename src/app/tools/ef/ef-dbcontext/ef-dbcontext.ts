@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +12,8 @@ import {
   EfDbContextOptions,
 } from '../../../core/engines/ef-dbcontext-engine';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 
 @Component({
   selector: 'app-ef-dbcontext',
@@ -46,45 +48,67 @@ export class EfDbContext implements OnInit {
 
   result = signal('');
   copied = signal(false);
+  private toolState = signal<ToolState | null>(null);
 
-  constructor(private instanceService: InstanceService) {
+  constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
-      const conf = this.config();
-      if (conf.contextName !== undefined && conf.contextName !== this.contextName) {
-        this.contextName = conf.contextName;
-      }
-      if (conf.namespace !== undefined && conf.namespace !== this.namespace) {
-        this.namespace = conf.namespace;
-      }
-      if (conf.provider !== undefined && conf.provider !== this.provider) {
-        this.provider = conf.provider;
-      }
+      this.options();
       this.generate();
     });
   }
 
-  config = computed(
-    () =>
-      (this.instanceService.instances().find((i) => i.id === this.instanceId)?.config ??
-        {}) as EfDbContextOptions,
+  options = computed<EfDbContextOptions>(
+    () => (this.toolState()?.state().options ?? defaultToolStateFor('ef-dbcontext')!.options) as EfDbContextOptions,
   );
 
   ngOnInit(): void {
-    const conf = this.config();
-    if (conf.contextName) this.contextName = conf.contextName;
-    if (conf.namespace) this.namespace = conf.namespace;
-    if (conf.provider) this.provider = conf.provider;
-
+    const toolState = new ToolState(this.instanceService, this.instanceId, 'ef-dbcontext');
+    this.toolState.set(toolState);
+    toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
     this.generate();
   }
 
   onParamChange(): void {
-    this.instanceService.updateConfig(this.instanceId, {
+    this.toolState()?.updateOptions({
       contextName: this.contextName,
       namespace: this.namespace,
       provider: this.provider,
     });
     this.generate();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: { entitiesText: this.entitiesText },
+      output: { document: this.result() },
+      options: {
+        ...this.options(),
+        useAssemblyConfigurations: this.useAssemblyConfigurations,
+        includeAuditInterceptor: this.includeAuditInterceptor,
+        includeSoftDeleteFilter: this.includeSoftDeleteFilter,
+        includeDiExtension: this.includeDiExtension,
+        includeDesignTimeFactory: this.includeDesignTimeFactory,
+        useDbContextPool: this.useDbContextPool,
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.entitiesText = state.input['entitiesText'];
+    this.contextName = state.options['contextName'];
+    this.namespace = state.options['namespace'];
+    this.provider = state.options['provider'];
+    this.useAssemblyConfigurations = state.options['useAssemblyConfigurations'];
+    this.includeAuditInterceptor = state.options['includeAuditInterceptor'];
+    this.includeSoftDeleteFilter = state.options['includeSoftDeleteFilter'];
+    this.includeDiExtension = state.options['includeDiExtension'];
+    this.includeDesignTimeFactory = state.options['includeDesignTimeFactory'];
+    this.useDbContextPool = state.options['useDbContextPool'];
+    this.result.set(state.output['document']);
   }
 
   copyResult(): void {
@@ -110,5 +134,6 @@ export class EfDbContext implements OnInit {
       useDbContextPool: this.useDbContextPool,
     });
     this.result.set(generated);
+    this.toolState()?.save(this.readToolState());
   }
 }

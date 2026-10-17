@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,10 @@ import {
 } from '../../../core/engines/json-path-engine';
 import { InstanceService } from '../../../core/tool/tool-instance';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { ToolState } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
+
+const DEFAULT_STATE = defaultToolStateFor('json-path')!;
 
 @Component({
   selector: 'app-json-path',
@@ -21,38 +25,24 @@ export class JsonPath implements OnInit {
 
   constructor(public instanceService: InstanceService) {}
 
-  input = signal(
-    JSON.stringify(
-      {
-        users: [
-          { id: 1, name: 'Ada', role: 'admin', skills: ['math', 'algorithms'] },
-          { id: 2, name: 'Grace', role: 'compiler', skills: ['compilers', 'cobol'] },
-        ],
-        version: '1.0.0',
-      },
-      null,
-      2
-    )
-  );
-
-  path = '$.users[0].name';
-  result = signal('');
-  matchSummary = signal('');
-  errorMsg = signal('');
-  autoPathOnClick = signal(false);
-  resultType = signal<'value' | 'path' | 'pointer'>('value');
+  private toolState = signal<ToolState | null>(null);
+  input = computed(() => this.toolState()?.state().input['document'] ?? DEFAULT_STATE.input['document']);
+  path = computed(() => this.toolState()?.state().input['path'] ?? DEFAULT_STATE.input['path']);
+  result = computed(() => this.toolState()?.state().output['result'] ?? '');
+  matchSummary = computed(() => this.toolState()?.state().output['matchSummary'] ?? '');
+  errorMsg = computed(() => this.toolState()?.state().output['errorMsg'] ?? '');
+  autoPathOnClick = computed(() => this.toolState()?.state().options['autoPathOnClick'] ?? false);
+  resultType = computed(() => this.toolState()?.state().options['resultType'] ?? 'value');
 
   ngOnInit() {
+    this.toolState.set(new ToolState(this.instanceService, this.instanceId));
     this.evaluate();
   }
 
   evaluate() {
-    this.errorMsg.set('');
-
-    const trimmedPath = this.path.trim();
+    const trimmedPath = this.path().trim();
     if (!trimmedPath) {
-      this.result.set('');
-      this.matchSummary.set('');
+      this.toolState()?.updateOutput({ result: '', matchSummary: '', errorMsg: '' });
       return;
     }
 
@@ -60,29 +50,28 @@ export class JsonPath implements OnInit {
       const evaluation = evaluateJsonPathDetailed(this.input(), trimmedPath, {
         resultType: this.resultType(),
       });
-      this.result.set(evaluation.formatted);
+      let matchSummary: string;
       if (evaluation.count === 0) {
-        this.matchSummary.set('No match');
+        matchSummary = 'No match';
       } else if (evaluation.count === 1) {
-        this.matchSummary.set('1 match');
+        matchSummary = '1 match';
       } else {
-        this.matchSummary.set(`${evaluation.count} matches`);
+        matchSummary = `${evaluation.count} matches`;
       }
+      this.toolState()?.updateOutput({ result: evaluation.formatted, matchSummary, errorMsg: '' });
     } catch (error) {
       const msg = (error as Error).message;
-      this.errorMsg.set(msg);
-      this.matchSummary.set('Error');
-      this.result.set(`// Error:\n// ${msg}`);
+      this.toolState()?.updateOutput({ errorMsg: msg, matchSummary: 'Error', result: `// Error:\n// ${msg}` });
     }
   }
 
   setResultType(type: 'value' | 'path' | 'pointer') {
-    this.resultType.set(type);
+    this.toolState()?.updateOptions({ resultType: type });
     this.evaluate();
   }
 
   toggleAutoPath() {
-    this.autoPathOnClick.set(!this.autoPathOnClick());
+    this.toolState()?.updateOptions({ autoPathOnClick: !this.autoPathOnClick() });
   }
 
   onEditorClick(event: { offset: number }) {
@@ -90,7 +79,7 @@ export class JsonPath implements OnInit {
     try {
       const detected = getJsonPathAtOffset(this.input(), event.offset);
       if (detected) {
-        this.path = detected;
+        this.onPathChange(detected);
         this.evaluate();
       }
     } catch {
@@ -99,7 +88,11 @@ export class JsonPath implements OnInit {
   }
 
   onInputChange(val: string) {
-    this.input.set(val);
+    this.toolState()?.updateInput({ document: val });
     this.evaluate();
+  }
+
+  onPathChange(path: string) {
+    this.toolState()?.updateInput({ path });
   }
 }

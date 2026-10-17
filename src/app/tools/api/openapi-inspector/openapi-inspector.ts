@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal, OnInit } from '@angular/core';
+import { Component, DoCheck, Input, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { load as loadYaml } from 'js-yaml';
 import { formatJson } from '../../../core/engines/json-engine';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 import {
   inspectOpenApi,
   generateCurlCommand,
@@ -39,8 +41,10 @@ export interface MethodCountStats {
   templateUrl: './openapi-inspector.html',
   styleUrls: ['./openapi-inspector.css']
 })
-export class OpenapiInspector implements OnInit {
+export class OpenapiInspector implements OnInit, DoCheck {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
+  private stateFingerprint = '';
 
   input = signal(SAMPLE_OPENAPI_SPEC);
   inspection = signal<OpenApiInspection | null>(null);
@@ -76,8 +80,63 @@ export class OpenapiInspector implements OnInit {
   copiedId = signal<string | null>(null);
   private copyTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  constructor(private instanceService: InstanceService) {}
+
   ngOnInit() {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'openapi-inspector');
+    this.restoreToolState(this.toolState.state());
     this.inspect();
+    this.saveToolStateIfChanged();
+  }
+
+  ngDoCheck(): void {
+    this.saveToolStateIfChanged();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: { document: this.input() },
+      output: { error: this.error() },
+      options: {
+        activeTab: this.activeTab(),
+        groupBy: this.groupBy(),
+        searchQuery: this.searchQuery(),
+        selectedMethod: this.selectedMethod(),
+        selectedServerUrl: this.selectedServerUrl(),
+        curlMultiline: this.curlMultiline(),
+        expandedEndpoints: [...this.expandedEndpoints()],
+        collapsedGroups: [...this.collapsedGroups()],
+        specEditorCollapsed: this.specEditorCollapsed(),
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.input.set(state.input['document']);
+    this.error.set(state.output['error'] ?? '');
+    this.activeTab.set(state.options['activeTab']);
+    this.groupBy.set(state.options['groupBy']);
+    this.searchQuery.set(state.options['searchQuery']);
+    this.selectedMethod.set(state.options['selectedMethod']);
+    this.selectedServerUrl.set(state.options['selectedServerUrl']);
+    this.curlMultiline.set(state.options['curlMultiline']);
+    this.expandedEndpoints.set(new Set(state.options['expandedEndpoints'] ?? []));
+    this.collapsedGroups.set(new Set(state.options['collapsedGroups'] ?? []));
+    this.specEditorCollapsed.set(state.options['specEditorCollapsed'] ?? false);
+  }
+
+  private saveToolStateIfChanged(): void {
+    if (!this.toolState) return;
+    const snapshot = this.readToolState();
+    const fingerprint = JSON.stringify(snapshot);
+    if (fingerprint === this.stateFingerprint) return;
+    this.stateFingerprint = fingerprint;
+    this.toolState.save(snapshot);
+  }
+
+  setGroupBy(mode: 'tag' | 'path' | 'method' | 'flat'): void {
+    this.groupBy.set(mode);
+    this.saveToolStateIfChanged();
   }
 
   inspect() {

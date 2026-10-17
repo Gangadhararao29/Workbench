@@ -63,7 +63,7 @@
       </div>
       <div class="form-row">
         <label>Connection String</label>
-        <input [(ngModel)]="connectionString" (ngModelChange)="syncConfig()" placeholder="Server=...;Database=..." />
+        <input [(ngModel)]="connectionString" (ngModelChange)="syncOptions()" placeholder="Server=...;Database=..." />
       </div>
       }
 
@@ -99,11 +99,11 @@
       @if (activeAction() === 'scaffold') {
       <div class="form-row">
         <label>Connection String</label>
-        <input [(ngModel)]="connectionString" (ngModelChange)="syncConfig()" placeholder="Server=...;Database=..." />
+        <input [(ngModel)]="connectionString" (ngModelChange)="syncOptions()" placeholder="Server=...;Database=..." />
       </div>
       <div class="form-row">
         <label>Provider</label>
-        <input [(ngModel)]="provider" (ngModelChange)="syncConfig()"
+        <input [(ngModel)]="provider" (ngModelChange)="syncOptions()"
           placeholder="Microsoft.EntityFrameworkCore.SqlServer" />
       </div>
       <div class="form-row">
@@ -178,19 +178,19 @@
 
       <div class="form-row">
         <label>Target Project (-p)</label>
-        <input [(ngModel)]="project" (ngModelChange)="syncConfig()"
+        <input [(ngModel)]="project" (ngModelChange)="syncOptions()"
           placeholder="src/Infrastructure or MyProject.Data.csproj" />
       </div>
 
       <div class="form-row">
         <label>Startup Project (-s)</label>
-        <input [(ngModel)]="startupProject" (ngModelChange)="syncConfig()"
+        <input [(ngModel)]="startupProject" (ngModelChange)="syncOptions()"
           placeholder="src/WebApi or MyProject.Api.csproj" />
       </div>
 
       <div class="form-row">
         <label>DbContext Name (-c)</label>
-        <input [(ngModel)]="contextName" (ngModelChange)="syncConfig()" placeholder="AppDbContext" />
+        <input [(ngModel)]="contextName" (ngModelChange)="syncOptions()" placeholder="AppDbContext" />
       </div>
 
       <div class="checkbox-row">

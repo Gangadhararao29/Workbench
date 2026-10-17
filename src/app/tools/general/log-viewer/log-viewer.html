@@ -9,7 +9,7 @@
 
     </div>
     <div class="card-body">
-      <textarea [(ngModel)]="rawLogs" class="log-textarea" rows="6"
+      <textarea [ngModel]="rawLogs" (ngModelChange)="loadRawLogs($event)" class="log-textarea" rows="6"
         placeholder="Paste your JSON lines or raw text logs here..."></textarea>
 
 
