@@ -1,10 +1,12 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 import {
   inspectJwt,
   buildJwt,
@@ -31,6 +33,7 @@ import {
 })
 export class JwtInspector implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
 
   activeTab = signal<'inspect' | 'build' | 'verify' | 'compare'>('inspect');
 
@@ -83,12 +86,46 @@ export class JwtInspector implements OnInit {
     errorB?: string;
   } | null>(null);
 
+  constructor(private instanceService: InstanceService, private injector: Injector) {}
+
   ngOnInit() {
-    // Sample initial inspection token for instant demo
-    this.inspectInput.set(
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o',
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'jwt-inspector');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
     );
     this.inspect();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        inspectToken: this.inspectInput(),
+        buildAlgorithm: this.buildAlgorithm(),
+        buildSecret: this.buildSecret(),
+        buildPayload: this.buildPayload(),
+        verifyTokenInput: this.verifyTokenInput(),
+        verifySecretInput: this.verifySecretInput(),
+        compareTokenA: this.compareTokenA(),
+        compareTokenB: this.compareTokenB(),
+      },
+      output: { builtToken: this.builtToken() },
+      options: { activeTab: this.activeTab() },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.inspectInput.set(state.input['inspectToken']);
+    this.buildAlgorithm.set(state.input['buildAlgorithm']);
+    this.buildSecret.set(state.input['buildSecret']);
+    this.buildPayload.set(state.input['buildPayload']);
+    this.verifyTokenInput.set(state.input['verifyTokenInput']);
+    this.verifySecretInput.set(state.input['verifySecretInput']);
+    this.compareTokenA.set(state.input['compareTokenA']);
+    this.compareTokenB.set(state.input['compareTokenB']);
+    this.builtToken.set(state.output['builtToken'] ?? '');
+    this.activeTab.set(state.options['activeTab']);
   }
 
   setTab(tab: 'inspect' | 'build' | 'verify' | 'compare') {

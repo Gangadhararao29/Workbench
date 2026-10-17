@@ -8,27 +8,31 @@ import {
   ToolDefinition,
 } from './tool-registry';
 import { WorkspaceStorage } from '../workspace-storage';
+import { defaultToolStateFor } from './tool-state-defaults';
+import type { ToolStateSnapshot } from './tool-state';
 
-export interface ToolInstance<TConfig = Record<string, any>, TState = Record<string, any>> {
+export interface ToolInstance {
   id: string;
   toolType: string;
   label: string;
   groupId: string;
-  config: TConfig;
-  state?: TState;
+  config: Record<string, any>;
+  state: ToolStateSnapshot;
   version?: number;
   createdAt?: number;
   closedAt?: number;
 }
 
 const STORAGE_KEY = 'workbench.instances';
-const LEGACY_STORAGE_KEY = 'workbench.instances.v1';
+const ACTIVE_STORAGE_KEY = 'workbench.active-instance';
 const MAX_ARCHIVED = 50;
 
 @Injectable({ providedIn: 'root' })
 export class ToolInstanceService {
   private _instances = signal<ToolInstance[]>([]);
   private _activeId = signal<string | null>(null);
+  private hydrated = signal(false);
+  readonly ready: Promise<void>;
 
   searchQuery = signal('');
   rightDrawerOpened = signal(false);
@@ -56,21 +60,35 @@ export class ToolInstanceService {
   });
 
   constructor(private storage: WorkspaceStorage) {
-    this._instances.set(this.loadFromStorage());
+    this._instances.set([]);
     try {
       effect(() => {
-        this.storage.set(STORAGE_KEY, this._instances());
+        if (!this.hydrated()) return;
+        this.storage.set(STORAGE_KEY, this._instances(), 'workspaces');
+      });
+      effect(() => {
+        if (!this.hydrated()) return;
+        this.storage.set(ACTIVE_STORAGE_KEY, this._activeId(), 'workspaces');
       });
     } catch {
       // Handled when constructed outside of Angular injection context in unit tests
     }
+    this.ready = this.hydrateFromIndexedDb();
   }
 
-  private loadFromStorage(): ToolInstance[] {
-    return [];
-    const data = this.storage.get<ToolInstance[]>(STORAGE_KEY, []);
-    if (data.length > 0) return data;
-    return this.storage.get<ToolInstance[]>(LEGACY_STORAGE_KEY, []);
+  private async hydrateFromIndexedDb(): Promise<void> {
+    try {
+      const [instances, activeId] = await Promise.all([
+        this.storage.getAsync<ToolInstance[]>(STORAGE_KEY, [], 'workspaces'),
+        this.storage.getAsync<string | null>(ACTIVE_STORAGE_KEY, null, 'workspaces'),
+      ]);
+      if (instances.length > 0) this._instances.set(instances);
+      if (activeId && instances.some((instance) => instance.id === activeId)) {
+        this._activeId.set(activeId);
+      }
+    } finally {
+      this.hydrated.set(true);
+    }
   }
 
   open(toolType: string, groupId?: string): ToolInstance {
@@ -82,9 +100,9 @@ export class ToolInstanceService {
       id: crypto.randomUUID(),
       toolType,
       groupId: resolvedGroup,
-      label: `${toolLabelFor(toolType)} ${count > 0 ? count : ''}`,
+      label: count === 0 ? toolLabelFor(toolType) : `${toolLabelFor(toolType)} ${count + 1}`,
       config: defaultConfigFor(toolType),
-      state: {},
+      state: defaultToolStateFor(toolType) ?? { input: {}, output: {}, options: {} },
       version: 1,
       createdAt: Date.now(),
     };
@@ -185,14 +203,29 @@ export class ToolInstanceService {
     );
   }
 
-  updateState(id: string, patch: Record<string, any>) {
+  updateState(id: string, patch: Partial<ToolStateSnapshot>) {
+    const instances = this._instances();
+    const index = instances.findIndex((instance) => instance.id === id);
+    if (index === -1) return;
+
+    const instance = instances[index];
+    const current = instance.state;
+    const state = {
+      input: { ...current.input, ...patch.input },
+      output: { ...current.output, ...patch.output },
+      options: { ...current.options, ...patch.options },
+    };
+    const unchanged = (section: keyof ToolStateSnapshot) =>
+      Object.entries(patch[section] ?? {}).every(([key, value]) => Object.is(current[section][key], value));
+    if (unchanged('input') && unchanged('output') && unchanged('options')) return;
+
     this._instances.update((list) =>
-      list.map((i) => (i.id === id ? { ...i, state: { ...(i.state || {}), ...patch } } : i)),
+      list.map((item, itemIndex) => (itemIndex === index ? { ...item, state } : item)),
     );
   }
 
-  getState<T = Record<string, any>>(id: string): T | undefined {
-    return this._instances().find((i) => i.id === id)?.state as T | undefined;
+  getState(id: string): ToolStateSnapshot | undefined {
+    return this._instances().find((instance) => instance.id === id)?.state;
   }
 
   setRightDrawer(opened: boolean): void {
@@ -219,7 +252,7 @@ export class ToolInstanceService {
     if (!Array.isArray(workspace.instances)) throw new Error('Workspace instances are invalid.');
     this._instances.set(workspace.instances);
     this.storage.set('workbench.favorite-tools', workspace.favorites ?? []);
-    this.storage.set(STORAGE_KEY, workspace.instances);
+    this.storage.set(STORAGE_KEY, workspace.instances, 'workspaces');
   }
 }
 

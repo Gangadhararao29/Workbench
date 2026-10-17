@@ -13,9 +13,10 @@ describe('EfDbContext', () => {
     }).compileComponents();
 
     instanceService = TestBed.inject(InstanceService);
+    const instance = instanceService.open('ef-dbcontext');
     fixture = TestBed.createComponent(EfDbContext);
     component = fixture.componentInstance;
-    component.instanceId = 'test-ef-dbcontext';
+    component.instanceId = instance.id;
     await fixture.whenStable();
   });
 
@@ -58,14 +59,14 @@ describe('EfDbContext', () => {
     expect(component.result()).toContain('public static class ServiceCollectionExtensions');
   });
 
-  it('should sync changes to instance service when onParamChange is invoked', () => {
-    const updateSpy = vi.spyOn(instanceService, 'updateConfig');
+  it('should sync changes to ToolState when onParamChange is invoked', () => {
+    component.ngOnInit();
     component.contextName = 'StoreDbContext';
     component.namespace = 'Store.Infrastructure';
     component.provider = 'Sqlite';
     component.onParamChange();
 
-    expect(updateSpy).toHaveBeenCalledWith('test-ef-dbcontext', {
+    expect(instanceService.getState(component.instanceId)?.options).toMatchObject({
       contextName: 'StoreDbContext',
       namespace: 'Store.Infrastructure',
       provider: 'Sqlite',

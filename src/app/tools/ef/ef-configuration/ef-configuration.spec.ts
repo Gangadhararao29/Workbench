@@ -13,9 +13,10 @@ describe('EfConfiguration', () => {
     }).compileComponents();
 
     instanceService = TestBed.inject(InstanceService);
+    const instance = instanceService.open('ef-configuration');
     fixture = TestBed.createComponent(EfConfiguration);
     component = fixture.componentInstance;
-    component.instanceId = 'test-ef-configuration';
+    component.instanceId = instance.id;
     await fixture.whenStable();
   });
 
@@ -61,6 +62,18 @@ describe('EfConfiguration', () => {
     component.onInputChange(`public class OrderItem\n{\n    public int Id { get; set; }\n    public decimal UnitPrice { get; set; }\n}`);
     expect(component.result()).toContain('OrderItemConfiguration');
     expect(component.result()).toContain('builder.HasKey(e => e.Id);');
+  });
+
+  it('restores and persists input, output, active tab, and options per instance', () => {
+    component.ngOnInit();
+    component.onInputChange('public class Invoice { public int Id { get; set; } }');
+    component.setTab('both');
+
+    const state = instanceService.getState(component.instanceId)!;
+    expect(state.input['document']).toContain('class Invoice');
+    expect(state.output['document']).toContain('InvoiceConfiguration');
+    expect(state.options['activeTab']).toBe('both');
+    expect(state.options['tableNaming']).toBe('plural');
   });
 
   it('should copy result to clipboard', async () => {

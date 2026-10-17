@@ -2,10 +2,10 @@
 	<div class="search-toolbar">
 		<div class="search-input-wrapper">
 			<mat-icon class="search-icon">search</mat-icon>
-			<input [(ngModel)]="query" (input)="search()"
+			<input [ngModel]="query()" (ngModelChange)="onQueryChange($event)"
 				placeholder="Search indexes, column usage, foreign keys, reference data, or SQL keywords..." />
-			@if (query) {
-			<button type="button" class="btn-clear-search" (click)="query = ''; search()" aria-label="Clear search">
+			@if (query()) {
+			<button type="button" class="btn-clear-search" (click)="onQueryChange('')" aria-label="Clear search">
 				<mat-icon>close</mat-icon>
 			</button>
 			}

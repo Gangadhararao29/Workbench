@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { InstanceService } from '../../../core/tool/tool-instance';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { generateCSharpModelFromSql, SqlToCSharpOptions } from '../../../core/engines/sql-to-csharp-engine';
+import { ToolState } from '../../../core/tool/tool-state';
 
 @Component({
   selector: 'app-sql-to-csharp',
@@ -21,8 +22,9 @@ export class SqlToCsharp implements OnInit {
   result = signal('');
   copied = signal(false);
   errorMessage = signal<string | null>(null);
+  private toolState = signal<ToolState | null>(null);
 
-  constructor(private instanceService: InstanceService) {
+  constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
       // Re-run conversion reactively whenever input or sidebar options change
       this.convert();
@@ -30,13 +32,27 @@ export class SqlToCsharp implements OnInit {
   }
 
   ngOnInit(): void {
+    const toolState = new ToolState(this.instanceService, this.instanceId, 'sql-to-csharp');
+    this.toolState.set(toolState);
+    toolState.connect(
+      () => ({
+        input: { document: this.input() },
+        output: { document: this.result(), errorMessage: this.errorMessage() },
+        options: this.options(),
+      }),
+      (state) => {
+        this.input.set(state.input['document']);
+        this.result.set(state.output['document']);
+        this.errorMessage.set(state.output['errorMessage']);
+      },
+      this.injector,
+    );
     this.convert();
   }
 
-  config = computed(
+  options = computed(
     () =>
-      (this.instanceService.instances().find((i) => i.id === this.instanceId)?.config ??
-        {}) as SqlToCSharpOptions,
+      (this.toolState()?.state().options ?? {}) as SqlToCSharpOptions,
   );
 
   copyResult() {
@@ -59,7 +75,7 @@ export class SqlToCsharp implements OnInit {
       return;
     }
 
-    const res = generateCSharpModelFromSql(raw, this.config());
+    const res = generateCSharpModelFromSql(raw, this.options());
     if (res.error) {
       this.errorMessage.set(res.error);
       this.result.set(`// Error: ${res.error}`);

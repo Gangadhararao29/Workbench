@@ -1,9 +1,10 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState } from '../../../core/tool/tool-state';
 import { formatJson, validateJson } from '../../../core/engines/json-engine';
 
 @Component({
@@ -13,11 +14,12 @@ import { formatJson, validateJson } from '../../../core/engines/json-engine';
   templateUrl: './json-formatter.html',
   styleUrls: ['./json-formatter.css']
 })
-export class JsonFormatter {
+export class JsonFormatter implements OnInit {
   @Input({ required: true }) instanceId!: string;
 
-  input = signal('{"id":1,"name":"admin","roles":["read","write"]}');
-  result = signal('');
+  private toolState = signal<ToolState | null>(null);
+  input = computed(() => this.toolState()?.state().input['document'] ?? '');
+  result = computed(() => this.toolState()?.state().output['document'] ?? '');
   copied = signal(false);
   copyResult() {
     navigator.clipboard.writeText(this.result()).then(() => {
@@ -28,9 +30,19 @@ export class JsonFormatter {
   status = signal('');
   constructor(private instanceService: InstanceService) {}
 
-  config = computed(() =>
-    this.instanceService.instances().find(i => i.id === this.instanceId)?.config
-  );
+  ngOnInit(): void {
+    this.toolState.set(new ToolState(this.instanceService, this.instanceId));
+  }
+
+  onInputChange(value: string): void {
+    this.toolState()?.updateInput({ document: value });
+  }
+
+  clear(): void {
+    this.onInputChange('');
+  }
+
+  options = computed(() => this.toolState()?.state().options ?? {});
 
   format() {
     this.transform(false);
@@ -44,7 +56,7 @@ export class JsonFormatter {
     try {
       validateJson(this.input());
       this.status.set('Valid JSON');
-      this.result.set('');
+      this.toolState()?.updateOutput({ document: '' });
     } catch (e) {
       this.status.set('Invalid JSON: ' + (e as Error).message);
     }
@@ -52,16 +64,16 @@ export class JsonFormatter {
 
   private transform(compact: boolean) {
     try {
-      const indent = this.config()?.['indent'] === '4 spaces' ? 4 : 2;
-      this.result.set(formatJson(this.input(), {
+      const indent = this.options()['indent'] === '4 spaces' ? 4 : 2;
+      this.toolState()?.updateOutput({ document: formatJson(this.input(), {
         indent,
-        sortKeys: Boolean(this.config()?.['sortKeys']),
+        sortKeys: Boolean(this.options()['sortKeys']),
         compact
-      }));
+      }) });
       this.status.set('');
     } catch (e) {
       this.status.set('Invalid JSON: ' + (e as Error).message);
-      this.result.set('');
+      this.toolState()?.updateOutput({ document: '' });
     }
   }
 }

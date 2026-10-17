@@ -272,7 +272,7 @@
               <select
                 class="group-select"
                 [ngModel]="groupBy()"
-                (ngModelChange)="groupBy.set($event)"
+                (ngModelChange)="setGroupBy($event)"
               >
                 <option value="tag">🏷️ Tag (Swagger style)</option>
                 <option value="path">📁 Resource Path</option>

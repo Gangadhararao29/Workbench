@@ -49,17 +49,23 @@ export class ToolPage implements OnInit, OnDestroy {
       if (def) {
         this.groupId.set(def.group.id);
       }
-
-      const existing = this.scopedInstances();
-      if (existing.length === 0 && type) {
-        this.instanceService.open(type, this.groupId());
-      } else if (existing.length > 0) {
-        const active = this.instanceService.activeInstance();
-        if (!active || !existing.some((i) => i.id === active.id)) {
-          this.instanceService.select(existing[0].id);
-        }
-      }
+      void this.initializeTool(type);
     });
+  }
+
+  private async initializeTool(type: string): Promise<void> {
+    await this.instanceService.ready;
+    if (this.toolType() !== type) return;
+
+    const existing = this.scopedInstances();
+    if (existing.length === 0 && type) {
+      this.instanceService.open(type, this.groupId());
+    } else if (existing.length > 0) {
+      const active = this.instanceService.activeInstance();
+      if (!active || !existing.some((instance) => instance.id === active.id)) {
+        this.instanceService.select(existing[0].id);
+      }
+    }
   }
 
   ngOnDestroy(): void {

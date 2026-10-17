@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InstanceService, ToolInstance } from '../../core/tool/tool-instance';
+import { ToolState } from '../../core/tool/tool-state';
 
 @Component({
   selector: 'app-options-panel',
@@ -15,12 +16,28 @@ import { InstanceService, ToolInstance } from '../../core/tool/tool-instance';
   templateUrl: './options-panel.html',
   styleUrls: ['./options-panel.css']
 })
-export class OptionsPanel implements OnChanges {
-  @Input({ required: true }) instance!: ToolInstance;
+export class OptionsPanel {
+  private currentInstance!: ToolInstance;
+  @Input({ required: true })
+  set instance(instance: ToolInstance) {
+    this.currentInstance = instance;
+    if (!this.editingName) this.nameDraft = instance.label;
+    this.toolState = this.usesToolState(instance)
+      ? new ToolState(this.instanceService, instance.id)
+      : null;
+  }
+  get instance(): ToolInstance {
+    if (!this.currentInstance || !this.toolState) return this.currentInstance;
+    return {
+      ...this.currentInstance,
+      config: this.toolState.state().options,
+    };
+  }
   editingName = false;
   nameDraft = '';
   regexFilter = '';
   jsonPathFilter = '';
+  private toolState: ToolState | null = null;
 
   constructor(private instanceService: InstanceService) {}
 
@@ -36,10 +53,8 @@ export class OptionsPanel implements OnChanges {
     return token.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['instance'] && !this.editingName) {
-      this.nameDraft = this.instance.label;
-    }
+  private usesToolState(instance: ToolInstance): boolean {
+    return ['json', 'dotnet', 'sql', 'ef'].includes(instance.groupId);
   }
 
   startEditingName() {
@@ -60,6 +75,10 @@ export class OptionsPanel implements OnChanges {
   }
 
   update(key: string, value: any) {
-    this.instanceService.updateConfig(this.instance.id, { [key]: value });
+    if (this.toolState) {
+      this.toolState?.updateOptions({ [key]: value });
+    } else {
+      this.instanceService.updateConfig(this.instance.id, { [key]: value });
+    }
   }
 }

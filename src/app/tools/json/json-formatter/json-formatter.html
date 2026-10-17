@@ -4,14 +4,14 @@
     <div class="field-header">
       <label>JSON Input</label>
       <div class="input-actions">
-        <button type="button" class="action-link-btn" (click)="input.set('')">
+        <button type="button" class="action-link-btn" (click)="clear()">
           <mat-icon>clear_all</mat-icon>
           <span>Clear</span>
         </button>
       </div>
     </div>
     <app-code-editor [value]="input()" language="json" ariaLabel="JSON input"
-      (valueChange)="input.set($event)"></app-code-editor>
+      (valueChange)="onInputChange($event)"></app-code-editor>
   </div>
 
   <div class="toolbar-row">

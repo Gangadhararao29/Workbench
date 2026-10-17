@@ -1,10 +1,12 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, DoCheck, Input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { runScript, ScriptRunOptions } from '../../../core/engines/script-engine';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 export type RunnerStatus = 'idle' | 'running' | 'success' | 'error' | 'imported';
 
@@ -21,8 +23,12 @@ const DEFAULT_NAME = 'Fetch TODO (Async Demo)';
   templateUrl: './script-runner.html',
   styleUrls: ['./script-runner.css'],
 })
-export class ScriptRunner {
+export class ScriptRunner implements OnInit, DoCheck {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
+  private stateFingerprint = '';
+
+  constructor(private instanceService: InstanceService) {}
 
   inputs = DEFAULT_INPUTS;
   script = DEFAULT_SCRIPT;
@@ -43,6 +49,60 @@ export class ScriptRunner {
   status = signal<RunnerStatus>('idle');
   inputType: 'json' | 'object' = 'json';
 
+  ngOnInit(): void {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'script-runner');
+    this.restoreToolState(this.toolState.state());
+    this.stateFingerprint = JSON.stringify(this.readToolState());
+  }
+
+  ngDoCheck(): void {
+    const snapshot = this.readToolState();
+    const fingerprint = JSON.stringify(snapshot);
+    if (!this.toolState || fingerprint === this.stateFingerprint) return;
+    this.stateFingerprint = fingerprint;
+    this.toolState.save(snapshot);
+  }
+
+  private saveToolState(): void {
+    if (!this.toolState) return;
+    const snapshot = this.readToolState();
+    this.stateFingerprint = JSON.stringify(snapshot);
+    this.toolState.save(snapshot);
+  }
+
+  setScriptName(value: string): void {
+    this.scriptName = value;
+    this.saveToolState();
+  }
+
+  setScript(value: string): void {
+    this.script = value;
+    this.saveToolState();
+  }
+
+  setInputs(value: string): void {
+    this.inputs = value;
+    this.saveToolState();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: { inputs: this.inputs, script: this.script, scriptName: this.scriptName, definition: this.definition() },
+      output: { result: this.result(), status: this.status() === 'running' ? 'idle' : this.status() },
+      options: { inputType: this.inputType },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.inputs = state.input['inputs'];
+    this.script = state.input['script'];
+    this.scriptName = state.input['scriptName'];
+    this.definition.set(state.input['definition']);
+    this.result.set(state.output['result'] ?? '');
+    this.status.set(state.output['status'] ?? 'idle');
+    this.inputType = state.options['inputType'] ?? 'json';
+  }
+
   setInputType(type: 'json' | 'object') {
     this.inputType = type;
     if (type === 'json') {
@@ -53,6 +113,7 @@ export class ScriptRunner {
         // Keep inputs as is if not valid JSON
       }
     }
+    this.saveToolState();
   }
 
   async execute() {
@@ -97,6 +158,7 @@ export class ScriptRunner {
       this.result.set(errorText);
       this.status.set('error');
     }
+    this.saveToolState();
   }
 
   reset() {
@@ -116,6 +178,7 @@ export class ScriptRunner {
     );
     this.result.set('');
     this.status.set('idle');
+    this.saveToolState();
   }
 
   exportDefinition() {
@@ -132,6 +195,7 @@ export class ScriptRunner {
         2,
       ),
     );
+    this.saveToolState();
   }
 
   importDefinition() {
@@ -161,5 +225,6 @@ export class ScriptRunner {
       this.result.set('Invalid script definition JSON syntax.');
       this.status.set('error');
     }
+    this.saveToolState();
   }
 }

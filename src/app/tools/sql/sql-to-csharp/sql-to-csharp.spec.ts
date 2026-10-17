@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SqlToCsharp } from './sql-to-csharp';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState } from '../../../core/tool/tool-state';
 
 describe('SqlToCsharp', () => {
   let component: SqlToCsharp;
@@ -28,7 +29,7 @@ describe('SqlToCsharp', () => {
   });
 
   it('should reactively update when outputType option changes to record', async () => {
-    instanceService.updateConfig(component.instanceId, { outputType: 'record' });
+    new ToolState(instanceService, component.instanceId).updateOptions({ outputType: 'record' });
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -37,7 +38,7 @@ describe('SqlToCsharp', () => {
   });
 
   it('should reactively update when outputType option changes to ef', async () => {
-    instanceService.updateConfig(component.instanceId, { outputType: 'ef' });
+    new ToolState(instanceService, component.instanceId).updateOptions({ outputType: 'ef' });
     fixture.detectChanges();
     await fixture.whenStable();
 

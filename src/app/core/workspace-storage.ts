@@ -30,15 +30,14 @@ const db = new WorkbenchDb();
 // ---------------------------------------------------------------------------
 
 /**
- * Thin key/value store backed by IndexedDB via Dexie.
+ * IndexedDB-backed persistence layer.
  *
- * Falls back to `localStorage` synchronously for the `get` convenience method
- * so that callers that cannot await still get a value on first render, while
- * the async methods provide the durable IndexedDB path.
+ * Legacy localStorage state is intentionally ignored. This app starts fresh on
+ * deployment and keeps IndexedDB as the only persistent source.
  */
 @Injectable({ providedIn: 'root' })
 export class WorkspaceStorage {
-  // ---- Async (IndexedDB) --------------------------------------------------
+  private memoryStore = new Map<string, string>();
 
   async getAsync<T>(key: string, fallback: T, table: 'settings' | 'workspaces' = 'settings'): Promise<T> {
     try {
@@ -62,43 +61,14 @@ export class WorkspaceStorage {
     return Object.fromEntries(entries.map(e => [e.key, JSON.parse(e.value) as T]));
   }
 
-  // ---- Sync convenience (localStorage — for backward compatibility) --------
-
-  private memoryStore = new Map<string, string>();
-
   get<T>(key: string, fallback: T): T {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const raw = window.localStorage.getItem(key);
-        return raw === null ? fallback : (JSON.parse(raw) as T);
-      }
-      if (typeof localStorage !== 'undefined' && localStorage) {
-        const raw = localStorage.getItem(key);
-        return raw === null ? fallback : (JSON.parse(raw) as T);
-      }
-      const mem = this.memoryStore.get(key);
-      return mem === undefined ? fallback : (JSON.parse(mem) as T);
-    } catch {
-      const mem = this.memoryStore.get(key);
-      return mem === undefined ? fallback : (JSON.parse(mem) as T);
-    }
+    const mem = this.memoryStore.get(key);
+    return mem === undefined ? fallback : (JSON.parse(mem) as T);
   }
 
-  set<T>(key: string, value: T): void {
+  set<T>(key: string, value: T, table: 'settings' | 'workspaces' = 'settings'): void {
     const serialized = JSON.stringify(value);
     this.memoryStore.set(key, serialized);
-
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(key, serialized);
-      } else if (typeof localStorage !== 'undefined' && localStorage) {
-        localStorage.setItem(key, serialized);
-      }
-    } catch {
-      // Ignore storage errors in non-browser/restricted environments
-    }
-
-    // Also persist to IndexedDB in the background
-    this.setAsync(key, value).catch(() => void 0);
+    this.setAsync(key, value, table).catch(() => void 0);
   }
 }
