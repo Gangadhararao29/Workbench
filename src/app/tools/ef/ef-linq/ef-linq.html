@@ -15,7 +15,7 @@
         [class.active]="viewMode() === 'cheatsheet'"
         (click)="setViewMode('cheatsheet')"
       >
-        <mat-icon>menu_book</mat-icon> SQL ↔ LINQ Cheatsheet & Guide
+        <mat-icon>menu_book</mat-icon> SQL ↔ LINQ Cheatsheet
       </button>
     </div>
 
@@ -117,29 +117,49 @@
 
         <div class="form-row">
           <label>Entity Name</label>
-          <input [(ngModel)]="entityName" (ngModelChange)="generate()" placeholder="Customer, Order, Product" />
+          <input
+            [(ngModel)]="entityName"
+            (ngModelChange)="generate()"
+            placeholder="Customer, Order, Product"
+          />
         </div>
 
         <div class="form-row">
           <label>DbContext Variable</label>
-          <input [(ngModel)]="contextVar" (ngModelChange)="generate()" placeholder="_context or context" />
+          <input
+            [(ngModel)]="contextVar"
+            (ngModelChange)="generate()"
+            placeholder="_context or context"
+          />
         </div>
 
         @if (activePattern() === 'eager-loading') {
           <div class="form-row">
             <label>Include Navigation</label>
-            <input [(ngModel)]="includeNavigation" (ngModelChange)="generate()" placeholder="Orders" />
+            <input
+              [(ngModel)]="includeNavigation"
+              (ngModelChange)="generate()"
+              placeholder="Orders"
+            />
           </div>
           <div class="form-row">
             <label>ThenInclude Navigation</label>
-            <input [(ngModel)]="thenIncludeNav" (ngModelChange)="generate()" placeholder="OrderItems" />
+            <input
+              [(ngModel)]="thenIncludeNav"
+              (ngModelChange)="generate()"
+              placeholder="OrderItems"
+            />
           </div>
         }
 
         @if (activePattern() === 'batch-operations') {
           <div class="form-row">
             <label>Batch Condition (.Where)</label>
-            <input [(ngModel)]="batchCondition" (ngModelChange)="generate()" placeholder="c.Status == CustomerStatus.Pending" />
+            <input
+              [(ngModel)]="batchCondition"
+              (ngModelChange)="generate()"
+              placeholder="c.Status == CustomerStatus.Pending"
+            />
           </div>
         }
 
@@ -151,27 +171,39 @@
         }
 
         <div class="checkbox-row">
-          <mat-slide-toggle [(ngModel)]="asNoTracking" (ngModelChange)="generate()">AsNoTracking() (Faster Read-only)</mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="asNoTracking" (ngModelChange)="generate()"
+            >AsNoTracking() (Faster Read-only)</mat-slide-toggle
+          >
         </div>
         <div class="checkbox-row">
-          <mat-slide-toggle [(ngModel)]="useCancellationToken" (ngModelChange)="generate()">Include CancellationToken</mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="useCancellationToken" (ngModelChange)="generate()"
+            >Include CancellationToken</mat-slide-toggle
+          >
         </div>
         <div class="checkbox-row">
-          <mat-slide-toggle [(ngModel)]="useTagWith" (ngModelChange)="generate()">Tag Query with .TagWith()</mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="useTagWith" (ngModelChange)="generate()"
+            >Tag Query with .TagWith()</mat-slide-toggle
+          >
         </div>
         @if (useTagWith) {
           <div class="form-row">
             <label>Query Tag Text</label>
-            <input [(ngModel)]="tagText" (ngModelChange)="generate()" placeholder="e.g. GetActiveCustomersWithOrders" />
+            <input
+              [(ngModel)]="tagText"
+              (ngModelChange)="generate()"
+              placeholder="e.g. GetActiveCustomersWithOrders"
+            />
           </div>
         }
         <div class="checkbox-row">
-          <mat-slide-toggle [(ngModel)]="wrapInHandler" (ngModelChange)="generate()">Wrap in Handler Class</mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="wrapInHandler" (ngModelChange)="generate()"
+            >Wrap in Handler Class</mat-slide-toggle
+          >
         </div>
       </div>
 
       <!-- Right Code Output -->
-      <div class="output-panel field grow">
+      <div class="output-panel field">
         <div class="pane-header">
           <div>
             <label>C# / EF Core Query Code</label>
@@ -226,8 +258,12 @@
                 <pre class="code-block sql-block"><code>{{ card.sql }}</code></pre>
               </div>
               <div class="code-column">
-                <div class="code-title">EF Core LINQ ({{ syntaxStyle() === 'method' ? 'Method Syntax' : 'Query Syntax' }})</div>
-                <pre class="code-block linq-block"><code>{{ syntaxStyle() === 'method' ? card.linqMethod : card.linqQuery }}</code></pre>
+                <div class="code-title">
+                  EF Core LINQ ({{ syntaxStyle() === 'method' ? 'Method Syntax' : 'Query Syntax' }})
+                </div>
+                <pre
+                  class="code-block linq-block"
+                ><code>{{ syntaxStyle() === 'method' ? card.linqMethod : card.linqQuery }}</code></pre>
               </div>
             </div>
             <div class="card-footer">

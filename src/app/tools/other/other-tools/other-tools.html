@@ -1,0 +1,225 @@
+<div class="tool-surface-inner ">
+
+  <!-- Header Banner -->
+  <header class="hub-header">
+    <div class="hub-header-main">
+      <div class="hub-title-row">
+        <div class="hub-icon-wrapper">
+          <mat-icon>handyman</mat-icon>
+        </div>
+        <div class="hub-title-text">
+          <h1>Other Tools & Web Resources</h1>
+          <p>Curated directory of external developer utilities, generators, converters, and design assets.</p>
+        </div>
+      </div>
+      <div class="hub-stats">
+        <span class="stat-badge">
+          <mat-icon>category</mat-icon>
+          {{ categories.length - 1 }} Categories
+        </span>
+        <span class="stat-badge">
+          <mat-icon>link</mat-icon>
+          {{ tools.length }} Tools
+        </span>
+      </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="hub-search-bar">
+      <div class="hub-search-input-wrap">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" class="hub-search-input"
+          placeholder="Search tools by name, description, URL, or tag (e.g. diff, tinypng, babel, wireframe)..."
+          [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" />
+        @if (searchQuery()) {
+        <button type="button" class="hub-clear-search-btn" (click)="searchQuery.set('')" matTooltip="Clear search"
+          aria-label="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
+        }
+      </div>
+      @if (searchQuery().trim()) {
+      <div class="hub-search-count">
+        Found {{ filteredTools().length }} {{ filteredTools().length === 1 ? 'tool' : 'tools' }}
+      </div>
+      }
+    </div>
+
+    <!-- Category Filter Pills -->
+    <nav class="category-pills" aria-label="Tool Categories">
+      @for (cat of categories; track cat.id) {
+      <button type="button" class="category-pill" [class.active]="activeCategory() === cat.id"
+        (click)="selectCategory(cat.id)">
+        <mat-icon class="pill-icon">{{ cat.icon }}</mat-icon>
+        <span class="pill-label">{{ cat.name }}</span>
+        <span class="pill-count">{{ getCategoryCount(cat.id) }}</span>
+      </button>
+      }
+    </nav>
+  </header>
+
+  <!-- Starred / Pinned Section (if any and not actively searching a different category) -->
+  @if (starredTools().length > 0 && activeCategory() === 'all' && !searchQuery().trim()) {
+  <section class="hub-section starred-section">
+    <div class="section-title-row">
+      <mat-icon class="starred-icon">star</mat-icon>
+      <h2>Starred Tools</h2>
+      <span class="section-badge">{{ starredTools().length }}</span>
+    </div>
+    <div class="tools-grid">
+      @for (tool of starredTools(); track tool.url) {
+      <article class="tool-card starred-card">
+        <div class="card-header">
+          <div class="tool-icon-box">
+            <mat-icon>{{ tool.icon }}</mat-icon>
+          </div>
+          <div class="tool-meta">
+            <h3 class="tool-name">{{ tool.name }}</h3>
+            <span class="tool-domain">{{ getDomain(tool.url) }}</span>
+          </div>
+          <button type="button" class="star-btn active" (click)="toggleFavorite(tool.url, $event)"
+            matTooltip="Remove from starred" aria-label="Remove from starred">
+            <mat-icon>star</mat-icon>
+          </button>
+        </div>
+
+        <p class="tool-desc">{{ tool.description }}</p>
+
+        <div class="card-footer">
+          <span class="tool-tag">{{ tool.tag }}</span>
+          <div class="card-actions">
+            <button type="button" class="action-btn copy-btn" [class.copied]="copiedUrl() === tool.url"
+              (click)="copyUrl(tool.url, $event)" [matTooltip]="copiedUrl() === tool.url ? 'Copied!' : 'Copy link'"
+              aria-label="Copy tool URL">
+              <mat-icon>{{ copiedUrl() === tool.url ? 'check' : 'content_copy' }}</mat-icon>
+              <span>{{ copiedUrl() === tool.url ? 'Copied' : 'Copy' }}</span>
+            </button>
+            <a [href]="tool.url" target="_blank" rel="noopener noreferrer" class="action-btn visit-btn"
+              matTooltip="Open in new tab" [attr.aria-label]="'Visit ' + tool.name">
+              <span>Visit</span>
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+      </article>
+      }
+    </div>
+  </section>
+  }
+
+  <!-- Empty Search State -->
+  @if (filteredTools().length === 0) {
+  <div class="empty-state">
+    <div class="empty-icon-wrap">
+      <mat-icon>search_off</mat-icon>
+    </div>
+    <h3>No matching tools found</h3>
+    <p>No external tools matched your current filter "{{ searchQuery().trim() }}".</p>
+    <button type="button" class="btn-reset" (click)="clearSearch()">
+      <mat-icon>restart_alt</mat-icon>
+      Reset Filters
+    </button>
+  </div>
+  }
+
+  <!-- Filtered View (when searching or viewing a single category) -->
+  @if (filteredTools().length > 0 && (activeCategory() !== 'all' || searchQuery().trim())) {
+  <section class="hub-section">
+    <div class="tools-grid">
+      @for (tool of filteredTools(); track tool.url) {
+      <article class="tool-card">
+        <div class="card-header">
+          <div class="tool-icon-box">
+            <mat-icon>{{ tool.icon }}</mat-icon>
+          </div>
+          <div class="tool-meta">
+            <h3 class="tool-name">{{ tool.name }}</h3>
+            <span class="tool-domain">{{ getDomain(tool.url) }}</span>
+          </div>
+          <button type="button" class="star-btn" [class.active]="isFavorite(tool.url)"
+            (click)="toggleFavorite(tool.url, $event)"
+            [matTooltip]="isFavorite(tool.url) ? 'Remove from starred' : 'Star this tool'"
+            [attr.aria-label]="isFavorite(tool.url) ? 'Remove from starred' : 'Star this tool'">
+            <mat-icon>{{ isFavorite(tool.url) ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+        </div>
+
+        <p class="tool-desc">{{ tool.description }}</p>
+
+        <div class="card-footer">
+          <span class="tool-tag">{{ tool.tag }}</span>
+          <div class="card-actions">
+            <button type="button" class="action-btn copy-btn" [class.copied]="copiedUrl() === tool.url"
+              (click)="copyUrl(tool.url, $event)" [matTooltip]="copiedUrl() === tool.url ? 'Copied!' : 'Copy link'"
+              aria-label="Copy tool URL">
+              <mat-icon>{{ copiedUrl() === tool.url ? 'check' : 'content_copy' }}</mat-icon>
+              <span>{{ copiedUrl() === tool.url ? 'Copied' : 'Copy' }}</span>
+            </button>
+            <a [href]="tool.url" target="_blank" rel="noopener noreferrer" class="action-btn visit-btn"
+              matTooltip="Open in new tab" [attr.aria-label]="'Visit ' + tool.name">
+              <span>Visit</span>
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+      </article>
+      }
+    </div>
+  </section>
+  }
+
+  <!-- Categorized Group View (when 'all' is selected with no search) -->
+  @if (filteredTools().length > 0 && activeCategory() === 'all' && !searchQuery().trim()) {
+  @for (group of groupedTools(); track group.category.id) {
+  <section class="hub-section">
+    <div class="section-title-row">
+      <mat-icon class="section-icon">{{ group.category.icon }}</mat-icon>
+      <h2>{{ group.category.name }}</h2>
+      <span class="section-badge">{{ group.tools.length }}</span>
+    </div>
+
+    <div class="tools-grid">
+      @for (tool of group.tools; track tool.url) {
+      <article class="tool-card">
+        <div class="card-header">
+          <div class="tool-icon-box">
+            <mat-icon>{{ tool.icon }}</mat-icon>
+          </div>
+          <div class="tool-meta">
+            <h3 class="tool-name">{{ tool.name }}</h3>
+            <span class="tool-domain">{{ getDomain(tool.url) }}</span>
+          </div>
+          <button type="button" class="star-btn" [class.active]="isFavorite(tool.url)"
+            (click)="toggleFavorite(tool.url, $event)"
+            [matTooltip]="isFavorite(tool.url) ? 'Remove from starred' : 'Star this tool'"
+            [attr.aria-label]="isFavorite(tool.url) ? 'Remove from starred' : 'Star this tool'">
+            <mat-icon>{{ isFavorite(tool.url) ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+        </div>
+
+        <p class="tool-desc">{{ tool.description }}</p>
+
+        <div class="card-footer">
+          <span class="tool-tag">{{ tool.tag }}</span>
+          <div class="card-actions">
+            <button type="button" class="action-btn copy-btn" [class.copied]="copiedUrl() === tool.url"
+              (click)="copyUrl(tool.url, $event)" [matTooltip]="copiedUrl() === tool.url ? 'Copied!' : 'Copy link'"
+              aria-label="Copy tool URL">
+              <mat-icon>{{ copiedUrl() === tool.url ? 'check' : 'content_copy' }}</mat-icon>
+              <span>{{ copiedUrl() === tool.url ? 'Copied' : 'Copy' }}</span>
+            </button>
+            <a [href]="tool.url" target="_blank" rel="noopener noreferrer" class="action-btn visit-btn"
+              matTooltip="Open in new tab" [attr.aria-label]="'Visit ' + tool.name">
+              <span>Visit</span>
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          </div>
+        </div>
+      </article>
+      }
+    </div>
+  </section>
+  }
+  }
+
+</div>

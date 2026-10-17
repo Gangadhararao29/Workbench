@@ -145,7 +145,7 @@
 .ticker-action-btn mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 /* ==========================================================================
@@ -177,7 +177,7 @@
 .nav-tab-btn mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .nav-tab-btn:hover {
@@ -304,7 +304,7 @@
 .detected-badge mat-icon {
   font-size: 12px;
   width: 12px;
-  height: 12px;
+  height: auto;
 }
 
 .presets-row {
@@ -354,7 +354,7 @@
 .error-banner mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 /* Adjuster Card */
@@ -388,7 +388,7 @@
 .adjuster-title mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .adjuster-mode-toggle {
@@ -573,7 +573,7 @@
 .btn-copy-row mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 /* Calendar Meta Grid */
@@ -637,7 +637,7 @@
   color: var(--mat-sys-outline);
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 .search-input {
@@ -745,7 +745,7 @@
 .btn-copy-mini mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 /* ==========================================================================
@@ -819,7 +819,7 @@
 .op-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .math-inputs-grid {

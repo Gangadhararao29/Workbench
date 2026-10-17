@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -12,13 +12,13 @@
   padding: 8px 12px;
   margin: 0 0 8px 0;
   border-radius: 6px;
-  background-color: var(--mat-sys-error-container, #ffebee);
-  color: var(--mat-sys-on-error-container, #c62828);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
   font-size: 13px;
 }
 
 .error-banner mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }

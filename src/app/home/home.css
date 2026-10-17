@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -39,7 +39,7 @@
 .home-hero-icon mat-icon {
   font-size: 28px;
   width: 28px;
-  height: 28px;
+  height: auto;
   color: var(--mat-sys-primary);
 }
 
@@ -240,7 +240,7 @@
 .home-tab mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 /* ── Home Feature Card (Upcoming Features) ───────────────────────────────── */
@@ -305,7 +305,7 @@
 }
 
 .github-link-btn:hover {
-  background: color-mix(in srgb, var(--mat-sys-primary) 85%, #000000);
+  background: color-mix(in srgb, var(--mat-sys-primary) 85%, var(--mat-sys-shadow));
   transform: translateY(-2px);
   box-shadow: 0 6px 16px color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
 }

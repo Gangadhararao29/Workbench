@@ -67,6 +67,7 @@ export class ToolInstanceService {
   }
 
   private loadFromStorage(): ToolInstance[] {
+    return [];
     const data = this.storage.get<ToolInstance[]>(STORAGE_KEY, []);
     if (data.length > 0) return data;
     return this.storage.get<ToolInstance[]>(LEGACY_STORAGE_KEY, []);
@@ -81,7 +82,7 @@ export class ToolInstanceService {
       id: crypto.randomUUID(),
       toolType,
       groupId: resolvedGroup,
-      label: `${toolLabelFor(toolType)} ${count + 1}`,
+      label: `${toolLabelFor(toolType)} ${count > 0 ? count : ''}`,
       config: defaultConfigFor(toolType),
       state: {},
       version: 1,

@@ -1,4 +1,4 @@
-/* toolbar-row, format-actions, result-label, field-header — from tool-common.css */
+﻿/* toolbar-row, format-actions, result-label, field-header — from tool-common.css */
 
 :host {
   display: flex;
@@ -10,16 +10,14 @@
 
 /* ── JSON Input Field & Height ────────────────────────────── */
 .json-input-field {
-  flex: 1 1 50%;
-  min-height: 220px;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
 }
 
 .json-input-field app-code-editor {
-  flex: 1 1 auto;
-  height: 100%;
-  min-height: 180px;
+  height: 220px;
+  min-height: 140px;
 }
 
 /* ── Click-to-path Header Toggle ───────────────────────────── */
@@ -104,7 +102,9 @@
   border: none;
   background: transparent;
   color: var(--mat-sys-on-surface);
-  font: 13px/1.5 'Roboto Mono', monospace;
+  font:
+    13px/1.5 'Roboto Mono',
+    monospace;
   outline: none;
   padding: 7px 0;
   min-width: 0;
@@ -120,7 +120,9 @@
   justify-content: center;
   color: var(--mat-sys-on-surface-variant);
   border-radius: 50%;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .clear-btn:hover {
@@ -160,7 +162,7 @@
 .cheat-sheet-btn mat-icon {
   font-size: 16px;
   width: 16px;
-  height: 16px;
+  height: auto;
 }
 
 .evaluate-btn {
@@ -175,7 +177,7 @@
   font-weight: 600 !important;
   white-space: nowrap;
   letter-spacing: 0.3px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--mat-sys-shadow) 15%, transparent);
 }
 
 .evaluate-btn ::ng-deep .mdc-button__label {
@@ -188,7 +190,7 @@
 .evaluate-btn mat-icon {
   font-size: 18px !important;
   width: 18px !important;
-  height: 18px !important;
+  height: auto !important;
   margin: 0 !important;
 }
 
@@ -213,18 +215,6 @@
 }
 
 /* ── Result Field & Segmented Switch ───────────────────────── */
-.result-field {
-  flex: 1 1 50%;
-  min-height: 220px;
-  display: flex;
-  flex-direction: column;
-}
-
-.result-field app-code-editor {
-  flex: 1 1 auto;
-  height: 100%;
-  min-height: 180px;
-}
 
 .result-header-left {
   display: flex;

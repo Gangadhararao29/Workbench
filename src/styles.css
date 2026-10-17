@@ -28,44 +28,24 @@
 
 /* Global Regex Match Highlights */
 mark.regex-match {
-  background: rgba(234, 179, 8, 0.25);
-  color: #713f12;
+  background: var(--mark-bg);
+  color: var(--mark-fg);
   padding: 1px 4px;
   border-radius: 3px;
-  border: 1px solid rgba(202, 138, 4, 0.4);
-  border-bottom: 2px solid #ca8a04;
+  border: 1px solid var(--mark-border);
+  border-bottom: 2px solid var(--mark-border-bottom);
   font-weight: 700;
 }
 
-body.dark-theme mark.regex-match {
-  background: rgba(234, 179, 8, 0.28) !important;
-  color: #fde047 !important;
-  border: 1px solid rgba(250, 204, 21, 0.4) !important;
-  border-bottom: 2px solid #facc15 !important;
-  box-shadow: 0 0 6px rgba(234, 179, 8, 0.2);
-  font-weight: 700;
-}
-
-/* Global cURL Button */
+/* Global cURL Button — M3-token based */
 .curl-btn {
-  background: #eff6ff;
-  border: 1px solid #93c5fd;
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, var(--mat-sys-surface-container));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 35%, transparent);
+  color: var(--mat-sys-tertiary);
   font-weight: 700;
-}
-body.dark-theme .curl-btn {
-  background: rgba(37, 99, 235, 0.25);
-  border: 1px solid rgba(96, 165, 250, 0.5);
-  color: #93c5fd;
 }
 .curl-btn:hover {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #1d4ed8;
+  background: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary);
+  border-color: var(--mat-sys-tertiary);
 }
-body.dark-theme .curl-btn:hover {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #60a5fa;
-}
-

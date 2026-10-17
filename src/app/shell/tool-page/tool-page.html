@@ -4,39 +4,24 @@
   <div class="tool-instance-bar">
     <div class="tabs-scroll-area">
       @for (instance of scopedInstances(); track instance.id) {
-        <div
-          class="scoped-tab"
-          [class.active]="selectedInstance()?.id === instance.id"
-          (click)="selectInstance(instance.id)"
-          [attr.aria-selected]="selectedInstance()?.id === instance.id"
-          role="tab"
-        >
-          <span class="tab-label">{{ instance.label }}</span>
-          @if (scopedInstances().length > 1) {
-            <button
-              class="tab-close-btn"
-              (click)="closeInstance(instance.id, $event)"
-              matTooltip="Close Tab"
-              aria-label="Close tab"
-            >
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-        </div>
+      <div class="scoped-tab" [class.active]="selectedInstance()?.id === instance.id"
+        (click)="selectInstance(instance.id)" [attr.aria-selected]="selectedInstance()?.id === instance.id" role="tab">
+        <span class="tab-label">{{ instance.label }}</span>
+        @if (scopedInstances().length > 1) {
+        <button class="tab-close-btn" (click)="closeInstance(instance.id, $event)" matTooltip="Close Tab"
+          aria-label="Close tab">
+          <mat-icon>close</mat-icon>
+        </button>
+        }
+      </div>
       }
     </div>
 
     <div class="tab-actions">
-      <button
-        mat-icon-button
-        class="tab-action-btn"
-        (click)="addInstance()"
-        matTooltip="New Tab"
-        aria-label="New tab"
-      >
+      <button mat-icon-button class="tab-action-btn" (click)="addInstance()" matTooltip="New Tab" aria-label="New tab">
         <mat-icon>add</mat-icon>
       </button>
-      <button
+      <!-- <button
         mat-icon-button
         class="tab-action-btn"
         (click)="cloneInstance()"
@@ -44,22 +29,19 @@
         aria-label="Duplicate tab"
       >
         <mat-icon>content_copy</mat-icon>
-      </button>
+      </button> -->
     </div>
   </div>
 
   <!-- Active Tool Rendering: Keep-alive for all open instances, display only selected tab -->
   <div class="tool-surface">
     @for (inst of instanceService.instances(); track inst.id) {
-      <div
-        class="instance-container"
-        [class.active-instance]="inst.id === selectedInstance()?.id"
-        [hidden]="inst.id !== selectedInstance()?.id"
-      >
-        @if (getToolComponent(inst.toolType); as comp) {
-          <ng-container *ngComponentOutlet="comp; inputs: { instanceId: inst.id }" />
-        }
-      </div>
+    <div class="instance-container" [class.active-instance]="inst.id === selectedInstance()?.id"
+      [hidden]="inst.id !== selectedInstance()?.id">
+      @if (getToolComponent(inst.toolType); as comp) {
+      <ng-container *ngComponentOutlet="comp; inputs: { instanceId: inst.id }" />
+      }
+    </div>
     }
   </div>
 

@@ -108,7 +108,7 @@
 .tab-close-btn mat-icon {
   font-size: 14px;
   width: 14px;
-  height: 14px;
+  height: auto;
 }
 
 .tab-actions {
@@ -132,7 +132,7 @@
 .tab-action-btn mat-icon {
   font-size: 18px;
   width: 18px;
-  height: 18px;
+  height: auto;
 }
 
 /* ── Tool Surface ─────────────────────────────────────────────────────── */
