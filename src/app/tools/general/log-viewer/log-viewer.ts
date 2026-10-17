@@ -1,10 +1,12 @@
-import { Component, Input, OnInit, signal, computed } from '@angular/core';
+import { Component, Injector, Input, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug' | 'unknown';
 type LevelFilter = 'all' | LogLevel;
@@ -127,6 +129,7 @@ function makeEntry(partial: Partial<LogEntry> & { rawLine: string }): LogEntry {
 })
 export class LogViewer implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
 
   rawLogs = `{"timestamp":"2026-08-23T10:14:22.123Z","level":"INFO","message":"User login successful","userId":"user_890","ip":"192.168.1.45"}
 {"timestamp":"2026-08-23T10:14:25.456Z","level":"WARN","message":"Slow database query detected","durationMs":820,"sql":"SELECT * FROM users WHERE status = 'active'"}
@@ -154,10 +157,37 @@ fail: MyApp.Services.PaymentService[3]
     { value: 'plaintext', label: 'Plain text' },
   ];
 
+  constructor(private instanceService: InstanceService, private injector: Injector) {}
+
   ngOnInit() {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'log-viewer');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
     // TODO: replace with a real fetch keyed on instanceId, e.g.
     // this.logsService.fetchLogs(this.instanceId).subscribe(text => { this.rawLogs = text; this.parseLogs(); });
     if (this.rawLogs) this.parseLogs();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: { rawLogs: this.rawLogs },
+      output: {},
+      options: {
+        activeLevel: this.activeLevel(),
+        searchQuery: this.searchQuery(),
+        selectedFormat: this.selectedFormat(),
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.rawLogs = state.input['rawLogs'];
+    this.activeLevel.set(state.options['activeLevel']);
+    this.searchQuery.set(state.options['searchQuery']);
+    this.selectedFormat.set(state.options['selectedFormat']);
   }
 
   setFormat(format: LogFormat) {
@@ -172,6 +202,7 @@ fail: MyApp.Services.PaymentService[3]
   loadRawLogs(text: string) {
     this.rawLogs = text;
     this.parseLogs();
+    this.toolState?.save(this.readToolState());
   }
 
   parseLogs() {
@@ -496,6 +527,7 @@ fail: MyApp.Services.PaymentService[3]
     this.searchQuery.set('');
     this.activeLevel.set('all');
     this.detectedFormat.set(null);
+    this.toolState?.save(this.readToolState());
   }
 
   formatMetadata(metadata: any): string {

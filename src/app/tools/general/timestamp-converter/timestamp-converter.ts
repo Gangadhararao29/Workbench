@@ -1,5 +1,6 @@
 import {
   Component,
+  Injector,
   Input,
   OnInit,
   OnDestroy,
@@ -26,6 +27,7 @@ import {
   FormattedTimestampOutputs,
 } from '../../../core/engines/timestamp-engine';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 @Component({
   selector: 'app-timestamp-converter',
@@ -38,6 +40,8 @@ export class TimestampConverter implements OnInit, OnDestroy {
   @Input({ required: true }) instanceId!: string;
 
   private instanceService = inject(InstanceService);
+  private injector = inject(Injector);
+  private toolState: ToolState | null = null;
 
   // Tabs: 'convert' | 'timezones' | 'math' | 'snippets'
   activeTab = signal<'convert' | 'timezones' | 'math' | 'snippets'>('convert');
@@ -199,7 +203,68 @@ export class TimestampConverter implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.startTicker();
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'timestamp-converter');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+    if (this.tickerRunning()) this.startTicker();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        timestamp: this.input(),
+        timezoneQuery: this.timezoneQuery(),
+        adjYear: this.adjYear(),
+        adjMonth: this.adjMonth(),
+        adjDay: this.adjDay(),
+        adjHour: this.adjHour(),
+        adjMinute: this.adjMinute(),
+        adjSecond: this.adjSecond(),
+        mathYears: this.mathYears(),
+        mathMonths: this.mathMonths(),
+        mathDays: this.mathDays(),
+        mathHours: this.mathHours(),
+        mathMinutes: this.mathMinutes(),
+        mathSeconds: this.mathSeconds(),
+        diffDateA: this.diffDateA(),
+        diffDateB: this.diffDateB(),
+      },
+      output: {},
+      options: {
+        activeTab: this.activeTab(),
+        unit: this.unit(),
+        adjusterMode: this.adjusterMode(),
+        mathOp: this.mathOp(),
+        tickerRunning: this.tickerRunning(),
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.input.set(state.input['timestamp']);
+    this.timezoneQuery.set(state.input['timezoneQuery']);
+    this.adjYear.set(state.input['adjYear']);
+    this.adjMonth.set(state.input['adjMonth']);
+    this.adjDay.set(state.input['adjDay']);
+    this.adjHour.set(state.input['adjHour']);
+    this.adjMinute.set(state.input['adjMinute']);
+    this.adjSecond.set(state.input['adjSecond']);
+    this.mathYears.set(state.input['mathYears']);
+    this.mathMonths.set(state.input['mathMonths']);
+    this.mathDays.set(state.input['mathDays']);
+    this.mathHours.set(state.input['mathHours']);
+    this.mathMinutes.set(state.input['mathMinutes']);
+    this.mathSeconds.set(state.input['mathSeconds']);
+    this.diffDateA.set(state.input['diffDateA']);
+    this.diffDateB.set(state.input['diffDateB']);
+    this.activeTab.set(state.options['activeTab']);
+    this.unit.set(state.options['unit']);
+    this.adjusterMode.set(state.options['adjusterMode']);
+    this.mathOp.set(state.options['mathOp']);
+    this.tickerRunning.set(state.options['tickerRunning']);
   }
 
   ngOnDestroy() {

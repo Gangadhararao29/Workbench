@@ -1,10 +1,12 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { convertCsharpToJson } from '../../../core/engines/csharp-json-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState } from '../../../core/tool/tool-state';
 
 @Component({
   selector: 'app-csharp-to-json',
@@ -20,8 +22,25 @@ export class CsharpToJson implements OnInit {
   result = signal('');
   error = signal('');
   copied = signal(false);
+  private toolState!: ToolState;
+
+  constructor(private instanceService: InstanceService, private injector: Injector) {}
 
   ngOnInit() {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'csharp-to-json');
+    this.toolState.connect(
+      () => ({
+        input: { document: this.input() },
+        output: { document: this.result(), error: this.error() },
+        options: {},
+      }),
+      (state) => {
+        this.input.set(state.input['document']);
+        this.result.set(state.output['document']);
+        this.error.set(state.output['error']);
+      },
+      this.injector,
+    );
     this.convert();
   }
 

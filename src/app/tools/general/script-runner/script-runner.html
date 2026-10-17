@@ -3,7 +3,7 @@
   <div class="runner-header">
     <div class="title-field">
       <label for="script-name-input">Script Name</label>
-      <input id="script-name-input" [(ngModel)]="scriptName" class="text-input" placeholder="My Script" />
+      <input id="script-name-input" [ngModel]="scriptName" (ngModelChange)="setScriptName($event)" class="text-input" placeholder="My Script" />
     </div>
     <div class="header-actions">
       <button mat-raised-button color="primary" (click)="execute()" [disabled]="status() === 'running'" class="btn-execute">
@@ -28,7 +28,7 @@
       </div>
       <div class="card-body">
         <app-code-editor [value]="script" language="javascript" ariaLabel="JavaScript source"
-          (valueChange)="script = $event"></app-code-editor>
+          (valueChange)="setScript($event)"></app-code-editor>
       </div>
     </div>
 
@@ -53,7 +53,7 @@
         </div>
         <div class="card-body">
           <app-code-editor [value]="inputs" [language]="inputType === 'json' ? 'json' : 'javascript'"
-            ariaLabel="Script inputs" (valueChange)="inputs = $event"></app-code-editor>
+            ariaLabel="Script inputs" (valueChange)="setInputs($event)"></app-code-editor>
         </div>
       </div>
 

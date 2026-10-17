@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +6,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 
 type LinqViewMode = 'patterns' | 'cheatsheet';
 type PatternType = 'eager-loading' | 'split-query' | 'batch-operations' | 'pagination' | 'groupby' | 'raw-sql' | 'soft-delete' | 'explicit-loading';
@@ -145,6 +147,7 @@ export class EfLinq implements OnInit {
 
   result = signal('');
   copied = signal(false);
+  private toolState = signal<ToolState | null>(null);
 
   cards = SQL_LINQ_CARDS;
 
@@ -159,25 +162,86 @@ export class EfLinq implements OnInit {
     );
   });
 
-  constructor(private instanceService: InstanceService) {
+  constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
-      this.config();
+      this.options();
       this.generate();
     });
   }
 
-  config = computed(() =>
-    this.instanceService.instances().find(i => i.id === this.instanceId)?.config ?? {}
+  options = computed(() =>
+    this.toolState()?.state().options ?? defaultToolStateFor('ef-linq')!.options
   );
 
   ngOnInit() {
+    const toolState = new ToolState(this.instanceService, this.instanceId, 'ef-linq');
+    this.toolState.set(toolState);
+    toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
     this.generate();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        entityName: this.entityName,
+        contextVar: this.contextVar,
+        includeNavigation: this.includeNavigation,
+        thenIncludeNav: this.thenIncludeNav,
+        filteredIncludeCondition: this.filteredIncludeCondition,
+        batchCondition: this.batchCondition,
+        pageNumber: this.pageNumber,
+        pageSize: this.pageSize,
+        searchFilter: this.searchFilter(),
+      },
+      output: { document: this.result() },
+      options: {
+        viewMode: this.viewMode(),
+        activePattern: this.activePattern(),
+        syntaxStyle: this.syntaxStyle(),
+        asNoTracking: this.asNoTracking,
+        useCancellationToken: this.useCancellationToken,
+        useTagWith: this.useTagWith,
+        tagText: this.tagText,
+        wrapInHandler: this.wrapInHandler,
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.entityName = state.input['entityName'] ?? 'Customer';
+    this.contextVar = state.input['contextVar'] ?? 'context';
+    this.includeNavigation = state.input['includeNavigation'] ?? 'Orders';
+    this.thenIncludeNav = state.input['thenIncludeNav'] ?? 'OrderItems';
+    this.filteredIncludeCondition = state.input['filteredIncludeCondition'] ?? 'o.TotalAmount > 100';
+    this.batchCondition = state.input['batchCondition'] ?? 'c.Status == CustomerStatus.Pending && c.CreatedAtUtc < cutoffDate';
+    this.pageNumber = state.input['pageNumber'] ?? 1;
+    this.pageSize = state.input['pageSize'] ?? 20;
+    this.searchFilter.set(state.input['searchFilter'] ?? '');
+    this.viewMode.set(state.options['viewMode'] ?? 'patterns');
+    this.activePattern.set(state.options['activePattern'] ?? 'eager-loading');
+    this.syntaxStyle.set(state.options['syntaxStyle'] ?? 'method');
+    this.asNoTracking = state.options['asNoTracking'] ?? true;
+    this.useCancellationToken = state.options['useCancellationToken'] ?? true;
+    this.useTagWith = state.options['useTagWith'] ?? true;
+    this.tagText = state.options['tagText'] ?? 'GetActiveCustomersWithOrders';
+    this.wrapInHandler = state.options['wrapInHandler'] ?? false;
+    this.result.set(state.output['document']);
+  }
+
+  private saveToolState(): void {
+    this.toolState()?.save(this.readToolState());
   }
 
   setViewMode(mode: LinqViewMode) {
     this.viewMode.set(mode);
     if (mode === 'patterns') {
       this.generate();
+    } else {
+      this.saveToolState();
     }
   }
 
@@ -192,7 +256,10 @@ export class EfLinq implements OnInit {
   }
 
   generate() {
-    if (this.viewMode() !== 'patterns') return;
+    if (this.viewMode() !== 'patterns') {
+      this.saveToolState();
+      return;
+    }
 
     const pattern = this.activePattern();
     const syntax = this.syntaxStyle();
@@ -451,6 +518,7 @@ export class EfLinq implements OnInit {
     } else {
       this.result.set(lines.join('\n'));
     }
+    this.saveToolState();
   }
 
   copyResult(): void {

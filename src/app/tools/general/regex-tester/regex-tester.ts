@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal, inject } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,7 @@ import {
   evaluateTestCase,
 } from '../../../core/engines/regex-engine';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 export interface TestCaseEvaluation extends RegexEvaluationResult {
   id: string;
@@ -26,8 +27,10 @@ export type { MatchDetail };
   templateUrl: './regex-tester.html',
   styleUrls: ['./regex-tester.css'],
 })
-export class RegexTester {
+export class RegexTester implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private injector = inject(Injector);
+  private toolState: ToolState | null = null;
 
   public instanceService = inject(InstanceService);
 
@@ -38,6 +41,30 @@ export class RegexTester {
   testCases = signal<Array<{ id: string; text: string }>>([
     { id: '1', text: 'user-108 and user-204 logged in' },
   ]);
+
+  ngOnInit(): void {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'regex-tester');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: { pattern: this.pattern(), flags: this.flags(), replacement: this.replacement(), testCases: this.testCases() },
+      output: {},
+      options: {},
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.pattern.set(state.input['pattern']);
+    this.flags.set(state.input['flags']);
+    this.replacement.set(state.input['replacement']);
+    this.testCases.set(state.input['testCases'] ?? []);
+  }
 
   regexError = computed(() => {
     const res = validateRegex(this.pattern(), this.flags());

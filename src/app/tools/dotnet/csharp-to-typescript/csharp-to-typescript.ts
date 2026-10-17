@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Input, Injector, OnInit, computed, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,6 +7,7 @@ import { convertCsharpToTypescript } from '../../../core/engines/csharp-typescri
 import { formatTypescript } from '../../../core/engines/typescript-formatter';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 @Component({
   selector: 'app-csharp-to-typescript',
@@ -28,22 +29,38 @@ export class CsharpToTypescript implements OnInit {
   result = signal('');
   error = signal('');
   copied = signal(false);
+  private toolState = signal<ToolState | null>(null);
+  private injector: Injector;
 
   private runId = 0;
 
-  constructor(private instanceService: InstanceService) {
+  constructor(private instanceService: InstanceService, injector: Injector) {
+    this.injector = injector;
     effect(() => {
       // Re-run whenever sidebar options change
-      this.config();
+      this.options();
       this.format();
     });
   }
 
-  config = computed(() =>
-    this.instanceService.instances().find(i => i.id === this.instanceId)?.config ?? {}
-  );
+  options = computed(() => this.toolState()?.state().options ?? {});
 
   ngOnInit() {
+    const toolState = new ToolState(this.instanceService, this.instanceId, 'csharp-to-typescript');
+    this.toolState.set(toolState);
+    toolState.connect(
+      () => ({
+        input: { document: this.input() },
+        output: { document: this.result(), error: this.error() },
+        options: this.options(),
+      }),
+      (state) => {
+        this.input.set(state.input['document']);
+        this.result.set(state.output['document']);
+        this.error.set(state.output['error']);
+      },
+      this.injector,
+    );
     this.format();
   }
 
@@ -78,7 +95,7 @@ export class CsharpToTypescript implements OnInit {
 
     const currentRun = ++this.runId;
     try {
-      const result = await convertCsharpToTypescript(raw, this.config());
+      const result = await convertCsharpToTypescript(raw, this.options());
       if (currentRun !== this.runId) return;
 
       if (!result.trim()) {

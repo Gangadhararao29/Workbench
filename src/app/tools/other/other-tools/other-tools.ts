@@ -95,6 +95,15 @@ export const EXTERNAL_TOOLS: ExternalToolItem[] = [
     icon: 'code',
     tag: 'Meta & CSS',
   },
+  {
+    name: 'SVG Background Generator',
+    url: 'https://www.svgbackgrounds.com/',
+    description:
+      'Generate ready-to-use SVG backgrounds and abstract patterns for landing pages and mockups.',
+    category: 'generators',
+    icon: 'palette',
+    tag: 'SVG Design',
+  },
 
   // IMAGE RESOURCES
   {

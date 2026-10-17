@@ -1,17 +1,73 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ToolInstanceService } from './tool-instance';
 import { WorkspaceStorage } from '../workspace-storage';
+import { ToolState } from './tool-state';
 
 describe('ToolInstanceService', () => {
   let service: ToolInstanceService;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     try { window?.localStorage?.clear(); } catch {}
-    service = new ToolInstanceService(new WorkspaceStorage());
+    const storage = new WorkspaceStorage();
+    service = new ToolInstanceService(storage);
+    await service.ready;
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('ignores legacy saved state and starts fresh when recreating the service', () => {
+    const storage = new WorkspaceStorage();
+    const savedInstance = {
+      id: 'saved-instance',
+      toolType: 'json-formatter',
+      label: 'JSON Formatter',
+      groupId: 'json',
+      config: {},
+      state: {
+        input: { document: '{"saved":true}' },
+        output: { document: '' },
+        options: { indent: '4 spaces', sortKeys: false },
+      },
+    };
+    storage.set('workbench.instances', [savedInstance]);
+    storage.set('workbench.active-instance', savedInstance.id);
+
+    const restoredService = new ToolInstanceService(storage);
+
+    expect(restoredService.instances()).toEqual([]);
+    expect(restoredService.activeInstance()).toBeNull();
+  });
+
+  it('hydrates instances and selection from IndexedDB when the sync cache is empty', async () => {
+    const storage = new WorkspaceStorage();
+    const savedInstance = {
+      id: 'indexeddb-instance',
+      toolType: 'json-formatter',
+      label: 'JSON Formatter',
+      groupId: 'json',
+      config: {},
+      state: {
+        input: { document: '{"from":"indexeddb"}' },
+        output: { document: '' },
+        options: { indent: '4 spaces', sortKeys: false },
+      },
+    };
+    vi.spyOn(storage, 'getAsync').mockImplementation(async <T>(key: string, fallback: T): Promise<T> => {
+      const value = key === 'workbench.instances'
+        ? [savedInstance]
+        : key === 'workbench.active-instance'
+          ? savedInstance.id
+          : fallback;
+      return value as T;
+    });
+
+    const restoredService = new ToolInstanceService(storage);
+    await restoredService.ready;
+
+    expect(restoredService.instances()).toEqual([savedInstance]);
+    expect(restoredService.activeInstance()?.id).toBe(savedInstance.id);
   });
 
   it('opens and selects a tool instance with default configuration and sidebar state', () => {
@@ -19,7 +75,7 @@ describe('ToolInstanceService', () => {
 
     expect(service.instances()).toHaveLength(1);
     expect(service.activeInstance()?.toolType).toBe('sql-formatter');
-    expect(service.activeInstance()?.config['keywordCase']).toBe('upper');
+    expect(service.activeInstance()?.state?.['options']['keywordCase']).toBe('upper');
     expect(service.hasOptions()).toBe(true);
     expect(service.rightDrawerOpened()).toBe(true);
   });
@@ -37,13 +93,13 @@ describe('ToolInstanceService', () => {
     expect(service.searchQuery()).toBe('formatter');
   });
 
-  it('updates configuration without replacing the instance', () => {
+  it('updates options in ToolState without replacing the instance', () => {
     service.open('json-formatter', 'json');
     const id = service.activeInstance()!.id;
 
-    service.updateConfig(id, { sortKeys: true });
+    new ToolState(service, id).updateOptions({ sortKeys: true });
 
-    expect(service.activeInstance()?.config).toEqual({ indent: '2 spaces', sortKeys: true });
+    expect(service.activeInstance()?.state?.['options']).toEqual({ indent: '2 spaces', sortKeys: true });
   });
 
   it('archives and reopens an instance', () => {
@@ -77,12 +133,12 @@ describe('ToolInstanceService', () => {
     expect(created.id).toBeTruthy();
     expect(created.toolType).toBe('json-formatter');
     expect(created.groupId).toBe('json');
-    expect(created.label).toContain('Formatter 1');
+    expect(created.label).toBe('Formatter');
   });
 
-  it('clones an instance with copied configuration and distinct identity', () => {
+  it('clones an instance with copied options and distinct identity', () => {
     const original = service.open('json-formatter', 'json');
-    service.updateConfig(original.id, { indent: '4 spaces', sortKeys: true });
+    new ToolState(service, original.id).updateOptions({ indent: '4 spaces', sortKeys: true });
 
     const cloned = service.clone(original.id);
 
@@ -91,45 +147,43 @@ describe('ToolInstanceService', () => {
     expect(cloned!.toolType).toBe('json-formatter');
     expect(cloned!.groupId).toBe('json');
     expect(cloned!.label).toContain('Formatter 2');
-    expect(cloned!.config).toEqual({ indent: '4 spaces', sortKeys: true });
+    expect(cloned!.state?.['options']).toEqual({ indent: '4 spaces', sortKeys: true });
 
-    // Verify mutating cloned config does not affect original
-    service.updateConfig(cloned!.id, { indent: 'tab' });
+    // Verify mutating cloned options does not affect original
+    new ToolState(service, cloned!.id).updateOptions({ indent: 'tab' });
     const updatedOriginal = service.instances().find(i => i.id === original.id);
     const updatedCloned = service.instances().find(i => i.id === cloned!.id);
 
-    expect(updatedOriginal?.config['indent']).toBe('4 spaces');
-    expect(updatedCloned?.config['indent']).toBe('tab');
+    expect(updatedOriginal?.state?.['options']['indent']).toBe('4 spaces');
+    expect(updatedCloned?.state?.['options']['indent']).toBe('tab');
   });
 
   it('updates and retrieves instance state', () => {
     const inst = service.open('sql-formatter', 'sql');
-    service.updateState(inst.id, { query: 'SELECT * FROM users', cursorPosition: 12 });
+    const toolState = new ToolState(service, inst.id);
+    toolState.updateInput({ document: 'SELECT * FROM users', cursorPosition: 12 });
 
-    const state = service.getState<{ query: string; cursorPosition: number }>(inst.id);
-    expect(state).toBeDefined();
-    expect(state?.query).toBe('SELECT * FROM users');
-    expect(state?.cursorPosition).toBe(12);
+    expect(toolState.state().input['document']).toBe('SELECT * FROM users');
+    expect(toolState.state().input['cursorPosition']).toBe(12);
 
     // Partial update merges into state
-    service.updateState(inst.id, { cursorPosition: 20 });
-    const updatedState = service.getState<{ query: string; cursorPosition: number }>(inst.id);
-    expect(updatedState?.query).toBe('SELECT * FROM users');
-    expect(updatedState?.cursorPosition).toBe(20);
+    toolState.updateInput({ cursorPosition: 20 });
+    expect(toolState.state().input['document']).toBe('SELECT * FROM users');
+    expect(toolState.state().input['cursorPosition']).toBe(20);
   });
 
   it('clones an instance with copied state', () => {
     const original = service.open('sql-formatter', 'sql');
-    service.updateState(original.id, { editorText: 'SELECT 1;', mode: 'pretty' });
+    new ToolState(service, original.id).updateInput({ document: 'SELECT 1;' });
 
     const cloned = service.clone(original.id);
     expect(cloned).not.toBeNull();
-    expect(cloned!.state).toEqual({ editorText: 'SELECT 1;', mode: 'pretty' });
+    expect(cloned!.state?.['input']['document']).toBe('SELECT 1;');
 
     // Mutating cloned state does not affect original state
-    service.updateState(cloned!.id, { editorText: 'SELECT 2;' });
-    expect(service.getState(original.id)?.['editorText']).toBe('SELECT 1;');
-    expect(service.getState(cloned!.id)?.['editorText']).toBe('SELECT 2;');
+    new ToolState(service, cloned!.id).updateInput({ document: 'SELECT 2;' });
+    expect(service.getState(original.id)?.['input']['document']).toBe('SELECT 1;');
+    expect(service.getState(cloned!.id)?.['input']['document']).toBe('SELECT 2;');
   });
 
   it('returns null when cloning a non-existent instance', () => {

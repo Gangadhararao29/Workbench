@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, computed } from '@angular/core';
+import { Component, Injector, Input, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { formatSql, compactSql, minifySql } from '../../../core/engines/sql-formatter-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 export interface SqlColumn {
   name: string;
@@ -44,6 +46,7 @@ export type OutputFormat = 'formatted' | 'compact' | 'minified';
 })
 export class SqlGenerator implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
 
   // Mode and Inputs
   activeInputTab = signal<'ddl' | 'ssms'>('ddl');
@@ -91,26 +94,73 @@ export class SqlGenerator implements OnInit {
     () => this.columns().length > 0 && this.columns().every((c) => c.isWhereKey),
   );
 
-  // Default sample content shown on load so both scenarios are demoable immediately
-  private static readonly SAMPLE_DDL = `CREATE TABLE dbo.Users (
-    Id INT IDENTITY(1,1) NOT NULL,
-    Username VARCHAR(50) NOT NULL,
-    Email VARCHAR(100) NOT NULL,
-    IsActive BIT NOT NULL DEFAULT (1),
-    CreatedDate DATETIME NOT NULL DEFAULT (GETDATE()),
-    CONSTRAINT PK_Users PRIMARY KEY (Id)
-);`;
-
-  private static readonly SAMPLE_SSMS = `Id\tUsername\tEmail\tIsActive\tCreatedDate
-1\tjohn_doe\tjohn.doe@example.com\t1\t2026-01-15 10:30:00`;
+  constructor(private instanceService: InstanceService, private injector: Injector) {}
 
   ngOnInit() {
-    // Seed one sample DDL and one sample SSMS paste (1 row) by default
-    this.ddlInput.set(SqlGenerator.SAMPLE_DDL);
-    this.ssmsInput.set(SqlGenerator.SAMPLE_SSMS);
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'sql-generator');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+    if (this.columns().length === 0) {
+      if (this.activeInputTab() === 'ssms' && this.ssmsInput().trim()) {
+        this.onSsmsInputChange(this.ssmsInput());
+      } else if (this.ddlInput().trim()) {
+        this.parseDdl();
+      }
+    }
+  }
 
-    // Build the column matrix from whichever input tab is active by default (DDL)
-    this.parseDdl();
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        activeInputTab: this.activeInputTab(),
+        ddlInput: this.ddlInput(),
+        ssmsInput: this.ssmsInput(),
+        tableName: this.tableName(),
+        tableSchema: this.tableSchema(),
+        columns: this.columns(),
+      },
+      output: { document: this.generatedSql() },
+      options: {
+        dialect: this.dialect(),
+        declareVarsAtTop: this.declareVarsAtTop(),
+        guardCondition: this.guardCondition(),
+        includeNolock: this.includeNolock(),
+        includePagination: this.includePagination(),
+        pageSize: this.pageSize(),
+        offsetValue: this.offsetValue(),
+        includeOrderBy: this.includeOrderBy(),
+        useSquareBrackets: this.useSquareBrackets(),
+        softDeleteColumn: this.softDeleteColumn(),
+        enableSoftDelete: this.enableSoftDelete(),
+        activeOutputTab: this.activeOutputTab(),
+        outputFormat: this.outputFormat(),
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.activeInputTab.set(state.input['activeInputTab']);
+    this.ddlInput.set(state.input['ddlInput']);
+    this.ssmsInput.set(state.input['ssmsInput']);
+    this.tableName.set(state.input['tableName']);
+    this.tableSchema.set(state.input['tableSchema']);
+    this.columns.set(Array.isArray(state.input['columns']) ? state.input['columns'] : []);
+    this.dialect.set(state.options['dialect']);
+    this.declareVarsAtTop.set(state.options['declareVarsAtTop']);
+    this.guardCondition.set(state.options['guardCondition']);
+    this.includeNolock.set(state.options['includeNolock']);
+    this.includePagination.set(state.options['includePagination']);
+    this.pageSize.set(state.options['pageSize']);
+    this.offsetValue.set(state.options['offsetValue']);
+    this.includeOrderBy.set(state.options['includeOrderBy']);
+    this.useSquareBrackets.set(state.options['useSquareBrackets']);
+    this.softDeleteColumn.set(state.options['softDeleteColumn']);
+    this.enableSoftDelete.set(state.options['enableSoftDelete']);
+    this.activeOutputTab.set(state.options['activeOutputTab']);
+    this.outputFormat.set(state.options['outputFormat']);
   }
 
   // Set active tabs

@@ -1,8 +1,10 @@
-import { Component, Input, signal, computed, effect } from '@angular/core';
+import { Component, Injector, Input, OnInit, signal, computed, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 type Category = 'git' | 'docker' | 'npm' | 'dotnet' | 'k8s';
 
@@ -27,8 +29,9 @@ interface CommandTemplate {
   templateUrl: './terminal.html',
   styleUrls: ['./terminal.css'],
 })
-export class TerminalTool {
+export class TerminalTool implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
 
   activeCategory = signal<Category>('git');
   searchQuery = signal('');
@@ -898,7 +901,7 @@ export class TerminalTool {
     }
   }
 
-  constructor() {
+  constructor(private instanceService: InstanceService, private injector: Injector) {
     // Keep selection valid as filters/search change: re-select a default
     // whenever the current selection falls outside the filtered list.
     effect(() => {
@@ -912,5 +915,37 @@ export class TerminalTool {
         this.selectedCommand.set(null);
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'terminal');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        searchQuery: this.searchQuery(),
+        selectedCommandName: this.selectedCommand()?.name ?? null,
+        paramValues: this.paramValues(),
+      },
+      output: { command: this.generatedCommand() },
+      options: { activeCategory: this.activeCategory(), activeLevel: this.activeLevel() },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    const category = state.options['activeCategory'] as Category;
+    this.activeCategory.set(category);
+    this.searchQuery.set(state.input['searchQuery']);
+    this.activeLevel.set(state.options['activeLevel']);
+    const commandName = state.input['selectedCommandName'];
+    const command = this.commands[category]?.find((item) => item.name === commandName) ?? null;
+    this.selectedCommand.set(command);
+    this.paramValues.set(state.input['paramValues'] ?? {});
   }
 }

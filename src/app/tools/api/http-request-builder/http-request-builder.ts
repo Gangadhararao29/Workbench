@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, DoCheck, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { formatJson } from '../../../core/engines/json-engine';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 
 export interface KeyValueItem {
   key: string;
@@ -39,8 +41,12 @@ export interface PresetTemplate {
   templateUrl: './http-request-builder.html',
   styleUrls: ['./http-request-builder.css']
 })
-export class HttpRequestBuilder implements OnInit {
+export class HttpRequestBuilder implements OnInit, DoCheck {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
+  private stateFingerprint = '';
+
+  constructor(private instanceService: InstanceService) {}
 
   // Request State
   method = 'GET';
@@ -58,7 +64,6 @@ export class HttpRequestBuilder implements OnInit {
     { key: 'Content-Type', value: 'application/json', enabled: true }
   ];
 
-  // Auth Configuration
   authType: 'none' | 'bearer' | 'basic' | 'apikey' = 'none';
   authToken = '';
   authUsername = '';
@@ -144,7 +149,98 @@ export class HttpRequestBuilder implements OnInit {
   ];
 
   ngOnInit() {
-    this.extractParamsFromUrl();
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'http-request-builder');
+    this.restoreToolState(this.toolState.state());
+    this.stateFingerprint = JSON.stringify(this.readToolState());
+  }
+
+  ngDoCheck(): void {
+    this.saveToolStateIfChanged();
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return structuredClone({
+      input: {
+        method: this.method,
+        url: this.url,
+        params: this.params,
+        headers: this.headers,
+        authToken: this.authToken,
+        authUsername: this.authUsername,
+        authPassword: this.authPassword,
+        authApiKeyName: this.authApiKeyName,
+        authApiKeyValue: this.authApiKeyValue,
+        bodyContent: this.bodyContent,
+        curlImportInput: this.curlImportInput,
+      },
+      output: {
+        hasResponse: this.hasResponse(),
+        statusCode: this.statusCode(),
+        statusText: this.statusText(),
+        responseTimeMs: this.responseTimeMs(),
+        responseSize: this.responseSize(),
+        responseHeaders: this.responseHeaders(),
+        responseBody: this.responseBody(),
+        rawResponse: this.rawResponse(),
+        responseLanguage: this.responseLanguage(),
+        resultStatus: this.resultStatus(),
+        errorMessage: this.errorMessage(),
+        history: this.history(),
+      },
+      options: {
+        activeRequestTab: this.activeRequestTab,
+        activeResponseTab: this.activeResponseTab,
+        authType: this.authType,
+        authApiKeyLocation: this.authApiKeyLocation,
+        bodyType: this.bodyType,
+      },
+    });
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    const input = state.input;
+    const output = state.output;
+    const options = state.options;
+    this.method = input['method'];
+    this.url = input['url'];
+    this.params = input['params'] ?? [];
+    this.headers = input['headers'] ?? [];
+    this.authToken = input['authToken'] ?? '';
+    this.authUsername = input['authUsername'] ?? '';
+    this.authPassword = input['authPassword'] ?? '';
+    this.authApiKeyName = input['authApiKeyName'] ?? 'X-API-Key';
+    this.authApiKeyValue = input['authApiKeyValue'] ?? '';
+    this.bodyContent = input['bodyContent'] ?? '';
+    this.curlImportInput = input['curlImportInput'] ?? '';
+    this.activeRequestTab = options['activeRequestTab'] ?? 'params';
+    this.activeResponseTab = options['activeResponseTab'] ?? 'body';
+    this.authType = options['authType'] ?? 'none';
+    this.authApiKeyLocation = options['authApiKeyLocation'] ?? 'header';
+    this.bodyType = options['bodyType'] ?? 'json';
+    this.hasResponse.set(output['hasResponse'] ?? false);
+    this.statusCode.set(output['statusCode'] ?? null);
+    this.statusText.set(output['statusText'] ?? '');
+    this.responseTimeMs.set(output['responseTimeMs'] ?? null);
+    this.responseSize.set(output['responseSize'] ?? '');
+    this.responseHeaders.set(output['responseHeaders'] ?? []);
+    this.responseBody.set(output['responseBody'] ?? '');
+    this.rawResponse.set(output['rawResponse'] ?? '');
+    this.responseLanguage.set(output['responseLanguage'] ?? 'json');
+    this.resultStatus.set(output['resultStatus'] ?? '');
+    this.errorMessage.set(output['errorMessage'] ?? '');
+    this.history.set((output['history'] ?? []).map((item: RequestHistoryItem) => ({
+      ...item,
+      timestamp: new Date(item.timestamp),
+    })));
+  }
+
+  private saveToolStateIfChanged(): void {
+    if (!this.toolState) return;
+    const snapshot = this.readToolState();
+    const fingerprint = JSON.stringify(snapshot);
+    if (fingerprint === this.stateFingerprint) return;
+    this.stateFingerprint = fingerprint;
+    this.toolState.save(snapshot);
   }
 
   // --- Parameter Management ---

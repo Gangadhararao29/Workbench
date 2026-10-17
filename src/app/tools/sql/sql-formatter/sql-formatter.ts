@@ -5,6 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
+import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 import {
   formatSql,
   compactSql,
@@ -30,26 +32,32 @@ export class SqlFormatter implements OnInit {
   result = signal('');
   mode = signal<SqlFormatMode>('pretty');
   copied = signal(false);
+  private toolState?: ToolState;
 
   constructor(private instanceService: InstanceService) {
     effect(() => {
-      this.config();
+      this.options();
       this.transform(this.mode());
     });
   }
 
   ngOnInit() {
+    this.toolState = new ToolState(this.instanceService, this.instanceId);
+    const savedState = this.toolState.state();
+    this.input.set(savedState.input['document']);
+    this.mode.set(savedState.options['mode']);
+    this.result.set(savedState.output['document']);
     this.transform(this.mode());
   }
 
-  config = computed<SqlFormatterOptions>(
-    () =>
-      (this.instanceService.instances().find((i) => i.id === this.instanceId)?.config ??
-        {}) as SqlFormatterOptions,
+  options = computed<SqlFormatterOptions>(
+    () => (this.instanceService.getState(this.instanceId)?.options ??
+      defaultToolStateFor('sql-formatter')!.options) as SqlFormatterOptions,
   );
 
   setMode(mode: SqlFormatMode) {
     this.mode.set(mode);
+    this.toolState?.updateOptions({ mode });
     this.transform(mode);
   }
 
@@ -80,11 +88,12 @@ export class SqlFormatter implements OnInit {
 
   onInputChange(value: string) {
     this.input.set(value);
+    this.toolState?.updateInput({ document: value });
     this.transform(this.mode());
   }
 
   clear() {
-    this.input.set('');
+    this.onInputChange('');
     this.result.set('');
   }
 
@@ -92,9 +101,10 @@ export class SqlFormatter implements OnInit {
     const raw = this.input().trim();
     if (!raw) {
       this.result.set('');
+      this.toolState?.updateOutput({ document: '' });
       return;
     }
-    const cfg = this.config();
+    const cfg = this.options();
 
     try {
       if (mode === 'minified') {
@@ -104,8 +114,10 @@ export class SqlFormatter implements OnInit {
       } else {
         this.result.set(formatSql(raw, cfg));
       }
+      this.toolState?.updateOutput({ document: this.result() });
     } catch {
       this.result.set(raw);
+      this.toolState?.updateOutput({ document: raw });
     }
   }
 }

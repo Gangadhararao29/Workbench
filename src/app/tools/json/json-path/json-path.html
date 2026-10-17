@@ -22,10 +22,10 @@
       <!-- Search Input Container (Expanded Width) -->
       <div class="path-input-box">
         <mat-icon class="path-icon">search</mat-icon>
-        <input class="path-input" [(ngModel)]="path" (keydown.enter)="evaluate()"
+        <input class="path-input" [ngModel]="path()" (ngModelChange)="onPathChange($event)" (keydown.enter)="evaluate()"
           placeholder="e.g. $.users[0].name, $..role, $.users[*], $..skills[0]" aria-label="JSONPath expression" />
-        @if (path) {
-        <button type="button" class="clear-btn" (click)="path = ''; evaluate()" title="Clear path"
+        @if (path()) {
+        <button type="button" class="clear-btn" (click)="onPathChange(''); evaluate()" title="Clear path"
           aria-label="Clear path">
           <mat-icon class="clear-icon">close</mat-icon>
         </button>

@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed, OnInit } from '@angular/core';
+import { Component, Injector, Input, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CodeEditor } from '../../../shared/code-editor/code-editor';
+import { InstanceService } from '../../../core/tool/tool-instance';
+import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 import {
   generateApiClient,
   FRAMEWORK_OPTIONS,
@@ -35,6 +37,7 @@ type OutputTab = 'client' | 'dtos' | 'tests' | 'usage';
 })
 export class ApiGenerator implements OnInit {
   @Input({ required: true }) instanceId!: string;
+  private toolState: ToolState | null = null;
 
   frameworks = FRAMEWORK_OPTIONS;
 
@@ -68,6 +71,8 @@ export class ApiGenerator implements OnInit {
   // Copy feedback state
   copied = signal(false);
   private copyTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(private instanceService: InstanceService, private injector: Injector) {}
 
   // Available patterns for selected framework
   availablePatterns = computed(() => {
@@ -119,10 +124,49 @@ export class ApiGenerator implements OnInit {
   });
 
   ngOnInit(): void {
-    const patterns = this.availablePatterns();
-    if (patterns.length > 0) {
-      this.pattern.set(patterns[0].id);
-    }
+    this.toolState = new ToolState(this.instanceService, this.instanceId, 'api-generator');
+    this.toolState.connect(
+      () => this.readToolState(),
+      (state) => this.restoreToolState(state),
+      this.injector,
+    );
+  }
+
+  private readToolState(): ToolStateSnapshot {
+    return {
+      input: {
+        resourceName: this.resourceName(),
+        endpoint: this.endpoint(),
+        method: this.method(),
+      },
+      output: {},
+      options: {
+        framework: this.framework(),
+        pattern: this.pattern(),
+        mode: this.mode(),
+        includeErrorHandling: this.includeErrorHandling(),
+        includeCancellation: this.includeCancellation(),
+        includeAuth: this.includeAuth(),
+        includePagination: this.includePagination(),
+        includeTsDoc: this.includeTsDoc(),
+        activeTab: this.activeTab(),
+      },
+    };
+  }
+
+  private restoreToolState(state: ToolStateSnapshot): void {
+    this.framework.set(state.options['framework']);
+    this.pattern.set(state.options['pattern']);
+    this.mode.set(state.options['mode']);
+    this.resourceName.set(state.input['resourceName']);
+    this.endpoint.set(state.input['endpoint']);
+    this.method.set(state.input['method']);
+    this.includeErrorHandling.set(state.options['includeErrorHandling']);
+    this.includeCancellation.set(state.options['includeCancellation']);
+    this.includeAuth.set(state.options['includeAuth']);
+    this.includePagination.set(state.options['includePagination']);
+    this.includeTsDoc.set(state.options['includeTsDoc']);
+    this.activeTab.set(state.options['activeTab']);
   }
 
   onFrameworkChange(newFramework: SupportedFramework): void {

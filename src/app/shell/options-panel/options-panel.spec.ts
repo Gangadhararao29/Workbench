@@ -17,7 +17,12 @@ describe('OptionsPanel', () => {
       toolType: 'sql-formatter',
       label: 'SQL Formatter 1',
       groupId: 'sql',
-      config: { uppercaseKeywords: true }
+      config: {},
+      state: {
+        input: {},
+        output: {},
+        options: { uppercaseKeywords: true },
+      },
     };
     fixture.detectChanges();
     await fixture.whenStable();
