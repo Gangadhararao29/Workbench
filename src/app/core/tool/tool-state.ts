@@ -1,4 +1,4 @@
-import { computed, effect, type Injector, type Signal } from '@angular/core';
+import { computed, effect, untracked, type Injector, type Signal } from '@angular/core';
 import type { ToolInstanceService } from './tool-instance';
 import { defaultToolStateFor } from './tool-state-defaults';
 
@@ -40,7 +40,8 @@ export class ToolState {
     restore(this.state());
     effect(
       () => {
-        this.save(read());
+        const snapshot = read();
+        untracked(() => this.save(snapshot));
       },
       { injector },
     );
