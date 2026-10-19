@@ -720,28 +720,6 @@
 </div>
 }
 
-@case ('ef-dbcontext') {
-<div class="field">
-  <label>Default DbContext Name</label>
-  <input [value]="instance.config['contextName'] || 'AppDbContext'"
-    (input)="update('contextName', $any($event.target).value)" placeholder="AppDbContext" />
-</div>
-<div class="field">
-  <label>Namespace</label>
-  <input [value]="instance.config['namespace'] || 'MyApp.Infrastructure.Data'"
-    (input)="update('namespace', $any($event.target).value)" placeholder="MyApp.Infrastructure.Data" />
-</div>
-<div class="field">
-  <label>Database Provider</label>
-  <mat-select [value]="instance.config['provider'] || 'SqlServer'" (selectionChange)="update('provider', $event.value)">
-    <mat-option value="SqlServer">Microsoft SQL Server</mat-option>
-    <mat-option value="PostgreSql">PostgreSQL</mat-option>
-    <mat-option value="MySql">MySQL</mat-option>
-    <mat-option value="Sqlite">SQLite</mat-option>
-  </mat-select>
-</div>
-}
-
 @default {
 <div class="empty-state">No options for this tool yet</div>
 }

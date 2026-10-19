@@ -17,8 +17,6 @@ import { FeatureGenerator } from '../../tools/dotnet/feature-generator/feature-g
 // EF Core Tools
 import { EfConfiguration } from '../../tools/ef/ef-configuration/ef-configuration';
 import { EfMigrations } from '../../tools/ef/ef-migrations/ef-migrations';
-import { EfLinq } from '../../tools/ef/ef-linq/ef-linq';
-import { EfDbContext } from '../../tools/ef/ef-dbcontext/ef-dbcontext';
 
 // SQL Tools
 import { SqlFormatter } from '../../tools/sql/sql-formatter/sql-formatter';
@@ -273,35 +271,12 @@ const INITIAL_TOOLS: ToolDefinition[] = [
     groupId: 'ef',
     name: 'Migration helper',
     label: 'Migration helper',
-    description: 'Generate dotnet ef CLI commands and custom migration scripts.',
+    description: 'Build dotnet ef CLI and Package Manager Console commands for common migration workflows.',
     keywords: ['entity framework', 'ef core', 'migrations', 'dotnet ef', 'database update', 'script', 'cli', 'schema migration', 'up', 'down'],
     hasSidebarOptions: true,
     defaultSidebarOpen: true,
     component: EfMigrations,
   },
-  {
-    type: 'ef-linq',
-    groupId: 'ef',
-    name: 'LINQ & query assistant',
-    label: 'LINQ & query assistant',
-    description: 'Draft LINQ queries, EF Core performance patterns, and SQL translations.',
-    keywords: ['linq', 'ef core', 'query', 'sql', 'expression', 'assistant', 'orm', 'c#', 'csharp', 'performance', 'include'],
-    hasSidebarOptions: false,
-    defaultSidebarOpen: false,
-    component: EfLinq,
-  },
-  {
-    type: 'ef-dbcontext',
-    groupId: 'ef',
-    name: 'DbContext generator',
-    label: 'DbContext generator',
-    description: 'Generate production-ready DbContext with DbSets, audit filters, and DI.',
-    keywords: ['entity framework', 'ef core', 'dbcontext', 'dbset', 'onmodelcreating', 'dependency injection', 'database context', 'orm'],
-    hasSidebarOptions: true,
-    defaultSidebarOpen: true,
-    component: EfDbContext,
-  },
-
   // SQL Group
   {
     type: 'sql-formatter',
@@ -602,7 +577,9 @@ export function findToolDefinition(
     id: tool.groupId,
     label: meta.label,
     icon: meta.icon,
-    tools: Array.from(TOOL_REGISTRY.values()).filter((t) => t.groupId === tool.groupId),
+    tools: Array.from(TOOL_REGISTRY.values()).filter(
+      (t) => t.groupId === tool.groupId,
+    ),
   };
 
   return { tool, group };

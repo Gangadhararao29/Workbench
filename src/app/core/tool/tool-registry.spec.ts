@@ -54,6 +54,16 @@ describe('tool-registry', () => {
     expect(res).toBeNull();
   });
 
+  it('registers only the retained EF Core tools', () => {
+    const efGroup = TOOL_GROUPS.find((group) => group.id === 'ef');
+
+    expect(efGroup?.tools.map((tool) => tool.type)).toEqual(['ef-configuration', 'ef-migrations']);
+    expect(isValidToolType('ef-linq')).toBe(false);
+    expect(isValidToolType('ef-dbcontext')).toBe(false);
+    expect(findToolDefinition('ef-linq')).toBeNull();
+    expect(findToolDefinition('ef-dbcontext')).toBeNull();
+  });
+
   it('defaultConfigFor returns empty objects for migrated tool groups', () => {
     expect(defaultConfigFor('json-formatter')).toEqual({});
     expect(defaultConfigFor('sql-formatter')).toEqual({});
@@ -61,8 +71,6 @@ describe('tool-registry', () => {
     expect(defaultConfigFor('sql-to-csharp')).toEqual({});
     expect(defaultConfigFor('ef-configuration')).toEqual({});
     expect(defaultConfigFor('ef-migrations')).toEqual({});
-    expect(defaultConfigFor('ef-dbcontext')).toEqual({});
-
     const unknownDefaults = defaultConfigFor('unknown-tool');
     expect(unknownDefaults).toEqual({});
   });

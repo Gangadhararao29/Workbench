@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,12 +29,13 @@ export class EfConfiguration implements OnInit {
   activeTab = signal<'fluent' | 'annotations' | 'both'>('fluent');
   copied = signal(false);
   private toolState = signal<ToolState | null>(null);
+  private lastGenerationSignature: string | null = null;
 
   constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
       // Re-run whenever config changes in the options panel
       this.options();
-      this.generate();
+      untracked(() => this.generate());
     });
   }
 
@@ -58,7 +59,7 @@ export class EfConfiguration implements OnInit {
       },
       this.injector,
     );
-    this.generate();
+    this.generate(true);
   }
 
   onInputChange(val: string): void {
@@ -96,7 +97,11 @@ export class EfConfiguration implements OnInit {
     }
   }
 
-  generate(): void {
+  generate(force = false): void {
+    const signature = JSON.stringify([this.input(), this.options(), this.activeTab()]);
+    if (!force && signature === this.lastGenerationSignature) return;
+    this.lastGenerationSignature = signature;
+
     const generated = generateEfConfiguration(this.input(), this.options(), this.activeTab());
     this.result.set(generated);
     this.toolState()?.updateOutput({ document: generated });

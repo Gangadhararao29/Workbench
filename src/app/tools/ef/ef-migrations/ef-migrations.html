@@ -20,13 +20,8 @@
       <button mat-button class="action-tab" [class.active]="activeAction() === 'bundle'" (click)="setAction('bundle')">
         <mat-icon>archive</mat-icon> Bundle
       </button>
-      <button mat-button class="action-tab" [class.active]="activeAction() === 'custom-cs'"
-        (click)="setAction('custom-cs')">
-        <mat-icon>code</mat-icon> Custom C# Migration
-      </button>
     </div>
 
-    @if (activeAction() !== 'custom-cs') {
     <div class="mode-toggle-group">
       <span class="mode-label">CLI Tool:</span>
       <button mat-button class="mode-btn" [class.active]="cliMode() === 'dotnet'" (click)="setMode('dotnet')">
@@ -36,7 +31,6 @@
         PMC (PowerShell)
       </button>
     </div>
-    }
   </div>
 
   <div class="main-split">
@@ -131,48 +125,6 @@
       </div>
       }
 
-      @if (activeAction() === 'custom-cs') {
-      <div class="form-row">
-        <label>Operation Type</label>
-        <mat-select [(value)]="customSnippetType" (selectionChange)="generate()">
-          <mat-option value="sql">Raw SQL Script (Up & Down)</mat-option>
-          <mat-option value="index">Filtered / Custom Index</mat-option>
-          <mat-option value="add-column">Add / Drop Column</mat-option>
-          <mat-option value="view">Database View / SP Creation</mat-option>
-          <mat-option value="seed">Data Seeding (InsertData / DeleteData)</mat-option>
-        </mat-select>
-      </div>
-
-      @if (customSnippetType === 'sql') {
-      <div class="form-row">
-        <label>Up SQL Statement</label>
-        <textarea [(ngModel)]="customSqlUp" (ngModelChange)="generate()" rows="3"></textarea>
-      </div>
-      <div class="form-row">
-        <label>Down SQL Statement (Revert)</label>
-        <textarea [(ngModel)]="customSqlDown" (ngModelChange)="generate()" rows="3"></textarea>
-      </div>
-      }
-
-      @if (customSnippetType === 'index' || customSnippetType === 'add-column' || customSnippetType === 'seed') {
-      <div class="form-row">
-        <label>Table Name</label>
-        <input [(ngModel)]="customTable" (ngModelChange)="generate()" />
-      </div>
-      <div class="form-row">
-        <label>Column Name</label>
-        <input [(ngModel)]="customColumn" (ngModelChange)="generate()" />
-      </div>
-      @if (customSnippetType === 'add-column') {
-      <div class="form-row">
-        <label>Data Type</label>
-        <input [(ngModel)]="customType" (ngModelChange)="generate()" placeholder="int, string, bool, DateTime" />
-      </div>
-      }
-      }
-      }
-
-      @if (activeAction() !== 'custom-cs') {
       <div class="section-divider"></div>
       <div class="panel-section-title">Project Setup</div>
 
@@ -200,24 +152,21 @@
       <div class="checkbox-row">
         <mat-slide-toggle [(ngModel)]="verbose" (ngModelChange)="generate()">Verbose Output (-v)</mat-slide-toggle>
       </div>
-      }
     </div>
 
     <!-- Right Generated Output -->
     <div class="output-panel field">
       <div class="pane-header">
         <div>
-          <label>{{ activeAction() === 'custom-cs' ? 'C# Custom Migration Code' : 'Generated CLI Command' }}</label>
-          <span class="pane-subtitle">{{ activeAction() === 'custom-cs' ? 'Drop into your EF Core migration file' : 'Run
-            in terminal at repository root' }}</span>
+          <label>Generated EF Command</label>
+          <span class="pane-subtitle">Run in a terminal at the repository root</span>
         </div>
         <button class="btn-copy-result" [class.copied]="copied()" (click)="copyResult()"
           [matTooltip]="copied() ? 'Copied!' : 'Copy result'" aria-label="Copy result">
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
         </button>
       </div>
-      <app-code-editor [value]="result()" [language]="activeAction() === 'custom-cs' ? 'csharp' : 'powershell'"
-        ariaLabel="Generated migration command" [readOnly]="true"></app-code-editor>
+      <pre class="command-output" aria-label="Generated migration command" tabindex="0">@for (line of commandOutputLines(); track $index) {<span class="command-line" [class.command-comment]="isCommentLine(line)" [class.command-executable]="line.trim().length > 0 && !isCommentLine(line)">{{ line }}</span>}</pre>
     </div>
   </div>
 </div>
