@@ -43,7 +43,7 @@ describe('Home', () => {
     const versionBadge = compiled.querySelector('.badge-version');
 
     expect(betaBadge?.textContent).toContain('Beta');
-    expect(versionBadge?.textContent).toContain('v0.1.0');
+    expect(versionBadge?.textContent).toContain('v26.10');
   });
 
   it('navigates to tool page when openTool is called', () => {

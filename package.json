@@ -1,6 +1,6 @@
 {
   "name": "workbench",
-  "version": "0.1.0",
+  "version": "26.10",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
