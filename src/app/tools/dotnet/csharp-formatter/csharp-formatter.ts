@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,11 +25,18 @@ export class CsharpFormatter implements OnInit {
   result = signal('');
   copied = signal(false);
   private toolState = signal<ToolState | null>(null);
+  private skipNextOptionsEffect = false;
+  private lastFormatSignature: string | null = null;
 
   constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
+      if (!this.toolState()) return;
       this.options();
-      this.format();
+      if (this.skipNextOptionsEffect) {
+        this.skipNextOptionsEffect = false;
+        return;
+      }
+      untracked(() => this.format());
     });
   }
 
@@ -41,6 +48,7 @@ export class CsharpFormatter implements OnInit {
   });
 
   ngOnInit() {
+    this.skipNextOptionsEffect = true;
     const toolState = new ToolState(this.instanceService, this.instanceId, 'csharp-formatter');
     this.toolState.set(toolState);
     toolState.connect(
@@ -51,7 +59,7 @@ export class CsharpFormatter implements OnInit {
       },
       this.injector,
     );
-    this.format();
+    this.format(true);
   }
 
   onInputChange(value: string) {
@@ -62,6 +70,7 @@ export class CsharpFormatter implements OnInit {
   clear() {
     this.input.set('');
     this.result.set('');
+    this.lastFormatSignature = null;
   }
 
   copyResult() {
@@ -74,13 +83,17 @@ export class CsharpFormatter implements OnInit {
     }
   }
 
-  format() {
+  format(force = false) {
     const raw = this.input();
+    const cfg = this.options();
+    const signature = JSON.stringify([raw, cfg]);
+    if (!force && signature === this.lastFormatSignature) return;
+    this.lastFormatSignature = signature;
+
     if (!raw.trim()) {
       this.result.set('');
       return;
     }
-    const cfg = this.options();
     this.result.set(formatCsharp(raw, {
       braceStyle: cfg.braceStyle ?? 'allman',
       indentSize: cfg.indentSize ?? 4,

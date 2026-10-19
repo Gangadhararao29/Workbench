@@ -1,4 +1,4 @@
-import { Component, Input, Injector, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Input, Injector, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,13 +33,16 @@ export class CsharpToTypescript implements OnInit {
   private injector: Injector;
 
   private runId = 0;
+  private lastOptionsSignature: string | null = null;
 
   constructor(private instanceService: InstanceService, injector: Injector) {
     this.injector = injector;
     effect(() => {
-      // Re-run whenever sidebar options change
-      this.options();
-      this.format();
+      if (!this.toolState()) return;
+      const signature = JSON.stringify(this.options());
+      if (signature === this.lastOptionsSignature) return;
+      this.lastOptionsSignature = signature;
+      untracked(() => this.format());
     });
   }
 
@@ -61,7 +64,6 @@ export class CsharpToTypescript implements OnInit {
       },
       this.injector,
     );
-    this.format();
   }
 
   onInputChange(value: string) {
