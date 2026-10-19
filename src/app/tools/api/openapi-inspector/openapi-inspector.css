@@ -52,6 +52,10 @@
   flex-wrap: wrap;
 }
 
+.section-sub-header {
+  display: inline-flex;
+}
+
 .spec-header,
 .summary-top,
 .summary-bottom,
@@ -596,16 +600,9 @@ body.dark-theme .btn-cancel-server {
 .quick-btn.copied,
 .btn-copy-code.copied {
   background: var(--color-success-container) !important;
-  color: var(--color-success-border) !important;
+  color: var(--color-success) !important;
   border-color: var(--color-success) !important;
   font-weight: 700;
-}
-
-body.dark-theme .copy-all-btn.copied,
-body.dark-theme .quick-btn.copied,
-body.dark-theme .btn-copy-code.copied {
-  background: var(--color-success-container) !important;
-  color: var(--color-success) !important;
 }
 
 /* --- Group Cards --- */
@@ -822,7 +819,7 @@ body.dark-theme .deprecated-tag {
 }
 
 .curl-code-block {
-  margin: 8px 0 0;
+  margin: 0;
   padding: 6px 8px;
   background: var(--mat-sys-surface-container-high);
   border-radius: 6px;
