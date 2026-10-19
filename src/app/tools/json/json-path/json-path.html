@@ -4,13 +4,22 @@
   <div class="field json-input-field">
     <div class="field-header">
       <label>JSON Input</label>
-      <button type="button" class="header-hint-toggle" [class.hint-active]="autoPathOnClick()"
+      <div>
+        <button type="button" class="header-hint-toggle" [class.hint-active]="autoPathOnClick()"
         (click)="toggleAutoPath()" title="Toggle click-to-path: Click any property in JSON to auto-form its path"
         aria-label="Toggle Auto-Fill JSON Path">
         <mat-icon class="hint-icon">{{ autoPathOnClick() ? 'ads_click' : 'touch_app' }}</mat-icon>
         <span>Auto-Fill JSON Path : <strong class="toggle-state" [class.state-on]="autoPathOnClick()">{{
             autoPathOnClick() ? 'On' : 'Off' }}</strong></span>
       </button>
+
+      <!-- Cheat Sheet in Sidebar Toggle -->
+      <button hidden type="button" class="header-hint-toggle ms-2" (click)="instanceService.toggleRightDrawer()"
+        title="Toggle JSONPath Cheat Sheet in sidebar" aria-label="Toggle JSONPath Cheat Sheet in sidebar">
+        <mat-icon class="hint-icon">menu_book</mat-icon>
+        <span>Cheat Sheet</span>
+      </button>
+      </div>
     </div>
     <app-code-editor [value]="input()" language="json" ariaLabel="JSON input" (valueChange)="onInputChange($event)"
       (editorClick)="onEditorClick($event)"></app-code-editor>
@@ -31,13 +40,6 @@
         </button>
         }
       </div>
-
-      <!-- Cheat Sheet in Sidebar Toggle -->
-      <button type="button" class="action-link-btn cheat-sheet-btn" (click)="instanceService.toggleRightDrawer()"
-        title="Toggle JSONPath Cheat Sheet in sidebar" aria-label="Toggle JSONPath Cheat Sheet in sidebar">
-        <mat-icon>menu_book</mat-icon>
-        <span>Cheat Sheet</span>
-      </button>
 
       <!-- Evaluate Button -->
       <button mat-flat-button color="primary" class="evaluate-btn" (click)="evaluate()" aria-label="Evaluate JSONPath">

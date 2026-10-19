@@ -12,7 +12,7 @@ import { formatJson, validateJson } from '../../../core/engines/json-engine';
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule, CodeEditor],
   templateUrl: './json-formatter.html',
-  styleUrls: ['./json-formatter.css']
+  styleUrls: ['./json-formatter.css'],
 })
 export class JsonFormatter implements OnInit {
   @Input({ required: true }) instanceId!: string;
@@ -32,6 +32,7 @@ export class JsonFormatter implements OnInit {
 
   ngOnInit(): void {
     this.toolState.set(new ToolState(this.instanceService, this.instanceId));
+    this.format();
   }
 
   onInputChange(value: string): void {
@@ -65,11 +66,13 @@ export class JsonFormatter implements OnInit {
   private transform(compact: boolean) {
     try {
       const indent = this.options()['indent'] === '4 spaces' ? 4 : 2;
-      this.toolState()?.updateOutput({ document: formatJson(this.input(), {
-        indent,
-        sortKeys: Boolean(this.options()['sortKeys']),
-        compact
-      }) });
+      this.toolState()?.updateOutput({
+        document: formatJson(this.input(), {
+          indent,
+          sortKeys: Boolean(this.options()['sortKeys']),
+          compact,
+        }),
+      });
       this.status.set('');
     } catch (e) {
       this.status.set('Invalid JSON: ' + (e as Error).message);
