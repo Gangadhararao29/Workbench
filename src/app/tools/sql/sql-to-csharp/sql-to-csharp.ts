@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,11 +23,13 @@ export class SqlToCsharp implements OnInit {
   copied = signal(false);
   errorMessage = signal<string | null>(null);
   private toolState = signal<ToolState | null>(null);
+  private lastConversionSignature: string | null = null;
 
   constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
-      // Re-run conversion reactively whenever input or sidebar options change
-      this.convert();
+      this.input();
+      this.options();
+      untracked(() => this.convert());
     });
   }
 
@@ -47,7 +49,6 @@ export class SqlToCsharp implements OnInit {
       },
       this.injector,
     );
-    this.convert();
   }
 
   options = computed(
@@ -69,13 +70,18 @@ export class SqlToCsharp implements OnInit {
 
   convert(): void {
     const raw = this.input().trim();
+    const options = this.options();
+    const signature = JSON.stringify([raw, options]);
+    if (signature === this.lastConversionSignature) return;
+    this.lastConversionSignature = signature;
+
     if (!raw) {
       this.result.set('');
       this.errorMessage.set(null);
       return;
     }
 
-    const res = generateCSharpModelFromSql(raw, this.options());
+    const res = generateCSharpModelFromSql(raw, options);
     if (res.error) {
       this.errorMessage.set(res.error);
       this.result.set(`// Error: ${res.error}`);

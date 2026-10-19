@@ -14,10 +14,12 @@ describe('SqlToCsharp', () => {
     }).compileComponents();
 
     instanceService = TestBed.inject(InstanceService);
+    await instanceService.ready;
     const instance = instanceService.open('sql-to-csharp');
     fixture = TestBed.createComponent(SqlToCsharp);
     component = fixture.componentInstance;
     component.instanceId = instance.id;
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
