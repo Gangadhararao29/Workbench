@@ -1,16 +1,15 @@
-import { Component, Injector, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Injector, Input, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { CodeEditor } from '../../../shared/code-editor/code-editor';
 import { InstanceService } from '../../../core/tool/tool-instance';
 import { ToolState, ToolStateSnapshot } from '../../../core/tool/tool-state';
 import { defaultToolStateFor } from '../../../core/tool/tool-state-defaults';
 
-type CliAction = 'add' | 'update' | 'script' | 'remove' | 'scaffold' | 'bundle' | 'custom-cs';
+type CliAction = 'add' | 'update' | 'script' | 'remove' | 'scaffold' | 'bundle';
 type CliMode = 'dotnet' | 'pmc';
 
 @Component({
@@ -22,8 +21,7 @@ type CliMode = 'dotnet' | 'pmc';
     MatIconModule,
     MatTooltipModule,
     MatSelectModule,
-    MatSlideToggleModule,
-    CodeEditor
+    MatSlideToggleModule
   ],
   templateUrl: './ef-migrations.html',
   styleUrls: ['./ef-migrations.css']
@@ -56,22 +54,19 @@ export class EfMigrations implements OnInit {
   force = false;
   useDataAnnotations = false;
 
-  // Custom C# Snippet builder
-  customSnippetType = 'sql'; // sql | index | add-column | view | seed
-  customSqlUp = 'UPDATE Customers SET Status = 1 WHERE Status IS NULL;';
-  customSqlDown = 'UPDATE Customers SET Status = NULL WHERE Status = 1;';
-  customTable = 'Customers';
-  customColumn = 'Status';
-  customType = 'int';
-
   result = signal('');
+  commandOutputLines = computed(() => this.result().split('\n'));
   copied = signal(false);
   private toolState = signal<ToolState | null>(null);
+  private lastGenerationSignature: string | null = null;
 
   constructor(private instanceService: InstanceService, private injector: Injector) {
     effect(() => {
-      this.applyOptions(this.options());
-      this.generate();
+      const options = this.options();
+      untracked(() => {
+        this.applyOptions(options);
+        this.generate();
+      });
     });
   }
 
@@ -113,12 +108,6 @@ export class EfMigrations implements OnInit {
         runtime: this.runtime,
         scriptOutputFile: this.scriptOutputFile,
         bundleOutputFile: this.bundleOutputFile,
-        customSnippetType: this.customSnippetType,
-        customSqlUp: this.customSqlUp,
-        customSqlDown: this.customSqlDown,
-        customTable: this.customTable,
-        customColumn: this.customColumn,
-        customType: this.customType,
       },
       output: { document: this.result() },
       options: {
@@ -144,13 +133,12 @@ export class EfMigrations implements OnInit {
     this.runtime = state.input['runtime'];
     this.scriptOutputFile = state.input['scriptOutputFile'];
     this.bundleOutputFile = state.input['bundleOutputFile'];
-    this.customSnippetType = state.input['customSnippetType'];
-    this.customSqlUp = state.input['customSqlUp'];
-    this.customSqlDown = state.input['customSqlDown'];
-    this.customTable = state.input['customTable'];
-    this.customColumn = state.input['customColumn'];
-    this.customType = state.input['customType'];
-    this.activeAction.set(state.options['activeAction']);
+    const savedAction = state.options['activeAction'];
+    this.activeAction.set(
+      ['add', 'update', 'script', 'remove', 'scaffold', 'bundle'].includes(savedAction)
+        ? savedAction
+        : 'add',
+    );
     this.cliMode.set(state.options['cliMode']);
     this.idempotent = state.options['idempotent'];
     this.noBuild = state.options['noBuild'];
@@ -187,15 +175,18 @@ export class EfMigrations implements OnInit {
     this.generate();
   }
 
+  isCommentLine(line: string): boolean {
+    return line.trimStart().startsWith('#');
+  }
+
   generate() {
+    const snapshot = untracked(() => this.readToolState());
+    const signature = JSON.stringify([snapshot.input, snapshot.options]);
+    if (signature === this.lastGenerationSignature) return;
+    this.lastGenerationSignature = signature;
+
     const action = this.activeAction();
     const mode = this.cliMode();
-
-    if (action === 'custom-cs') {
-      this.generateCustomCs();
-      this.toolState()?.save(this.readToolState());
-      return;
-    }
 
     if (mode === 'dotnet') {
       this.generateDotnetCli(action);
@@ -350,85 +341,4 @@ export class EfMigrations implements OnInit {
     this.result.set(commands.join('\n'));
   }
 
-  private generateCustomCs() {
-    const className = (this.migrationName.trim() || 'CustomOperation').replace(/[^a-zA-Z0-9_]/g, '') || 'CustomOperation';
-    const lines: string[] = [
-      'using Microsoft.EntityFrameworkCore.Migrations;',
-      '',
-      '#nullable disable',
-      '',
-      `public partial class ${className} : Migration`,
-      '{',
-      '    protected override void Up(MigrationBuilder migrationBuilder)',
-      '    {'
-    ];
-
-    if (this.customSnippetType === 'sql') {
-      lines.push(`        migrationBuilder.Sql(@"`);
-      lines.push(`            ${this.customSqlUp.replace(/\n/g, '\n            ')}`);
-      lines.push('        ");');
-    } else if (this.customSnippetType === 'index') {
-      lines.push(`        migrationBuilder.CreateIndex(`);
-      lines.push(`            name: "IX_${this.customTable}_${this.customColumn}",`);
-      lines.push(`            table: "${this.customTable}",`);
-      lines.push(`            column: "${this.customColumn}",`);
-      lines.push(`            unique: true,`);
-      lines.push(`            filter: "[IsDeleted] = 0");`);
-    } else if (this.customSnippetType === 'add-column') {
-      lines.push(`        migrationBuilder.AddColumn<${this.customType}>(`);
-      lines.push(`            name: "${this.customColumn}",`);
-      lines.push(`            table: "${this.customTable}",`);
-      lines.push(`            type: "${this.customType === 'int' ? 'int' : this.customType === 'string' ? 'nvarchar(200)' : 'bit'}",`);
-      lines.push(`            nullable: true);`);
-    } else if (this.customSnippetType === 'view') {
-      lines.push(`        migrationBuilder.Sql(@"`);
-      lines.push(`            CREATE OR ALTER VIEW Vw_ActiveCustomers AS`);
-      lines.push(`            SELECT Id, FirstName, LastName, Email`);
-      lines.push(`            FROM Customers`);
-      lines.push(`            WHERE IsDeleted = 0;`);
-      lines.push('        ");');
-    } else if (this.customSnippetType === 'seed') {
-      lines.push(`        migrationBuilder.InsertData(`);
-      lines.push(`            table: "${this.customTable}",`);
-      lines.push(`            columns: new[] { "Id", "${this.customColumn}" },`);
-      lines.push(`            values: new object[,]`);
-      lines.push(`            {`);
-      lines.push(`                { 1, "DefaultValue1" },`);
-      lines.push(`                { 2, "DefaultValue2" }`);
-      lines.push(`            });`);
-    }
-
-    lines.push('    }');
-    lines.push('');
-    lines.push('    protected override void Down(MigrationBuilder migrationBuilder)');
-    lines.push('    {');
-
-    if (this.customSnippetType === 'sql') {
-      lines.push(`        migrationBuilder.Sql(@"`);
-      lines.push(`            ${this.customSqlDown.replace(/\n/g, '\n            ')}`);
-      lines.push('        ");');
-    } else if (this.customSnippetType === 'index') {
-      lines.push(`        migrationBuilder.DropIndex(`);
-      lines.push(`            name: "IX_${this.customTable}_${this.customColumn}",`);
-      lines.push(`            table: "${this.customTable}");`);
-    } else if (this.customSnippetType === 'add-column') {
-      lines.push(`        migrationBuilder.DropColumn(`);
-      lines.push(`            name: "${this.customColumn}",`);
-      lines.push(`            table: "${this.customTable}");`);
-    } else if (this.customSnippetType === 'view') {
-      lines.push(`        migrationBuilder.Sql(@"`);
-      lines.push(`            DROP VIEW IF EXISTS Vw_ActiveCustomers;`);
-      lines.push('        ");');
-    } else if (this.customSnippetType === 'seed') {
-      lines.push(`        migrationBuilder.DeleteData(`);
-      lines.push(`            table: "${this.customTable}",`);
-      lines.push(`            keyColumn: "Id",`);
-      lines.push(`            keyValues: new object[] { 1, 2 });`);
-    }
-
-    lines.push('    }');
-    lines.push('}');
-
-    this.result.set(lines.join('\n'));
-  }
 }

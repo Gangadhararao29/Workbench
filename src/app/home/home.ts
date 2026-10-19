@@ -24,7 +24,7 @@ export class Home {
 
   readonly toolGroups = TOOL_GROUPS;
   readonly upcomingGroups = UPCOMING_GROUPS;
-  readonly version = '0.1.0';
+  readonly version = '26.10';
   activeHomeTab = signal<'tools' | 'upcoming' | 'feedback'>('tools');
 
   searchQuery = this.instanceService.searchQuery;

@@ -13,10 +13,12 @@ describe('EfMigrations', () => {
     }).compileComponents();
 
     instanceService = TestBed.inject(InstanceService);
+    await instanceService.ready;
     const instance = instanceService.open('ef-migrations');
     fixture = TestBed.createComponent(EfMigrations);
     component = fixture.componentInstance;
     component.instanceId = instance.id;
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
@@ -26,6 +28,19 @@ describe('EfMigrations', () => {
     expect(component.result()).toContain('dotnet ef migrations add AddCustomerAddressAndIndexes');
     expect(component.result()).toContain('-p "src/Infrastructure"');
     expect(component.result()).toContain('-s "src/WebApi"');
+  });
+
+  it('renders generated commands as plain text without the resizable code editor', () => {
+    component.result.set('# Add a new migration\n\ndotnet ef migrations add Initial');
+    fixture.detectChanges();
+
+    const output = fixture.nativeElement.querySelector('.command-output') as HTMLElement;
+    expect(output.textContent).toContain('dotnet ef migrations add Initial');
+    expect(fixture.nativeElement.querySelector('app-code-editor')).toBeNull();
+    expect(output.querySelector('.command-comment')?.textContent?.trim()).toContain('# Add a new migration');
+    expect(output.querySelector('.command-executable')?.textContent?.trim()).toContain(
+      'dotnet ef migrations add Initial',
+    );
   });
 
   it('should generate dotnet ef database update and script commands with proper ranges', () => {
@@ -62,21 +77,6 @@ describe('EfMigrations', () => {
     component.generate();
     expect(component.result()).toContain('Scaffold-DbContext');
     expect(component.result()).toContain('-Force');
-  });
-
-  it('should generate custom C# migration with stable class name and data seeding', () => {
-    component.migrationName = 'SeedInitialRoles';
-    component.setAction('custom-cs');
-    component.customSnippetType = 'seed';
-    component.customTable = 'Roles';
-    component.customColumn = 'Name';
-    component.generate();
-
-    const code = component.result();
-    expect(code).toContain('public partial class SeedInitialRoles : Migration');
-    expect(code).toContain('migrationBuilder.InsertData(');
-    expect(code).toContain('table: "Roles"');
-    expect(code).toContain('migrationBuilder.DeleteData(');
   });
 
   it('should sync project options with ToolState', () => {

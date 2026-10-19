@@ -12,7 +12,7 @@ The home page groups tools into the following areas:
 
 - **JSON:** Formatter, Diff, JSONPath tester, JSON to TypeScript, and JSON to C#
 - **.NET / C#:** C# to TypeScript, C# to JSON, C# Formatter, and Feature generator
-- **EF Core:** Entity configuration (Fluent API & annotations), Migration helper (`dotnet ef` CLI & PMC command generator, custom C# migration scripts), LINQ & query assistant, and DbContext generator (DbSets, global filters, audit tracking, DI setup)
+- **EF Core:** Entity configuration (Fluent API & annotations) and migration command builder (`dotnet ef` CLI and Package Manager Console)
 - **SQL:** Formatter, SQL to C#, SQL generator (DDL parser, SSMS grid data import, CRUD, UPSERT/MERGE, and batch queries), Search, and Query builder
 - **API:** OpenAPI inspector, HTTP request builder, JWT inspector (claims, headers, expiry validation), and cURL converter
 - **Frontend:** API client generator (Angular, React, Vue, Fetch/Axios)

@@ -82,8 +82,9 @@ export class ToolInstanceService {
         this.storage.getAsync<ToolInstance[]>(STORAGE_KEY, [], 'workspaces'),
         this.storage.getAsync<string | null>(ACTIVE_STORAGE_KEY, null, 'workspaces'),
       ]);
-      if (instances.length > 0) this._instances.set(instances);
-      if (activeId && instances.some((instance) => instance.id === activeId)) {
+      const validInstances = instances.filter((instance) => findToolDefinition(instance.toolType));
+      this._instances.set(validInstances);
+      if (activeId && validInstances.some((instance) => instance.id === activeId)) {
         this._activeId.set(activeId);
       }
     } finally {

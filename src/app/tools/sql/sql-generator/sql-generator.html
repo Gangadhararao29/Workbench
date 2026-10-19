@@ -297,8 +297,16 @@
             </div>
             <div class="option-info">
               <span class="option-title">Enable Pagination</span>
-              <span class="option-desc">Adds OFFSET @Skip ROWS FETCH NEXT 20 ROWS ONLY</span>
+              <span class="option-desc">Adds a dialect-appropriate limit and offset</span>
             </div>
+          </div>
+          <div class="pagination-controls">
+            <label class="ctrl-label" for="sql-page-size">Page size</label>
+            <input id="sql-page-size" type="number" min="1" step="1" [ngModel]="pageSize()"
+              (ngModelChange)="pageSize.set($event)" />
+            <label class="ctrl-label" for="sql-offset">Offset</label>
+            <input id="sql-offset" type="number" min="0" step="1" [ngModel]="offsetValue()"
+              (ngModelChange)="offsetValue.set($event)" />
           </div>
 
           <!-- Soft Delete -->

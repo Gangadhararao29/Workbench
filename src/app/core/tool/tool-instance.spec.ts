@@ -70,6 +70,42 @@ describe('ToolInstanceService', () => {
     expect(restoredService.activeInstance()?.id).toBe(savedInstance.id);
   });
 
+  it('discards persisted instances for removed tools during hydration', async () => {
+    const storage = new WorkspaceStorage();
+    const savedInstances = [
+      {
+        id: 'current-instance',
+        toolType: 'json-formatter',
+        label: 'JSON Formatter',
+        groupId: 'json',
+        config: {},
+        state: { input: {}, output: {}, options: {} },
+      },
+      {
+        id: 'removed-instance',
+        toolType: 'ef-linq',
+        label: 'LINQ & query assistant',
+        groupId: 'ef',
+        config: {},
+        state: { input: {}, output: {}, options: {} },
+      },
+    ];
+    vi.spyOn(storage, 'getAsync').mockImplementation(async <T>(key: string, fallback: T): Promise<T> => {
+      const value = key === 'workbench.instances'
+        ? savedInstances
+        : key === 'workbench.active-instance'
+          ? 'removed-instance'
+          : fallback;
+      return value as T;
+    });
+
+    const restoredService = new ToolInstanceService(storage);
+    await restoredService.ready;
+
+    expect(restoredService.instances().map((instance) => instance.id)).toEqual(['current-instance']);
+    expect(restoredService.activeInstance()).toBeNull();
+  });
+
   it('opens and selects a tool instance with default configuration and sidebar state', () => {
     service.open('sql-formatter', 'sql');
 

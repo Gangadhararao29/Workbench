@@ -65,7 +65,7 @@ export class SqlGenerator implements OnInit {
   includeNolock = signal<boolean>(false);
   includePagination = signal<boolean>(false);
   pageSize = signal<number>(20);
-  offsetValue = signal<string>('@Skip');
+  offsetValue = signal<number>(0);
   includeOrderBy = signal<boolean>(true);
   useSquareBrackets = signal<boolean>(true);
   softDeleteColumn = signal<string>('IsActive');
@@ -328,8 +328,23 @@ export class SqlGenerator implements OnInit {
           }
           defaultValue = afterDef.slice(1, end).trim();
         } else {
-          // Bare token default (e.g. DEFAULT 0, DEFAULT 'Active')
-          defaultValue = afterDef.split(/[\s,)]/)[0].replace(/^'|'$/g, '');
+          // Keep quoted strings intact, including embedded spaces and escaped quotes.
+          const quoteStart = /^N?'/i.exec(afterDef);
+          if (quoteStart) {
+            const openingQuote = quoteStart[0].length - 1;
+            let end = openingQuote + 1;
+            while (end < afterDef.length) {
+              if (afterDef[end] === "'" && afterDef[end + 1] === "'") {
+                end += 2;
+                continue;
+              }
+              if (afterDef[end] === "'") break;
+              end++;
+            }
+            defaultValue = afterDef.slice(0, Math.min(end + 1, afterDef.length));
+          } else {
+            defaultValue = afterDef.split(/[\s,)]/)[0];
+          }
         }
         if (defaultValue === '') defaultValue = undefined;
       }
@@ -542,19 +557,8 @@ export class SqlGenerator implements OnInit {
       // Re-parse DDL to restore true default schema, column selections, and sample/default values
       this.parseDdl();
     } else if (this.activeInputTab() === 'ssms' && this.ssmsInput().trim()) {
-      // Re-parse SSMS data without altering active output tab
-      const raw = this.ssmsInput().trim();
-      const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      if (lines.length > 0) {
-        const firstLine = lines[0];
-        const separator = firstLine.includes('\t') ? '\t' : (firstLine.includes(',') ? ',' : '\t');
-        const headers = firstLine
-          .split(separator)
-          .map((h) => h.trim().replace(/^\[|\]$/g, '').replace(/^"|"$/g, ''))
-          .filter(Boolean);
-        const firstDataRow = lines.length > 1 ? lines[1].split(separator).map((v) => v.trim()) : [];
-        this.buildColumnsFromSsmsHeaders(headers, firstDataRow);
-      }
+      const { headers, rows } = this.parsedSsmsData();
+      this.buildColumnsFromSsmsHeaders(headers, rows[0] ?? []);
     } else {
       // Fallback if no raw input is present
       this.columns.update((cols) => {
@@ -590,10 +594,10 @@ export class SqlGenerator implements OnInit {
     const dial = this.dialect();
     const brackets = this.useSquareBrackets();
     if (!brackets) return name;
-    if (dial === 'tsql') return `[${name}]`;
-    if (dial === 'postgres') return `"${name}"`;
-    if (dial === 'mysql') return `\`${name}\``;
-    return `[${name}]`;
+    if (dial === 'tsql') return `[${name.replace(/]/g, ']]')}]`;
+    if (dial === 'postgres' || dial === 'sqlite') return `"${name.replace(/"/g, '""')}"`;
+    if (dial === 'mysql') return `\`${name.replace(/`/g, '``')}\``;
+    return name;
   }
 
   get fullTableName(): string {
@@ -638,7 +642,9 @@ export class SqlGenerator implements OnInit {
       return trimmed;
     }
 
-    const escaped = trimmed.replace(/'/g, "''");
+    const escaped = this.dialect() === 'mysql'
+      ? trimmed.replace(/\\/g, '\\\\').replace(/'/g, "''")
+      : trimmed.replace(/'/g, "''");
     return `'${escaped}'`;
   }
 
@@ -652,7 +658,58 @@ export class SqlGenerator implements OnInit {
     if (this.activeInputTab() === 'ssms' && this.parsedSsmsData().rows.length > 0) {
       return this.formatSqlLiteral(c.sampleValue, c.type);
     }
-    return `@${c.name}`;
+    if (this.dialect() === 'postgres') {
+      const index = this.columns().findIndex((column) => column.name === c.name);
+      return `$${Math.max(index + 1, 1)}`;
+    }
+    return this.dialect() === 'mysql' || this.dialect() === 'sqlite' ? '?' : `@${c.name}`;
+  }
+
+  private variableDeclarations(cols: SqlColumn[]): string {
+    if (!this.declareVarsAtTop() || this.activeInputTab() !== 'ddl' || this.dialect() !== 'tsql') {
+      return '';
+    }
+    const uniqueCols = Array.from(new Map(cols.map((col) => [col.name, col])).values());
+    if (uniqueCols.length === 0) return '';
+    return (
+      '-- =============================================\n' +
+      '-- Declare Variables\n' +
+      '-- =============================================\n' +
+      uniqueCols
+        .map((col) => {
+          const sample = this.formatSqlLiteral(col.sampleValue, col.type);
+          return `DECLARE @${col.name} ${col.fullType} = ${sample};`;
+        })
+        .join('\n') +
+      '\n\n'
+    );
+  }
+
+  private parseDelimitedRow(line: string, delimiter: string): string[] {
+    const values: string[] = [];
+    let value = '';
+    let quoted = false;
+    let wasQuoted = false;
+    for (let index = 0; index < line.length; index++) {
+      const character = line[index];
+      if (character === '"') {
+        if (quoted && line[index + 1] === '"') {
+          value += '"';
+          index++;
+        } else {
+          quoted = !quoted;
+          wasQuoted = true;
+        }
+      } else if (character === delimiter && !quoted) {
+        values.push(wasQuoted ? value : value.trim());
+        value = '';
+        wasQuoted = false;
+      } else {
+        value += character;
+      }
+    }
+    values.push(wasQuoted ? value : value.trim());
+    return values;
   }
 
   /** True when the generated SQL should use real literal values instead of @params. */
@@ -670,25 +727,23 @@ export class SqlGenerator implements OnInit {
     this.ssmsInput.set(value);
     const firstLine = value.trim().split(/\r?\n/)[0] || '';
     const isTabSep = firstLine.includes('\t');
-    const isCommaSep = firstLine.split(',').length > 2;
+    const isCommaSep = this.parseDelimitedRow(firstLine, ',').length > 1;
     if (!isTabSep && !isCommaSep) return;
 
     this.activeOutputTab.set('ssms_batch');
 
     const separator = isTabSep ? '\t' : ',';
-    const headers = firstLine
-      .split(separator)
+    const headers = this.parseDelimitedRow(firstLine, separator)
       .map((h) =>
         h
-          .trim()
           .replace(/^\[|\]$/g, '')
-          .replace(/^"|"$/g, ''),
+          .trim(),
       )
       .filter(Boolean);
 
     // Parse first data row to infer types
-    const lines = value.trim().split(/\r?\n/).filter(Boolean);
-    const firstDataRow = lines.length > 1 ? lines[1].split(separator).map((v) => v.trim()) : [];
+    const lines = value.split(/\r?\n/).filter((line) => line.trim());
+    const firstDataRow = lines.length > 1 ? this.parseDelimitedRow(lines[1], separator) : [];
 
     this.buildColumnsFromSsmsHeaders(headers, firstDataRow);
   }
@@ -765,25 +820,25 @@ export class SqlGenerator implements OnInit {
     if (!raw) return { headers: [], rows: [] };
 
     // Auto-detect separator: prefer tab, then comma
-    const lines = raw
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
+    const lines = raw.split(/\r?\n/).filter((line) => line.trim());
     if (lines.length === 0) return { headers: [], rows: [] };
 
     const firstLine = lines[0];
-    const separator = firstLine.includes('\t') ? '\t' : firstLine.includes(',') ? ',' : '\t';
+    const separator = firstLine.includes('\t')
+      ? '\t'
+      : this.parseDelimitedRow(firstLine, ',').length > 1
+        ? ','
+        : '\t';
 
-    const headers = firstLine.split(separator).map((h) =>
+    const headers = this.parseDelimitedRow(firstLine, separator).map((h) =>
       h
-        .trim()
         .replace(/^\[|\]$/g, '')
-        .replace(/^"|"$/g, ''),
+        .trim(),
     );
     const rows: string[][] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const rowParts = lines[i].split(separator).map((v) => v.trim().replace(/^"|"$/g, ''));
+      const rowParts = this.parseDelimitedRow(lines[i], separator);
       if (rowParts.some((p) => p !== '')) rows.push(rowParts);
     }
 
@@ -800,6 +855,7 @@ export class SqlGenerator implements OnInit {
     const selCols = cols.filter((c) => c.selectedInSelect);
     const whereCols = cols.filter((c) => c.isWhereKey);
     const table = this.fullTableName;
+    const varDecls = this.variableDeclarations([...selCols, ...whereCols]);
     const nolock = this.includeNolock() && this.dialect() === 'tsql' ? ' WITH (NOLOCK)' : '';
 
     const colList =
@@ -826,13 +882,17 @@ export class SqlGenerator implements OnInit {
 
     let pagingClause = '';
     if (this.includePagination()) {
-      if (!orderClause) {
+      if (this.dialect() === 'tsql' && !orderClause) {
         orderClause = `\nORDER BY (SELECT NULL)`;
       }
-      pagingClause = `\nOFFSET ${this.offsetValue().trim() || '0'} ROWS\nFETCH NEXT ${Math.max(1, this.pageSize())} ROWS ONLY`;
+      const offset = Math.max(0, Number(this.offsetValue()) || 0);
+      const pageSize = Math.max(1, Math.floor(Number(this.pageSize()) || 1));
+      pagingClause = this.dialect() === 'tsql'
+        ? `\nOFFSET ${offset} ROWS\nFETCH NEXT ${pageSize} ROWS ONLY`
+        : `\nLIMIT ${pageSize} OFFSET ${offset}`;
     }
 
-    return `SELECT\n${colList}\nFROM ${table}${nolock}${whereClause}${orderClause}${pagingClause};`;
+    return varDecls + `SELECT\n${colList}\nFROM ${table}${nolock}${whereClause}${orderClause}${pagingClause};`;
   });
 
   // 2. INSERT QUERY — simple parameterized @param style (no DECLARE, no SSMS data rows)
@@ -844,29 +904,40 @@ export class SqlGenerator implements OnInit {
     const guard = this.guardCondition();
 
     if (insCols.length === 0) {
+      if (this.dialect() === 'mysql') {
+        return `-- No columns selected for INSERT.\nINSERT INTO ${table} () VALUES ();`;
+      }
       return `-- No columns selected for INSERT.\nINSERT INTO ${table} DEFAULT VALUES;`;
     }
 
+    const varDecls = this.variableDeclarations([...insCols, ...whereCols]);
     const colNames = insCols.map((c) => `    ${this.formatIdentifier(c.name)}`).join(',\n');
     const colValues = insCols.map((c) => `    ${this.valueExpr(c)}`).join(',\n');
-
+    const columnNames = insCols.map((c) => this.formatIdentifier(c.name)).join(', ');
+    const values = insCols.map((c) => this.valueExpr(c)).join(', ');
     let body = `INSERT INTO ${table} (\n${colNames}\n)\nVALUES (\n${colValues}\n);`;
 
     if (guard === 'if_not_exists') {
-      const checkCols = whereCols.length > 0 ? whereCols : insCols.slice(0, 1);
-      const checkCondition = checkCols
-        .map((c) => `${this.formatIdentifier(c.name)} = ${this.valueExpr(c)}`)
-        .join(' AND ');
-      body =
-        `IF NOT EXISTS (\n    SELECT 1 FROM ${table} WHERE ${checkCondition}\n)\n` +
-        `BEGIN\n    INSERT INTO ${table} (\n    ` +
-        insCols.map((c) => this.formatIdentifier(c.name)).join(', ') +
-        `\n    )\n    VALUES (\n    ` +
-        insCols.map((c) => this.valueExpr(c)).join(', ') +
-        `\n    );\nEND`;
+      if (this.dialect() === 'mysql') {
+        body = `INSERT IGNORE INTO ${table} (${columnNames}) VALUES (${values});`;
+      } else if (this.dialect() === 'sqlite') {
+        body = `INSERT OR IGNORE INTO ${table} (${columnNames}) VALUES (${values});`;
+      } else if (this.dialect() === 'postgres') {
+        const conflictCols = (whereCols.length > 0 ? whereCols : insCols.slice(0, 1))
+          .map((col) => this.formatIdentifier(col.name)).join(', ');
+        body = `INSERT INTO ${table} (${columnNames}) VALUES (${values}) ON CONFLICT (${conflictCols}) DO NOTHING;`;
+      } else {
+        const checkCols = whereCols.length > 0 ? whereCols : insCols.slice(0, 1);
+        const checkCondition = checkCols
+          .map((c) => `${this.formatIdentifier(c.name)} = ${this.valueExpr(c)}`)
+          .join(' AND ');
+        body =
+          `IF NOT EXISTS (\n    SELECT 1 FROM ${table} WHERE ${checkCondition}\n)\n` +
+          `BEGIN\n    INSERT INTO ${table} (\n    ${columnNames}\n    )\n    VALUES (\n    ${values}\n    );\nEND`;
+      }
     }
 
-    return body;
+    return varDecls + body;
   });
 
   // 3. UPDATE QUERY
@@ -876,27 +947,15 @@ export class SqlGenerator implements OnInit {
     const whereCols = cols.filter((c) => c.isWhereKey);
     const table = this.fullTableName;
     const guard = this.guardCondition();
-    const declareVars = this.declareVarsAtTop();
 
     if (updCols.length === 0) {
       return `-- No columns selected for UPDATE.`;
     }
-
-    let varDecls = '';
-    if (declareVars && this.activeInputTab() === 'ddl') {
-      const varsToDeclare = Array.from(new Set([...updCols, ...whereCols]));
-      varDecls =
-        '-- =============================================\n' +
-        '-- Declare Variables\n' +
-        '-- =============================================\n' +
-        varsToDeclare
-          .map((c) => {
-            const sample = this.formatSqlLiteral(c.sampleValue, c.type);
-            return `DECLARE @${c.name} ${c.fullType} = ${sample};`;
-          })
-          .join('\n') +
-        '\n\n';
+    if (whereCols.length === 0) {
+      return `-- BLOCKED: Select at least one WHERE key before generating an UPDATE.`;
     }
+
+    const varDecls = this.variableDeclarations([...updCols, ...whereCols]);
 
     const setClauses = updCols
       .map((c) => `    ${this.formatIdentifier(c.name)} = ${this.valueExpr(c)}`)
@@ -911,7 +970,7 @@ export class SqlGenerator implements OnInit {
 
     let body = `UPDATE ${table}\nSET\n${setClauses}${whereClause};`;
 
-    if (guard === 'if_not_exists' && whereCols.length > 0) {
+    if (guard === 'if_not_exists' && whereCols.length > 0 && this.dialect() === 'tsql') {
       const checkCondition = whereCols
         .map((c) => `${this.formatIdentifier(c.name)} = ${this.valueExpr(c)}`)
         .join(' AND ');
@@ -926,24 +985,13 @@ export class SqlGenerator implements OnInit {
     const cols = this.columns();
     const whereCols = cols.filter((c) => c.isWhereKey);
     const table = this.fullTableName;
-    const declareVars = this.declareVarsAtTop();
     const softDelCol = this.softDeleteColumn();
     const isSoft = this.enableSoftDelete();
 
-    let varDecls = '';
-    if (declareVars && whereCols.length > 0 && this.activeInputTab() === 'ddl') {
-      varDecls =
-        '-- =============================================\n' +
-        '-- Declare Variables\n' +
-        '-- =============================================\n' +
-        whereCols
-          .map((c) => {
-            const sample = this.formatSqlLiteral(c.sampleValue, c.type);
-            return `DECLARE @${c.name} ${c.fullType} = ${sample};`;
-          })
-          .join('\n') +
-        '\n\n';
+    if (whereCols.length === 0) {
+      return `-- BLOCKED: Select at least one WHERE key before generating a DELETE.`;
     }
+    const varDecls = this.variableDeclarations(whereCols);
 
     const whereClause =
       whereCols.length > 0
@@ -970,23 +1018,29 @@ export class SqlGenerator implements OnInit {
     const updCols = cols.filter((c) => c.selectedInUpdate);
     const whereCols = cols.filter((c) => c.isWhereKey);
     const table = this.fullTableName;
-    const declareVars = this.declareVarsAtTop();
     const guard = this.guardCondition();
+    const varDecls = this.variableDeclarations([...insCols, ...updCols, ...whereCols]);
 
-    let varDecls = '';
-    if (declareVars && this.activeInputTab() === 'ddl') {
-      const varsToDeclare = Array.from(new Set([...insCols, ...updCols, ...whereCols]));
-      varDecls =
-        '-- =============================================\n' +
-        '-- Declare Variables\n' +
-        '-- =============================================\n' +
-        varsToDeclare
-          .map((c) => {
-            const sample = this.formatSqlLiteral(c.sampleValue, c.type);
-            return `DECLARE @${c.name} ${c.fullType} = ${sample};`;
-          })
-          .join('\n') +
-        '\n\n';
+    if (cols.length === 0 || insCols.length === 0) {
+      return `-- No insertable columns selected for UPSERT.`;
+    }
+
+    if (this.dialect() !== 'tsql') {
+      const keyCols = whereCols.length > 0 ? whereCols : [cols[0]];
+      if (this.dialect() === 'mysql') {
+        const assignments = updCols.map((col) =>
+          `${this.formatIdentifier(col.name)} = VALUES(${this.formatIdentifier(col.name)})`,
+        );
+        return `INSERT INTO ${table} (${insCols.map((col) => this.formatIdentifier(col.name)).join(', ')}) VALUES (${insCols.map((col) => this.valueExpr(col)).join(', ')})${assignments.length ? ` ON DUPLICATE KEY UPDATE ${assignments.join(', ')}` : ''};`;
+      }
+      const conflictCols = keyCols.map((col) => this.formatIdentifier(col.name)).join(', ');
+      const assignments = updCols.map((col) =>
+        `${this.formatIdentifier(col.name)} = EXCLUDED.${this.formatIdentifier(col.name)}`,
+      );
+      const conflictAction = assignments.length
+        ? `DO UPDATE SET ${assignments.join(', ')}`
+        : 'DO NOTHING';
+      return `INSERT INTO ${table} (${insCols.map((col) => this.formatIdentifier(col.name)).join(', ')}) VALUES (${insCols.map((col) => this.valueExpr(col)).join(', ')}) ON CONFLICT (${conflictCols}) ${conflictAction};`;
     }
 
     if (guard === 'merge') {
@@ -1007,17 +1061,23 @@ export class SqlGenerator implements OnInit {
       const insNames = insCols.map((c) => this.formatIdentifier(c.name)).join(', ');
       const insValues = insCols.map((c) => `Source.${this.formatIdentifier(c.name)}`).join(', ');
 
+      if (matchKey.length === 0) {
+        return `-- BLOCKED: Select at least one match key before generating MERGE.`;
+      }
+
       const sourceCols = Array.from(new Set([...matchKey, ...insCols, ...updCols]));
       const sourceSelect = sourceCols
         .map((c) => `${this.valueExpr(c)} AS ${this.formatIdentifier(c.name)}`)
         .join(', ');
 
+      const matchedClause = setClauses
+        ? `WHEN MATCHED THEN\n    UPDATE SET\n${setClauses}\n`
+        : '';
       const mergeBody =
         `MERGE INTO ${table} AS Target\n` +
         `USING (SELECT ${sourceSelect}) AS Source\n` +
         `ON (${onCondition})\n` +
-        `WHEN MATCHED THEN\n` +
-        `    UPDATE SET\n${setClauses}\n` +
+        matchedClause +
         `WHEN NOT MATCHED THEN\n` +
         `    INSERT (${insNames})\n` +
         `    VALUES (${insValues});`;

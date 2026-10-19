@@ -13,10 +13,12 @@ describe('EfConfiguration', () => {
     }).compileComponents();
 
     instanceService = TestBed.inject(InstanceService);
+    await instanceService.ready;
     const instance = instanceService.open('ef-configuration');
     fixture = TestBed.createComponent(EfConfiguration);
     component = fixture.componentInstance;
     component.instanceId = instance.id;
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 

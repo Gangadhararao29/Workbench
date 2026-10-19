@@ -24,8 +24,6 @@ describe('ToolState', () => {
       'sql-query-builder',
       'ef-configuration',
       'ef-migrations',
-      'ef-linq',
-      'ef-dbcontext',
     ];
 
     for (const toolType of toolTypes) {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,11 +33,12 @@ export class SqlFormatter implements OnInit {
   mode = signal<SqlFormatMode>('pretty');
   copied = signal(false);
   private toolState?: ToolState;
+  private lastTransformSignature: string | null = null;
 
   constructor(private instanceService: InstanceService) {
     effect(() => {
       this.options();
-      this.transform(this.mode());
+      untracked(() => this.transform(this.mode()));
     });
   }
 
@@ -99,12 +100,16 @@ export class SqlFormatter implements OnInit {
 
   transform(mode: SqlFormatMode = this.mode()) {
     const raw = this.input().trim();
+    const cfg = this.options();
+    const signature = JSON.stringify([raw, mode, cfg]);
+    if (signature === this.lastTransformSignature) return;
+    this.lastTransformSignature = signature;
+
     if (!raw) {
       this.result.set('');
       this.toolState?.updateOutput({ document: '' });
       return;
     }
-    const cfg = this.options();
 
     try {
       if (mode === 'minified') {

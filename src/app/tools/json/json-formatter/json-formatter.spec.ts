@@ -22,6 +22,20 @@ describe('JsonFormatter', () => {
     expect(component).toBeTruthy();
   });
 
+  it('formats restored input on initialization using saved options', () => {
+    const instance = instanceService.open('json-formatter');
+    instanceService.updateState(instance.id, {
+      input: { document: '{"b":1,"a":2}' },
+      output: { document: '' },
+      options: { indent: '4 spaces', sortKeys: true },
+    });
+    component.instanceId = instance.id;
+
+    component.ngOnInit();
+
+    expect(component.result()).toBe(JSON.stringify({ a: 2, b: 1 }, null, 4));
+  });
+
   it('restores saved editor input and persists subsequent edits', () => {
     const instance = instanceService.open('json-formatter');
     instanceService.updateState(instance.id, {
@@ -37,7 +51,7 @@ describe('JsonFormatter', () => {
     component.onInputChange('{"updated":true}');
     expect(instanceService.getState(instance.id)).toEqual({
       input: { document: '{"updated":true}' },
-      output: { document: '' },
+      output: { document: '{\n  "restored": true\n}' },
       options: { indent: '2 spaces', sortKeys: false },
     });
   });
