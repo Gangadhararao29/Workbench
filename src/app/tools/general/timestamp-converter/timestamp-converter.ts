@@ -61,6 +61,7 @@ export class TimestampConverter implements OnInit, OnDestroy {
   // Date Adjuster Fields
   adjusterMode = signal<'local' | 'utc'>('local');
   adjYear = signal<number>(new Date().getFullYear());
+  yearDraft = signal<string>(new Date().getFullYear().toString());
   adjMonth = signal<number>(new Date().getMonth() + 1);
   adjDay = signal<number>(new Date().getDate());
   adjHour = signal<number>(new Date().getHours());
@@ -186,6 +187,7 @@ export class TimestampConverter implements OnInit, OnDestroy {
       const d = res.date;
       if (this.adjusterMode() === 'utc') {
         this.adjYear.set(d.getUTCFullYear());
+        this.yearDraft.set(d.getUTCFullYear().toString());
         this.adjMonth.set(d.getUTCMonth() + 1);
         this.adjDay.set(d.getUTCDate());
         this.adjHour.set(d.getUTCHours());
@@ -193,6 +195,7 @@ export class TimestampConverter implements OnInit, OnDestroy {
         this.adjSecond.set(d.getUTCSeconds());
       } else {
         this.adjYear.set(d.getFullYear());
+        this.yearDraft.set(d.getFullYear().toString());
         this.adjMonth.set(d.getMonth() + 1);
         this.adjDay.set(d.getDate());
         this.adjHour.set(d.getHours());
@@ -373,6 +376,7 @@ export class TimestampConverter implements OnInit, OnDestroy {
           this.adjSecond(),
         );
         d = new Date(utcMs);
+        if (this.adjYear() < 100) d.setUTCFullYear(this.adjYear());
       } else {
         d = new Date(
           this.adjYear(),
@@ -382,12 +386,28 @@ export class TimestampConverter implements OnInit, OnDestroy {
           this.adjMinute(),
           this.adjSecond(),
         );
+        if (this.adjYear() < 100) d.setFullYear(this.adjYear());
       }
       if (!Number.isNaN(d.getTime())) {
         this.input.set(Math.floor(d.getTime() / 1000).toString());
       }
     } catch {
       // ignore
+    }
+  }
+
+  onYearDraftChange(value: string) {
+    this.yearDraft.set(value.replace(/\D/g, '').slice(0, 4));
+  }
+
+  commitYearDraft() {
+    const year = this.yearDraft();
+    const numericYear = Number(year);
+    if (/^\d{4}$/.test(year) && numericYear >= 1 && numericYear <= 9999) {
+      this.adjYear.set(numericYear);
+      this.applyAdjuster();
+    } else {
+      this.yearDraft.set(this.adjYear().toString());
     }
   }
 

@@ -140,7 +140,8 @@
       <div class="adjuster-fields-grid">
         <div class="adjust-field">
           <label>Year ({{ adjusterMode() | uppercase }})</label>
-          <input type="number" [ngModel]="adjYear()" (ngModelChange)="adjYear.set($event); applyAdjuster()" />
+          <input type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" [ngModel]="yearDraft()"
+            (ngModelChange)="onYearDraftChange($event)" (blur)="commitYearDraft()" />
         </div>
         <div class="adjust-field">
           <label>Month (1-12)</label>
